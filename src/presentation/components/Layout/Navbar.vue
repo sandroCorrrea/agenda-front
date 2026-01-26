@@ -2,7 +2,6 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { RouterLink } from 'vue-router';
 import {
-    RiCalculatorFill,
     RiMenuLine,
     RiCloseLine,
     RiArrowDownSLine,
@@ -13,6 +12,7 @@ import {
     RiLockLine,
     RiUserLine
 } from "@remixicon/vue";
+import logo from '@/presentation/assets/img/logo.svg';
 
 const navToggle = ref<HTMLElement | null>(null);
 const navMenu = ref<HTMLElement | null>(null);
@@ -28,7 +28,7 @@ function toggleHandler() {
         <nav class="nav container">
             <div class="nav__data">
                 <RouterLink class="nav__logo" to="/">
-                    <RiCalculatorFill /> Agenda Contabilidade
+                    <img :src="logo" alt="Logo" class="nav__logo-img"> Agenda Contabilidade
                 </RouterLink>
 
                 <div
@@ -416,4 +416,22 @@ a {
         transition: top .3s;
     }
 }
+
+.nav__logo-img {
+    height: 32px;
+    width: auto;
+}
+
+@media screen and (max-width: 768px) {
+    .nav__logo-img {
+        height: 26px;
+    }
+}
+
+@media screen and (min-width: 1118px) {
+    .nav__logo-img {
+        height: 36px;
+    }
+}
+
 </style>

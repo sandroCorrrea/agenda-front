@@ -1,0 +1,26 @@
+<svg
+  width="100%"
+  height="100%"
+  viewBox="0 0 100 100"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="none"
+>
+  <!-- Arco externo -->
+  <path
+    d="M10 10 A80 80 0 0 1 90 90 L75 90 A65 65 0 0 0 10 25 Z"
+    fill="#FFFFFF"
+  />
+
+  <!-- Arco intermediário -->
+  <path
+    d="M10 30 A60 60 0 0 1 70 90 L55 90 A45 45 0 0 0 10 45 Z"
+    fill="#FFFFFF"
+  />
+
+  <!-- Arco interno -->
+  <path
+    d="M10 55 A35 35 0 0 1 45 90 L30 90 A20 20 0 0 0 10 70 Z"
+    fill="#FFFFFF"
+  />
+</svg>
+

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import {
     RiMenuLine,
@@ -11,7 +11,9 @@ import {
     RiUserLine,
     RiUser2Line,
     RiClipboardLine,
-    RiBuildingLine
+    RiBuildingLine,
+    RiNewsLine,
+    RiChatHistoryLine
 } from "@remixicon/vue";
 import logo from '@/presentation/assets/img/logo.svg';
 
@@ -104,6 +106,27 @@ function toggleHandler() {
                     </li>
 
                     <li><a href="/contato" class="nav__link">Contato</a></li>
+
+                    <li class="dropdown__item">
+                        <div class="nav__link">
+                            Conteúdos
+                            <RiArrowDownSLine class="dropdown__arrow" />
+                        </div>
+
+                        <ul class="dropdown__menu">
+                            <li>
+                                <a href="/aviso" class="dropdown__link">
+                                    <RiChatHistoryLine /> Aviso
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="dropdown__link">
+                                    <RiNewsLine /> Blog
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
 
                     <li class="dropdown__item">
                         <div class="nav__link">

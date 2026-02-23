@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/servico',
       name: 'Servico',
       component: () => import('@/presentation/pages/Servico/PageHomeServico.vue')
+    },
+    {
+      path: '/aviso',
+      name: 'Aviso',
+      component: () => import('@/presentation/pages/Aviso/PageHomeAviso.vue')
     }
   ],
 })

@@ -5,18 +5,30 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
-      name: 'Home',
+      path: '/login',
+      name: 'Login',
+      component: () => import('@/presentation/pages/Pessoa/PagePessoaLogin.vue')
+    },
+    {
+      path: '/cadastro',
+      name: 'Cadastro',
       component: () => import('@/presentation/pages/Pessoa/PagePessoaCadastro.vue')
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      path: '/recuperar-senha',
+      name: 'RecuperarSenha',
+      component: () => import('@/presentation/pages/Pessoa/PageRecuperarSenha.vue')
     },
+    {
+      path: '/contato',
+      name: 'Contato',
+      component: () => import('@/presentation/pages/Contato/PageHomeContato.vue')
+    },
+    {
+      path: '/servico',
+      name: 'Servico',
+      component: () => import('@/presentation/pages/Servico/PageHomeServico.vue')
+    }
   ],
 })
 

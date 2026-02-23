@@ -5,12 +5,13 @@ import {
     RiMenuLine,
     RiCloseLine,
     RiArrowDownSLine,
-    RiPieChartLine,
     RiArrowDownLine,
     RiArrowUpDownLine,
-    RiMessage3Line,
     RiLockLine,
-    RiUserLine
+    RiUserLine,
+    RiUser2Line,
+    RiClipboardLine,
+    RiBuildingLine
 } from "@remixicon/vue";
 import logo from '@/presentation/assets/img/logo.svg';
 
@@ -48,34 +49,34 @@ function toggleHandler() {
                 </div>
             </div>
 
-            <div class="nav__menu" id="nav-menu" ref="navMenu">
+            <div class="nav__menu" id="nav-menu" ref="navMenu" :class="{ 'show-menu': isOpen }">
                 <ul class="nav__list">
                     <li><a href="#" class="nav__link">Home</a></li>
 
-                    <li><a href="#" class="nav__link">Company</a></li>
+                    <li><a href="/servico" class="nav__link">Serviços</a></li>
 
                     <li class="dropdown__item">
                         <div class="nav__link">
-                            Analytics
+                            APIs
                             <RiArrowDownSLine class="dropdown__arrow" />
                         </div>
 
                         <ul class="dropdown__menu">
                             <li>
                                 <a href="#" class="dropdown__link">
-                                    <RiPieChartLine /> Overview
+                                    <RiUser2Line /> eSocial
                                 </a>
                             </li>
 
                             <li>
                                 <a href="#" class="dropdown__link">
-                                    <RiArrowUpDownLine /> Transactions
+                                    <RiClipboardLine /> Protocolo
                                 </a>
                             </li>
 
                             <li class="dropdown__subitem">
                                 <div class="dropdown__link">
-                                    <RiArrowUpDownLine /> Reports
+                                    <RiBuildingLine /> CASP
                                     <RiArrowDownLine class="dropdown__add" />
                                 </div>
 
@@ -102,36 +103,28 @@ function toggleHandler() {
                         </ul>
                     </li>
 
-                    <li><a href="#" class="nav__link">Products</a></li>
+                    <li><a href="/contato" class="nav__link">Contato</a></li>
 
                     <li class="dropdown__item">
                         <div class="nav__link">
-                            Users
+                            Entrar
                             <RiArrowDownSLine class="dropdown__arrow" />
                         </div>
 
                         <ul class="dropdown__menu">
                             <li>
-                                <a href="#" class="dropdown__link">
-                                    <RiUserLine /> Profiles
+                                <a href="/cadastro" class="dropdown__link">
+                                    <RiUserLine /> Cadastro
                                 </a>
                             </li>
 
                             <li>
-                                <a href="#" class="dropdown__link">
-                                    <RiLockLine /> Accounts
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="#" class="dropdown__link">
-                                    <RiMessage3Line /> Messages
+                                <a href="/login" class="dropdown__link">
+                                    <RiLockLine /> Login
                                 </a>
                             </li>
                         </ul>
                     </li>
-
-                    <li><a href="#" class="nav__link">Contact</a></li>
                 </ul>
             </div>
         </nav>
@@ -162,6 +155,18 @@ a {
     background-color: var(--black-color);
     box-shadow: 0 2px 16px hsla(220, 32%, 8%, .3);
     z-index: var(--z-fixed);
+}
+
+/* Garantir que a navbar e os menus dropdown fiquem acima de outros componentes (cards/formulários) */
+.header {
+    /* Mantém demais estilos existentes e garante sobreposição quando a variável for baixa */
+    z-index: 2000; /* sobrescreve var(--z-fixed) se necessário */
+}
+
+.nav__menu,
+.dropdown__menu,
+.dropdown__submenu {
+    z-index: 2100; /* dropdowns devem ficar acima do header para aparecer sobre cards */
 }
 
 .nav {

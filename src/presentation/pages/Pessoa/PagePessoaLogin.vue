@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import FormCadastro from '@/presentation/components/Pessoa/FormCadastro.vue';
+import FormLogin from '@/presentation/components/Pessoa/FormLogin.vue';
 
 const router = useRouter();
+
 </script>
 
 <template>
     <section>
-        <FormCadastro />
+        <FormLogin />
     </section>
 </template>

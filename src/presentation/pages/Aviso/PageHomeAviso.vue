@@ -7,6 +7,8 @@ import { RiInfoCardLine } from '@remixicon/vue';
 const { findAll, avisos, loading, error } = useFindAllAviso();
 const { download, loading: downloadLoading, error: downloadError } = useDownloadAviso();
 
+const downloading = ref<Record<number, boolean>>({});
+
 const query = ref('');
 let debounceTimer: any = null;
 
@@ -41,18 +43,23 @@ const filteredAvisos = computed(() => {
 });
 
 async function handleDownload(avisoId: number) {
-    const blob = await download(avisoId);
-    if (blob) {
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = `aviso-${avisoId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-    } else {
-        console.error('Falha no download:', downloadError.value);
+    downloading.value[avisoId] = true;
+    try {
+        const blob = await download(avisoId);
+        if (blob) {
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `aviso-${avisoId}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } else {
+            console.error('Falha no download:', downloadError.value);
+        }
+    } finally {
+        downloading.value[avisoId] = false;
     }
 }
 </script>
@@ -103,8 +110,8 @@ async function handleDownload(avisoId: number) {
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <small class="text-muted">Disponível por 24 horas</small>
                                     <button class="btn btn-primary btn-sm" @click="handleDownload(aviso.id)"
-                                        :disabled="downloadLoading">
-                                        {{ downloadLoading ? 'Baixando...' : 'Baixar' }}
+                                        :disabled="downloading[aviso.id]">
+                                        {{ downloading[aviso.id] ? 'Baixando...' : 'Baixar' }}
                                     </button>
                                 </div>
                             </div>

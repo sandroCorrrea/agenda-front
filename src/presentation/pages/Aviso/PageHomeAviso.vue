@@ -102,7 +102,7 @@ async function handleDownload(avisoId: number) {
 
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <small class="text-muted">Disponível por 24 horas</small>
-                                    <button class="btn btn-outline-primary btn-sm" @click="handleDownload(aviso.id)"
+                                    <button class="btn btn-primary btn-sm" @click="handleDownload(aviso.id)"
                                         :disabled="downloadLoading">
                                         {{ downloadLoading ? 'Baixando...' : 'Baixar' }}
                                     </button>

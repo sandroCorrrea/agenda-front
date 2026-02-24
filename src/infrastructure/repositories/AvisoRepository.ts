@@ -24,4 +24,15 @@ export class AvisoRepository implements IAvisoRepository {
             item.expiracao ? (new Date(item.expiracao) as any) : (undefined as any)
         ));
     }
+
+    async downloadPdf(id: number): Promise<Blob> {
+        const token = import.meta.env.VITE_TOKEN_API_AVISO;
+        const response = await this.api.get(`/aviso/${id}/pdf`, {
+            headers: {
+                'X-AVISO-API-KEY': token
+            },
+            responseType: 'blob'
+        });
+        return response.data;
+    }
 }

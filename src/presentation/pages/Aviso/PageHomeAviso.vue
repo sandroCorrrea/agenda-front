@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { onMounted, ref, computed, watch } from 'vue';
 import { useFindAllAviso } from '@/presentation/composables/Aviso/useFindAllAviso';
+import { useDownloadAviso } from '@/presentation/composables/Aviso/useDownloadAviso';
 import { RiInfoCardLine } from '@remixicon/vue';
 
 const { findAll, avisos, loading, error } = useFindAllAviso();
+const { download, loading: downloadLoading, error: downloadError } = useDownloadAviso();
+
 const query = ref('');
 let debounceTimer: any = null;
 
@@ -36,20 +39,41 @@ function formatDate(dateStr: string | undefined) {
 const filteredAvisos = computed(() => {
     return avisos.value;
 });
+
+async function handleDownload(avisoId: number) {
+    const blob = await download(avisoId);
+    if (blob) {
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `aviso-${avisoId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } else {
+        console.error('Falha no download:', downloadError.value);
+    }
+}
 </script>
 
 <template>
     <article class="page-servicos d-flex align-items-start min-vh-100 py-4">
         <div class="container">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+            <div
+                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
                 <div class="mb-2 mb-md-0">
                     <h1 class="mb-1">Avisos</h1>
-                    <p class="text-muted mb-0 small"><RiInfoCardLine /> Os avisos ficam disponíveis apenas por 24 horas; após esse período eles expiram automaticamente.</p>
+                    <p class="text-muted mb-0 small">
+                        <RiInfoCardLine /> Os avisos ficam disponíveis apenas por 24 horas; após esse período eles
+                        expiram automaticamente.
+                    </p>
                 </div>
 
                 <div class="ms-0 ms-md-3 search-box">
                     <div class="input-group">
-                        <input v-model="query" type="search" class="form-control" placeholder="Buscar por nome do aviso" aria-label="Buscar avisos" />
+                        <input v-model="query" type="search" class="form-control" placeholder="Buscar por nome do aviso"
+                            aria-label="Buscar avisos" />
                     </div>
                 </div>
             </div>
@@ -60,7 +84,8 @@ const filteredAvisos = computed(() => {
             </div>
 
             <div>
-                <div v-if="!filteredAvisos || filteredAvisos.length === 0" class="text-muted">Nenhum aviso encontrado.</div>
+                <div v-if="!filteredAvisos || filteredAvisos.length === 0" class="text-muted">Nenhum aviso encontrado.
+                </div>
 
                 <div class="row g-3 mt-2 justify-content-center" v-else>
                     <div class="col-12 col-md-8" v-for="aviso in filteredAvisos" :key="aviso.id">
@@ -77,7 +102,10 @@ const filteredAvisos = computed(() => {
 
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <small class="text-muted">Disponível por 24 horas</small>
-                                    <button class="btn btn-outline-primary btn-sm" type="button">Baixar</button>
+                                    <button class="btn btn-outline-primary btn-sm" @click="handleDownload(aviso.id)"
+                                        :disabled="downloadLoading">
+                                        {{ downloadLoading ? 'Baixando...' : 'Baixar' }}
+                                    </button>
                                 </div>
                             </div>
                         </div>

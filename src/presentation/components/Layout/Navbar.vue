@@ -120,7 +120,7 @@ function toggleHandler() {
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="dropdown__link">
+                                <a href="/blog" class="dropdown__link">
                                     <RiNewsLine /> Blog
                                 </a>
                             </li>

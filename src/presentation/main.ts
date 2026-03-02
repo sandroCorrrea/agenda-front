@@ -9,6 +9,8 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "@/presentation/assets/global.css"
 import { AvisoRepository } from "@/infrastructure/repositories/AvisoRepository";
+import { BlogCategoriaRepository } from "@/infrastructure/repositories/BlogCategoriaRepository";
+import { BlogPostagemRepository } from "@/infrastructure/repositories/BlogPostagemRepository";
 
 const app = createApp(App);
 const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL ?? import.meta.env.BASE_URL });
@@ -16,9 +18,14 @@ const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL ?? import.
 const pessoaRespository = new PessoaRepository(api);
 const servicoRepository = new ServicoRepository(api);
 const avisoRepository = new AvisoRepository(api);
+const blogCategoria = new BlogCategoriaRepository(api);
+const blogPostagem = new BlogPostagemRepository(api);
+
 app.provide('IPessoaRepository', pessoaRespository);
 app.provide('IServicoRepository', servicoRepository);
 app.provide('IAvisoRepository', avisoRepository);
+app.provide('IBlogCategoriaRepository', blogCategoria);
+app.provide('IBlogPostagemRepository', blogPostagem);
 
 app.use(createPinia());
 app.use(router);

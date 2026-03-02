@@ -33,6 +33,14 @@ const router = createRouter({
       path: '/aviso',
       name: 'Aviso',
       component: () => import('@/presentation/pages/Aviso/PageHomeAviso.vue')
+    },
+    {
+      path: '/blog',
+      name: 'Blog',
+      component: () => import('@/presentation/pages/Blog/PageHomeBlog.vue'),
+      props: route => ({
+        page: Number(route.query.page) || 1
+      })
     }
   ],
 })

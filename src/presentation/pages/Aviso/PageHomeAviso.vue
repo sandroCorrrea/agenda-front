@@ -77,7 +77,7 @@ async function handleDownload(avisoId: number) {
                     </p>
                 </div>
 
-                <div class="ms-0 ms-md-3 search-box">
+                <div class="ms-0 ms-md-3 search-box" v-if="filteredAvisos && filteredAvisos.length > 0">
                     <div class="input-group">
                         <input v-model="query" type="search" class="form-control" placeholder="Buscar por nome do aviso"
                             aria-label="Buscar avisos" />

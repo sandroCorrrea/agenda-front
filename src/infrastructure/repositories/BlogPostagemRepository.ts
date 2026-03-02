@@ -29,14 +29,11 @@ export class BlogPostagemRepository implements IBlogPostagemRepository {
                 item.categoria,
                 item.status,
                 item?.imagem,
-                item?.arquivo
+                item?.arquivo,
+                new Date(item?.dataCriacao),
+                new Date(item?.dataAlteracao)
             )
         );
-
-        const total = data.total ?? 0;
-        const currentPage = data.pagina ?? 1;
-        const perPage = data.porPagina ?? per_page;
-
         return {
             data: mapped,
             total: data.total,

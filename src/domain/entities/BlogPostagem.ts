@@ -9,5 +9,7 @@ export class BlogPostagem {
         public status: string,
         public imagem: string | null,
         public arquivo: string | null,
+        public dataCriacao: Date | null,
+        public dataAlteracao: Date | null
     ) {}
 }

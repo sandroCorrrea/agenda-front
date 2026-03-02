@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { BlogCategoria } from '@/domain/entities/BlogCategoria';
-import { onMounted, ref, computed } from 'vue';
 import noPost from '@/presentation/assets/img/no-post.png';
 import { usePagination } from '@/presentation/composables/usePagination';
 import BasePagination from '../Shared/BasePagination.vue';
@@ -31,16 +30,21 @@ const props = withDefaults(defineProps<{
     url: ''
 });
 
-function truncate(text: string, length: number): string {
-    if (text.length <= length) return text;
-    return text.substring(0, length) + '...';
-}
-
 const { goToPage } = usePagination(
     async (page: number) => {
         await props.findAllPostagem(page, props.perPage)
     }
 );
+
+function formatarData(data: Date) {
+    return new Intl.DateTimeFormat('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(data)
+}
 
 </script>
 
@@ -68,15 +72,19 @@ const { goToPage } = usePagination(
                     <div v-else class="posts-list">
                         <div v-for="post in blogPostagem" :key="post.id" class="blog-card mb-5">
                             <div class="blog-img">
-                                <img :src="`${url}/${post.imagem}`" :alt="post.nome" class="img-fluid" />
-                                <span class="blog-date">17/01/2026</span>
+                                <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
+                                <span class="blog-date"> {{ formatarData(post.dataCriacao) }}</span>
                             </div>
                             <div class="blog-content">
                                 <h3 class="blog-title">
                                     <router-link :to="`/blog/${post.id}`">{{ post.nome }}</router-link>
                                 </h3>
-                                <p class="blog-text" v-if="0">
-                                    {{ truncate(post.descricao, 50) }}
+                                <p class="blog-text" v-if="post.descricao.length > 90">
+                                    {{ post.descricao.slice(0, 90) }} ...
+                                </p>
+
+                                <p class="blog-text" v-else>
+                                    {{ post.descricao }}
                                 </p>
                                 <div class="blog-meta">
                                     <div class="blog-author">
@@ -92,11 +100,7 @@ const { goToPage } = usePagination(
                             </div>
                         </div>
 
-                        <BasePagination 
-                            :currentPage="currentPage" 
-                            :lastPage="lastPage" 
-                            @change="goToPage" 
-                        />
+                        <BasePagination :currentPage="currentPage" :lastPage="lastPage" @change="goToPage" />
                     </div>
                 </div>
             </div>
@@ -117,7 +121,6 @@ const { goToPage } = usePagination(
     font-weight: 700;
 }
 
-/* Cards de postagem */
 .blog-card {
     background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
     border: 1px solid rgba(20, 30, 40, 0.04);
@@ -236,7 +239,6 @@ const { goToPage } = usePagination(
     color: #1e7e84;
 }
 
-/* Sidebar */
 .sidebar {
     background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
     border: 1px solid rgba(20, 30, 40, 0.04);
@@ -265,7 +267,6 @@ const { goToPage } = usePagination(
     border-radius: 3px;
 }
 
-/* Formulário de busca */
 .search-form .input-group {
     border-radius: 12px;
     overflow: hidden;
@@ -302,7 +303,6 @@ const { goToPage } = usePagination(
     background: linear-gradient(90deg, #4a5bb0 0%, #248f97 100%);
 }
 
-/* Lista de categorias */
 .categories-list {
     list-style: none;
     padding: 0;
@@ -337,7 +337,6 @@ const { goToPage } = usePagination(
     color: #475569;
 }
 
-/* Posts recentes */
 .recent-post {
     display: flex;
     gap: 1rem;
@@ -381,7 +380,6 @@ const { goToPage } = usePagination(
     color: #64748b;
 }
 
-/* Tags */
 .tags {
     display: flex;
     flex-wrap: wrap;
@@ -408,7 +406,6 @@ const { goToPage } = usePagination(
     transform: translateY(-2px);
 }
 
-/* Newsletter card */
 .newsletter-card {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-radius: 16px;
@@ -462,7 +459,6 @@ const { goToPage } = usePagination(
     box-shadow: 0 10px 20px rgba(45, 160, 168, 0.3);
 }
 
-/* Paginação */
 .pagination {
     gap: 0.25rem;
     margin-top: 2rem;
@@ -498,7 +494,6 @@ const { goToPage } = usePagination(
     border-color: #cbd5e1;
 }
 
-/* Responsividade */
 @media (max-width: 991.98px) {
     .blog-card {
         margin-bottom: 1.5rem;
@@ -531,7 +526,6 @@ const { goToPage } = usePagination(
     }
 }
 
-/* Ajuste para ícones boxicons */
 .bx {
     vertical-align: middle;
 }

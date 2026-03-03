@@ -2,6 +2,7 @@ import type { AxiosInstance } from "axios";
 import { BlogPostagem } from "@/domain/entities/BlogPostagem";
 import type { IBlogPostagemRepository } from "@/domain/repositories/IBlogPostagemRepository";
 import type { PaginatedResult } from "@/domain/types/PaginatedResult";
+import { BlogPostagemTagGetResponse } from "@/application/dto/BlogPostagem/BlogPostagemTagGetResponse";
 
 export class BlogPostagemRepository implements IBlogPostagemRepository {
     constructor(
@@ -41,5 +42,15 @@ export class BlogPostagemRepository implements IBlogPostagemRepository {
             porPagina: data.porPagina,
             lastPage: Math.ceil(data.total / data.porPagina)
         }
+    }
+
+    async findTag(): Promise<Array<BlogPostagemTagGetResponse>> {
+        const resp = await this.api.get("/blog/postagem/tag");
+        const data = resp.data;
+        const items = data ?? [];
+        const mapped = items.map((item: any) =>
+            new BlogPostagemTagGetResponse(item.nome)
+        );
+        return mapped;
     }
 }

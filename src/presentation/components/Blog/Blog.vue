@@ -26,7 +26,9 @@ const props = withDefaults(defineProps<{
     perPage: number;
     lastPage: number;
     findAllBlogCategoriaQtdPostagem: () => Promise<void>,
-    blogCategoriaQtdPostagem: any[]
+    blogCategoriaQtdPostagem: any[],
+    findTag: () => Promise<void>,
+    blogPostagemTag: any[]
 }>(), {
     blogCategorias: () => [],
     blogPostagem: () => [],
@@ -59,6 +61,7 @@ const hasPosts = computed(() => firstThreePosts.value.length > 0);
 
 onMounted(() => {
     props.findAllBlogCategoriaQtdPostagem()
+    props.findTag()
 });
 
 </script>
@@ -172,18 +175,16 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- Tags -->
-                    <div class="sidebar mb-4" v-if="tags?.length">
+                    <div class="sidebar mb-4" v-if="blogPostagemTag?.length">
                         <h3 class="sidebar-title">Tags</h3>
                         <div class="tags">
-                            <router-link v-for="tag in tags" :key="tag.palavra" :to="`/blog?tag=${tag.palavra}`"
+                            <router-link v-for="tag in blogPostagemTag" :key="tag.nome" :to="`/blog?tag=${tag.nome}`"
                                 class="tag-link">
-                                {{ tag.palavra }}
+                                {{ tag.nome }}
                             </router-link>
                         </div>
                     </div>
 
-                    <!-- Newsletter -->
                     <div class="newsletter-card">
                         <h4>Assine nossa Newsletter</h4>
                         <p class="text-muted">Receba as últimas notícias e atualizações no seu e-mail.</p>

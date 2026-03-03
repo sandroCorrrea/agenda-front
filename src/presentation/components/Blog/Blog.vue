@@ -1,21 +1,19 @@
 <script lang="ts" setup>
-import { BlogCategoria } from '@/domain/entities/BlogCategoria';
 import noPost from '@/presentation/assets/img/no-post.png';
 import { usePagination } from '@/presentation/composables/usePagination';
 import BasePagination from '../Shared/BasePagination.vue';
 import BaseSkeleton from '../Shared/BaseSkeleton.vue';
 import {
     RiArrowRightDoubleLine,
-    RiSearchLine
+    RiSearchLine,
+    RiArrowLeftLine
 } from "@remixicon/vue";
 import profile from '@/presentation/assets/img/profile.svg'
 import { onMounted, computed } from 'vue';
+import { formatarData } from '@/shared/utils/date.util';
+import { useNavigation } from '@/shared/composables/useNavigation';
 
 const props = withDefaults(defineProps<{
-    findAll: (page?: number, per_page?: number, nome?: string) => Promise<void>;
-    blogCategorias: BlogCategoria[];
-    loading: boolean;
-    error: string | null;
     findAllPostagem: (page?: number, per_page?: number, nome?: string) => Promise<void>;
     blogPostagem: any[];
     loadingPostagem: boolean;
@@ -28,9 +26,10 @@ const props = withDefaults(defineProps<{
     findAllBlogCategoriaQtdPostagem: () => Promise<void>,
     blogCategoriaQtdPostagem: any[],
     findTag: () => Promise<void>,
-    blogPostagemTag: any[]
+    blogPostagemTag: any[],
+    findAllRecent: (page: number, per_page: number) => Promise<void>,
+    blogPostagemRecent: any[]
 }>(), {
-    blogCategorias: () => [],
     blogPostagem: () => [],
     error: null,
     errorPostagem: null,
@@ -38,32 +37,21 @@ const props = withDefaults(defineProps<{
     blogCategoriaQtdPostagem: () => []
 });
 
+const { irPara } = useNavigation();
+
 const { goToPage } = usePagination(
     async (page: number) => {
         await props.findAllPostagem(page, props.perPage)
     }
 );
 
-function formatarData(data: Date) {
-    return new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(data)
-}
-
-const firstThreePosts = computed(() => {
-  return props.blogPostagem.slice(0, 3);
-});
-const hasPosts = computed(() => firstThreePosts.value.length > 0);
+const isDetail = computed(() => props.blogPostagem.length === 1);
 
 onMounted(() => {
     props.findAllBlogCategoriaQtdPostagem()
-    props.findTag()
+    props.findTag(),
+    props.findAllRecent(1, 3)
 });
-
 </script>
 
 <template>
@@ -88,6 +76,16 @@ onMounted(() => {
                     </div>
 
                     <div v-else class="posts-list">
+                        <div v-if="isDetail" class="mb-4">
+                        <button
+                            @click="irPara('Blog')"
+                            class="btn-back d-flex align-items-center gap-2 btn btn-sm"
+                        >
+                            <RiArrowLeftLine />
+                            <span class="label">Voltar para o Blog</span>
+                        </button>
+                        </div>
+
                         <div v-for="post in blogPostagem" :key="post.id" class="blog-card">
                             <div class="blog-img">
                                 <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
@@ -109,12 +107,10 @@ onMounted(() => {
                                     <router-link :to="`/blog/${post.id}`">{{ post.nome }}</router-link>
                                 </h3>
 
-                                <p class="blog-text" v-if="post.descricao.length > 90">
-                                    {{ post.descricao.slice(0, 120) }} ...
-                                </p>
-
-                                <p class="blog-text" v-else>
-                                    {{ post.descricao }}
+                                <p class="blog-text">
+                                    {{ isDetail ? post.descricao : (post.descricao.length > 120 
+                                        ? post.descricao.slice(0, 120) + ' ...' 
+                                        : post.descricao) }}
                                 </p>
 
                                 <div class="blog-meta">
@@ -124,7 +120,7 @@ onMounted(() => {
                                         <span>Por Sandro Corrêa Rocha Júnior</span>
                                     </div>
 
-                                    <router-link :to="`/blog/${post.id}`" class="read-more-btn">
+                                    <router-link v-if="!isDetail" :to="`/blog/${post.id}`" class="read-more-btn">
                                         <span>Ler mais</span>
                                         <RiArrowRightDoubleLine />
                                     </router-link>
@@ -132,7 +128,12 @@ onMounted(() => {
                             </div>
                         </div>
 
-                        <BasePagination :currentPage="currentPage" :lastPage="lastPage" @change="goToPage" />
+                        <BasePagination 
+                            v-if="!isDetail"
+                            :currentPage="currentPage" 
+                            :lastPage="lastPage" 
+                            @change="goToPage" 
+                        />
                     </div>
                 </div>
                 <div class="col-12 col-lg-4 order-1 order-lg-2">
@@ -160,9 +161,9 @@ onMounted(() => {
                         </ul>
                     </div>
 
-                    <div class="sidebar mb-4" v-if="hasPosts">
+                    <div class="sidebar mb-4" v-if="blogPostagemRecent?.length">
                         <h3 class="sidebar-title">Posts Recentes</h3>
-                        <div v-for="post in firstThreePosts" :key="post.id" class="recent-post">
+                        <div v-for="post in blogPostagemRecent" :key="post.id" class="recent-post">
                             <div class="recent-post-img">
                                 <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
                             </div>
@@ -549,9 +550,39 @@ onMounted(() => {
     background: #f1f5f9;
 }
 
+.btn-back {
+  background: transparent;
+  border: 1px solid #dee2e6;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.25s ease;
+}
+
+.btn-back i {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.btn-back:hover i {
+  transform: translateX(-3px);
+}
+
 @media (max-width: 992px) {
     .sidebar {
         margin-top: 2rem;
     }
+}
+
+@media (max-width: 576px) {
+  .btn-back {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-back .label {
+    font-size: 0.9rem;
+  }
 }
 </style>

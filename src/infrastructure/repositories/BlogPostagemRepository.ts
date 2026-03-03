@@ -53,4 +53,20 @@ export class BlogPostagemRepository implements IBlogPostagemRepository {
         );
         return mapped;
     }
+
+    async findById(id: number): Promise<BlogPostagem> {
+        const resp = await this.api.get(`/blog/postagem/${id}`);
+        const item = resp.data;
+        return new BlogPostagem(
+            item.id,
+            item.nome,
+            item.descricao,
+            item.categoria,
+            item.status,
+            item?.imagem,
+            item?.arquivo,
+            new Date(item?.dataCriacao),
+            new Date(item?.dataAlteracao)
+        );
+    }
 }

@@ -5,8 +5,11 @@ import { usePagination } from '@/presentation/composables/usePagination';
 import BasePagination from '../Shared/BasePagination.vue';
 import BaseSkeleton from '../Shared/BaseSkeleton.vue';
 import {
-    RiArrowRightDoubleLine
+    RiArrowRightDoubleLine,
+    RiSearchLine
 } from "@remixicon/vue";
+import profile from '@/presentation/assets/img/profile.svg'
+import { onMounted, computed } from 'vue';
 
 const props = withDefaults(defineProps<{
     findAll: (page?: number, per_page?: number, nome?: string) => Promise<void>;
@@ -22,12 +25,15 @@ const props = withDefaults(defineProps<{
     currentPage: number;
     perPage: number;
     lastPage: number;
+    findAllBlogCategoriaQtdPostagem: () => Promise<void>,
+    blogCategoriaQtdPostagem: any[]
 }>(), {
     blogCategorias: () => [],
     blogPostagem: () => [],
     error: null,
     errorPostagem: null,
-    url: ''
+    url: '',
+    blogCategoriaQtdPostagem: () => []
 });
 
 const { goToPage } = usePagination(
@@ -46,6 +52,15 @@ function formatarData(data: Date) {
     }).format(data)
 }
 
+const firstThreePosts = computed(() => {
+  return props.blogPostagem.slice(0, 3);
+});
+const hasPosts = computed(() => firstThreePosts.value.length > 0);
+
+onMounted(() => {
+    props.findAllBlogCategoriaQtdPostagem()
+});
+
 </script>
 
 <template>
@@ -61,7 +76,7 @@ function formatarData(data: Date) {
                 </div>
             </div>
 
-            <div class="row g-4" v-if="blogPostagem?.length">
+            <div class="row g-5" v-if="blogPostagem?.length">
                 <div class="col-12 col-lg-8 order-2 order-lg-1">
                     <div v-if="!blogPostagem.length && !loadingPostagem" class="text-center py-5">
                         <img :src="noPost" alt="Nenhuma postagem" class="img-fluid mb-3"
@@ -70,28 +85,42 @@ function formatarData(data: Date) {
                     </div>
 
                     <div v-else class="posts-list">
-                        <div v-for="post in blogPostagem" :key="post.id" class="blog-card mb-5">
+                        <div v-for="post in blogPostagem" :key="post.id" class="blog-card">
                             <div class="blog-img">
                                 <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
-                                <span class="blog-date"> {{ formatarData(post.dataCriacao) }}</span>
+
+                                <div class="blog-dates">
+                                    <span class="blog-date">
+                                        Publicado em {{ formatarData(new Date(post.dataCriacao)) }}
+                                    </span>
+
+                                    <span v-if="post.dataAlteracao && post.dataAlteracao !== post.dataCriacao"
+                                        class="blog-update">
+                                        Atualizado em {{ formatarData(new Date(post.dataAlteracao)) }}
+                                    </span>
+                                </div>
                             </div>
+
                             <div class="blog-content">
                                 <h3 class="blog-title">
                                     <router-link :to="`/blog/${post.id}`">{{ post.nome }}</router-link>
                                 </h3>
+
                                 <p class="blog-text" v-if="post.descricao.length > 90">
-                                    {{ post.descricao.slice(0, 90) }} ...
+                                    {{ post.descricao.slice(0, 120) }} ...
                                 </p>
 
                                 <p class="blog-text" v-else>
                                     {{ post.descricao }}
                                 </p>
+
                                 <div class="blog-meta">
                                     <div class="blog-author">
-                                        <img :src="post.autor_imagem ? `/storage/usuarios/${post.autor_imagem}` : '/assets/img/default-avatar.svg'"
-                                            :alt="post.autor" class="img-fluid" />
-                                        <span>Por {{ post.autor }}</span>
+                                        <img :src="post.autor_imagem ? `/storage/usuarios/${post.autor_imagem}` : profile"
+                                            :alt="post.autor" />
+                                        <span>Por Sandro Corrêa Rocha Júnior</span>
                                     </div>
+
                                     <router-link :to="`/blog/${post.id}`" class="read-more-btn">
                                         <span>Ler mais</span>
                                         <RiArrowRightDoubleLine />
@@ -103,204 +132,300 @@ function formatarData(data: Date) {
                         <BasePagination :currentPage="currentPage" :lastPage="lastPage" @change="goToPage" />
                     </div>
                 </div>
+                <div class="col-12 col-lg-4 order-1 order-lg-2">
+                    <div class="sidebar mb-4">
+                        <h3 class="sidebar-title">Buscar</h3>
+                        <form class="search-form" @submit.prevent="handleSearch">
+                            <div class="input-group">
+                                <input v-model="searchQuery" type="text" class="form-control"
+                                    placeholder="Digite sua busca..." />
+                                <button class="btn btn-primary" type="submit">
+                                    <RiSearchLine />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="sidebar mb-4" v-if="blogCategoriaQtdPostagem?.length">
+                        <h3 class="sidebar-title">Categorias</h3>
+                        <ul class="categories-list">
+                            <li v-for="cat in blogCategoriaQtdPostagem" :key="cat.id">
+                                <router-link :to="`/blog?categoria=${cat.id}`">
+                                    {{ cat.nome }} <span>({{ cat.quantidade }})</span>
+                                </router-link>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar mb-4" v-if="hasPosts">
+                        <h3 class="sidebar-title">Posts Recentes</h3>
+                        <div v-for="post in firstThreePosts" :key="post.id" class="recent-post">
+                            <div class="recent-post-img">
+                                <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
+                            </div>
+                            <div class="recent-post-content">
+                                <h5>
+                                    <router-link :to="`/blog/${post.id}`">{{ post.nome }}</router-link>
+                                </h5>
+                                <span>{{ formatarData(post.dataAlteracao) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="sidebar mb-4" v-if="tags?.length">
+                        <h3 class="sidebar-title">Tags</h3>
+                        <div class="tags">
+                            <router-link v-for="tag in tags" :key="tag.palavra" :to="`/blog?tag=${tag.palavra}`"
+                                class="tag-link">
+                                {{ tag.palavra }}
+                            </router-link>
+                        </div>
+                    </div>
+
+                    <!-- Newsletter -->
+                    <div class="newsletter-card">
+                        <h4>Assine nossa Newsletter</h4>
+                        <p class="text-muted">Receba as últimas notícias e atualizações no seu e-mail.</p>
+                        <form @submit.prevent="subscribeNewsletter">
+                            <div class="mb-3">
+                                <input v-model="newsletterEmail" type="email" class="form-control"
+                                    placeholder="Seu e-mail" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Assinar</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </article>
 </template>
 
 <style scoped>
-.blog-page {
+.page-servicos {
     background: linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 247, 250, 1) 100%);
-    min-height: 100vh;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-top: 6rem;
+    padding-bottom: 4rem;
 }
 
-.page-servicos h1 {
-    font-size: 1.5rem;
+.section-title {
+    font-size: 1.8rem;
     font-weight: 700;
-}
-
-.blog-card {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-    border: 1px solid rgba(20, 30, 40, 0.04);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 12px 30px rgba(20, 30, 40, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.blog-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(20, 30, 40, 0.1);
-}
-
-.blog-img {
-    position: relative;
-    height: 240px;
-    overflow: hidden;
-}
-
-.blog-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.blog-card:hover .blog-img img {
-    transform: scale(1.05);
-}
-
-.blog-date {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(4px);
-    padding: 0.5rem 1rem;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #2da0a8;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.blog-content {
-    padding: 1.5rem;
-}
-
-.blog-title {
-    font-size: 1.35rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
-}
-
-.blog-title a {
-    color: #1e293b;
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.blog-title a:hover {
-    color: #2da0a8;
-}
-
-.blog-text {
-    color: #475569;
-    line-height: 1.7;
-    margin-bottom: 1rem;
-}
-
-.blog-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid #e9eef2;
-    padding-top: 1rem;
-    margin-top: 0.5rem;
-}
-
-.blog-author {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.blog-author img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.blog-author span {
-    font-size: 0.95rem;
-    color: #334155;
-    font-weight: 500;
-}
-
-.read-more-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: #2da0a8;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: gap 0.2s;
-}
-
-.read-more-btn:hover {
-    gap: 0.5rem;
-    color: #1e7e84;
-}
-
-.sidebar {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-    border: 1px solid rgba(20, 30, 40, 0.04);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 8px 24px rgba(20, 30, 40, 0.04);
-}
-
-.sidebar-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 1.25rem;
     color: #1e293b;
     position: relative;
-    padding-bottom: 0.5rem;
+    display: inline-block;
+    padding-bottom: .5rem;
+    margin-bottom: 2rem;
 }
 
-.sidebar-title::after {
+.section-title::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50px;
+    width: 60px;
     height: 3px;
     background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
     border-radius: 3px;
 }
 
-.search-form .input-group {
-    border-radius: 12px;
+
+.blog-card {
+    background: #ffffff;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06);
+    transition: all 0.3s ease;
+    margin-bottom: 3rem;
+}
+
+.blog-img {
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+}
+
+
+.blog-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.blog-dates {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.blog-date {
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 8px 18px rgba(45, 160, 168, 0.25);
+}
+
+.blog-update {
+    background: rgba(255, 255, 255, 0.95);
+    color: #475569;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.blog-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.blog-content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.blog-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.blog-title a {
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.blog-text {
+    color: #64748b;
+    line-height: 1.8;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.blog-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.blog-author {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.blog-author img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.blog-author span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #334155;
+}
+
+.read-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.blog-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .blog-img {
+        height: 220px;
+    }
+
+    .blog-title {
+        font-size: 1.2rem;
+    }
+
+    .blog-content {
+        padding: 1.5rem;
+    }
+
+    .blog-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+.sidebar {
+    background: #ffffff;
+    padding: 1.8rem;
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+    transition: all 0.3s ease;
+}
+
+.sidebar:hover {
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07);
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-bottom: .6rem;
+    color: #0f172a;
+}
+
+.sidebar-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
 }
 
 .search-form .form-control {
-    background: #f6fbfc;
-    border: 1px solid #e6f0f4;
-    border-right: none;
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
     border-radius: 12px 0 0 12px;
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
 }
 
-.search-form .form-control:focus {
-    outline: none;
-    border-color: #5c6bc0;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-.search-form .btn-primary {
+.search-form .btn {
+    border-radius: 0 12px 12px 0;
     background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
     border: none;
-    padding: 0 1.2rem;
-    border-radius: 0 12px 12px 0;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.search-form .btn-primary:hover {
-    background: linear-gradient(90deg, #4a5bb0 0%, #248f97 100%);
 }
 
 .categories-list {
@@ -310,223 +435,122 @@ function formatarData(data: Date) {
 }
 
 .categories-list li {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.8rem;
 }
 
 .categories-list a {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    color: #334155;
     text-decoration: none;
-    font-size: 0.95rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px dashed #e2e8f0;
-    transition: color 0.2s;
+    color: #334155;
+    font-weight: 500;
+    padding: 0.5rem 0.7rem;
+    border-radius: 10px;
+    transition: all 0.2s ease;
 }
 
 .categories-list a:hover {
-    color: #2da0a8;
-}
-
-.categories-list span {
-    background: #f1f5f9;
-    padding: 0.2rem 0.6rem;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    color: #475569;
+    background: rgba(92, 107, 192, 0.08);
+    color: #5c6bc0;
 }
 
 .recent-post {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1.25rem;
-    align-items: center;
-}
-
-.recent-post-img {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 1px solid #e9eef2;
+    margin-bottom: 1.2rem;
 }
 
 .recent-post-img img {
-    width: 100%;
-    height: 100%;
+    width: 75px;
+    height: 75px;
     object-fit: cover;
+    border-radius: 12px;
 }
 
 .recent-post-content h5 {
     font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin: 0 0 0.3rem 0;
     line-height: 1.4;
 }
 
-.recent-post-content h5 a {
-    color: #1e293b;
+.recent-post-content a {
     text-decoration: none;
+    color: #0f172a;
+    font-weight: 600;
 }
 
-.recent-post-content h5 a:hover {
-    color: #2da0a8;
+.recent-post-content a:hover {
+    color: #5c6bc0;
 }
 
 .recent-post-content span {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #64748b;
 }
 
 .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.6rem;
 }
 
 .tag-link {
-    display: inline-block;
-    padding: 0.4rem 1rem;
-    background: #f1f5f9;
-    border-radius: 30px;
-    color: #334155;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
     text-decoration: none;
-    transition: all 0.2s;
-    border: 1px solid transparent;
+    background: rgba(92, 107, 192, 0.08);
+    color: #5c6bc0;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .tag-link:hover {
     background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
-    color: #ffffff;
-    border-color: transparent;
-    transform: translateY(-2px);
+    color: #fff;
 }
 
 .newsletter-card {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-radius: 16px;
-    padding: 1.75rem;
-    color: #ffffff;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #5c6bc0 0%, #2da0a8 100%);
+    padding: 2rem;
+    border-radius: 20px;
+    color: #fff;
+    box-shadow: 0 15px 35px rgba(45, 160, 168, 0.25);
 }
 
 .newsletter-card h4 {
     font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: #ffffff;
+    margin-bottom: 0.8rem;
 }
 
 .newsletter-card p {
-    color: #cbd5e1 !important;
     font-size: 0.9rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
 }
 
 .newsletter-card .form-control {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
     border-radius: 12px;
+    border: none;
     padding: 0.75rem 1rem;
 }
 
-.newsletter-card .form-control::placeholder {
-    color: #94a3b8;
-}
-
-.newsletter-card .form-control:focus {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: #5c6bc0;
-    box-shadow: none;
-}
-
-.newsletter-card .btn-primary {
-    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
-    border: none;
+.newsletter-card .btn {
     border-radius: 12px;
-    padding: 0.75rem;
-    font-weight: 600;
-    margin-top: 0.5rem;
-}
-
-.newsletter-card .btn-primary:hover {
-    background: linear-gradient(90deg, #4a5bb0 0%, #248f97 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(45, 160, 168, 0.3);
-}
-
-.pagination {
-    gap: 0.25rem;
-    margin-top: 2rem;
-}
-
-.page-item .page-link {
-    border: none;
     background: #ffffff;
-    color: #334155;
-    border-radius: 8px !important;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-    transition: all 0.2s;
-    border: 1px solid #e2e8f0;
+    color: #5c6bc0;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
 }
 
-.page-item.active .page-link {
-    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
-    color: #ffffff;
-    border-color: transparent;
-}
-
-.page-item.disabled .page-link {
+.newsletter-card .btn:hover {
     background: #f1f5f9;
-    color: #94a3b8;
-    border-color: #e2e8f0;
-    pointer-events: none;
 }
 
-.page-item .page-link:hover:not(.disabled) {
-    background: #e6f0f4;
-    border-color: #cbd5e1;
-}
-
-@media (max-width: 991.98px) {
-    .blog-card {
-        margin-bottom: 1.5rem;
-    }
-
+@media (max-width: 992px) {
     .sidebar {
-        margin-bottom: 1.5rem;
+        margin-top: 2rem;
     }
-
-    .recent-post {
-        flex-direction: row;
-    }
-}
-
-@media (max-width: 575.98px) {
-    .blog-img {
-        height: 200px;
-    }
-
-    .blog-content {
-        padding: 1.25rem;
-    }
-
-    .blog-title {
-        font-size: 1.2rem;
-    }
-
-    .sidebar {
-        padding: 1.25rem;
-    }
-}
-
-.bx {
-    vertical-align: middle;
 }
 </style>

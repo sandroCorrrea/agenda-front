@@ -2,6 +2,7 @@
 import Blog from '@/presentation/components/Blog/Blog.vue';
 import { useFindAllBlogCategoria } from '@/presentation/composables/BlogCategoria/useFindAllBlogCategoria';
 import { useFindAllBlogPostagem } from '@/presentation/composables/BlogPostagem/useFindAllBlogPostagem';
+import { useFindAllBlogCategoriaQtdPostagem } from '@/presentation/composables/BlogCategoria/useFindAllBlogCategoriaQtdPostagem';
 
 const { findAll, blogCategorias, loading, error } = useFindAllBlogCategoria();
 const {
@@ -15,11 +16,12 @@ const {
   error: errorPostagem,
   url
 } = useFindAllBlogPostagem();
+const { findAllBlogCategoriaQtdPostagem, blogCategoriaQtdPostagem } = useFindAllBlogCategoriaQtdPostagem();
 </script>
 
 <template>
   <Blog :findAll="findAll" :blogCategorias="blogCategorias" :loading="loading" :error="error"
     :findAllPostagem="findAllPostagem" :blogPostagem="blogPostagem" :loadingPostagem="loadindPostagem"
     :errorPostagem="errorPostagem" :url="url" :total="total" :currentPage="currentPage" :perPage="perPage"
-    :lastPage="lastPage" />
+    :lastPage="lastPage" :findAllBlogCategoriaQtdPostagem="findAllBlogCategoriaQtdPostagem" :blogCategoriaQtdPostagem="blogCategoriaQtdPostagem" />
 </template>

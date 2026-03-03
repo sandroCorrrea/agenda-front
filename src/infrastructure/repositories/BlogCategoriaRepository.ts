@@ -1,6 +1,7 @@
 import type { AxiosInstance } from "axios";
 import type { IBlogCategoriaRepository } from "@/domain/repositories/IBlogCategoriaRepository";
 import { BlogCategoria } from "@/domain/entities/BlogCategoria";
+import { BlogCategoriaQtdPostagemGetResponse } from "@/application/dto/BlogCategoria/BlogCategoriaQtdPostagemGetResponse";
 
 export class BlogCategoriaRepository implements IBlogCategoriaRepository {
     constructor(
@@ -22,6 +23,19 @@ export class BlogCategoriaRepository implements IBlogCategoriaRepository {
             item.nome,
             item.descricao,
             item.status
+        ));
+    }
+
+    async findQtdPostagem(): Promise<Array<BlogCategoriaQtdPostagemGetResponse>>
+    {
+        const resp = await this.api.get('/blog/categoria/postagem');
+        const data = resp.data;
+        const items = Array.isArray(data) ? data : (data ?? []);
+
+        return items.map((item: any) => new BlogCategoriaQtdPostagemGetResponse(
+            item.id,
+            item.nome,
+            item.quantidade
         ));
     }
 }

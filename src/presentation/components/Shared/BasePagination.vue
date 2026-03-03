@@ -64,3 +64,56 @@ const visiblePages = computed(() => {
         </ul>
     </nav>
 </template>
+
+<style scoped>
+.pagination {
+    display: flex;
+    gap: 6px;
+    padding: 0;
+    margin: 30px 0;
+    list-style: none;
+}
+.page-item {
+    display: flex;
+}
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background-color: #ffffff;
+    color: #374151;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-link:hover {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.page-item.active .page-link {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.page-link svg {
+    width: 20px;
+    height: 20px;
+}
+</style>

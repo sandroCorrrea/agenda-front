@@ -70,7 +70,7 @@ onMounted(() => {
 });
 
 const isDetail = computed(() =>
-  props.blogPostagem.length === 1 ||
+  Boolean(route.params.id) ||
   Boolean(route.query.categoria) ||
   Boolean(route.query.tag)
 );

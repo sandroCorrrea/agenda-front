@@ -1,56 +1,101 @@
 <script lang="ts" setup>
+import { onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+
 import noPost from '@/presentation/assets/img/no-post.png';
+import profile from '@/presentation/assets/img/profile.svg';
+
 import { usePagination } from '@/presentation/composables/usePagination';
+import { useNavigation } from '@/shared/composables/useNavigation';
+import { formatarData } from '@/shared/utils/date.util';
+
 import BasePagination from '../Shared/BasePagination.vue';
 import BaseSkeleton from '../Shared/BaseSkeleton.vue';
+
 import {
     RiArrowRightDoubleLine,
     RiSearchLine,
     RiArrowLeftLine
 } from "@remixicon/vue";
-import profile from '@/presentation/assets/img/profile.svg'
-import { onMounted, computed } from 'vue';
-import { formatarData } from '@/shared/utils/date.util';
-import { useNavigation } from '@/shared/composables/useNavigation';
+
+const route = useRoute();
 
 const props = withDefaults(defineProps<{
     findAllPostagem: (page?: number, per_page?: number, nome?: string) => Promise<void>;
     blogPostagem: any[];
     loadingPostagem: boolean;
     errorPostagem: string | null;
-    url: string,
+    url: string;
     total: number;
     currentPage: number;
     perPage: number;
     lastPage: number;
-    findAllBlogCategoriaQtdPostagem: () => Promise<void>,
-    blogCategoriaQtdPostagem: any[],
-    findTag: () => Promise<void>,
-    blogPostagemTag: any[],
-    findAllRecent: (page: number, per_page: number) => Promise<void>,
-    blogPostagemRecent: any[]
+
+    findAllBlogCategoriaQtdPostagem: () => Promise<void>;
+    blogCategoriaQtdPostagem: any[];
+
+    findTag: () => Promise<void>;
+    blogPostagemTag: any[];
+
+    findAllRecent: (page: number, per_page: number) => Promise<void>;
+    blogPostagemRecent: any[];
+
+    findCategoriaByIdBlogPostagem: (id: number) => Promise<void>;
+    findAllCategorias: any[];
+
+    findBlogPostagemByNome: (nome: string) => Promise<void>;
+    findAllNome: any[];
 }>(), {
     blogPostagem: () => [],
-    error: null,
     errorPostagem: null,
     url: '',
-    blogCategoriaQtdPostagem: () => []
+    blogCategoriaQtdPostagem: () => [],
+    blogPostagemRecent: () => [],
+    blogPostagemTag: () => [],
+    findAllCategorias: () => []
 });
 
 const { irPara } = useNavigation();
 
 const { goToPage } = usePagination(
     async (page: number) => {
-        await props.findAllPostagem(page, props.perPage)
+        await props.findAllPostagem(page, props.perPage);
     }
 );
 
-const isDetail = computed(() => props.blogPostagem.length === 1);
-
 onMounted(() => {
-    props.findAllBlogCategoriaQtdPostagem()
-    props.findTag(),
-    props.findAllRecent(1, 3)
+    props.findAllBlogCategoriaQtdPostagem();
+    props.findTag();
+    props.findAllRecent(1, 3);
+});
+
+const isDetail = computed(() =>
+  props.blogPostagem.length === 1 ||
+  Boolean(route.query.categoria) ||
+  Boolean(route.query.tag)
+);
+
+const filtroAtivo = computed(() => {
+    if (route.query.categoria) {
+        return {
+            tipo: 'Categoria',
+            nome: `ID ${route.query.categoria}`
+        };
+    }
+    if (route.query.tag) {
+        return {
+            tipo: 'Tag',
+            nome: `ID ${route.query.tag}`
+        };
+    }
+    if (route.params.id && props.blogPostagem.length === 1) {
+        return {
+            tipo: 'Post',
+            nome: props.blogPostagem[0].nome
+        };
+    }
+
+    return null;
 });
 </script>
 
@@ -75,7 +120,12 @@ onMounted(() => {
                         <p class="text-muted">Nenhum artigo encontrado.</p>
                     </div>
 
-                    <div v-else class="posts-list">
+                    <div v-if="filtroAtivo" class="filtro-alert mb-4">
+                        <strong>Filtro aplicado:</strong>
+                        {{ filtroAtivo.tipo }}
+                    </div>
+
+                    <div class="posts-list">
                         <div v-if="isDetail" class="mb-4">
                         <button
                             @click="irPara('Blog')"
@@ -567,6 +617,23 @@ onMounted(() => {
 
 .btn-back:hover i {
   transform: translateX(-3px);
+}
+
+.filtro-alert {
+    background: rgba(92, 107, 192, 0.08);
+    border: 1px solid rgba(92, 107, 192, 0.2);
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+
+@media (max-width: 576px) {
+    .filtro-alert {
+        font-size: 0.8rem;
+        text-align: center;
+    }
 }
 
 @media (max-width: 992px) {

@@ -20,7 +20,6 @@ export function useFindRecentBlogPostagem() {
 
         try {
             const result = await repo.findAll(page, per_page);
-            console.log(result)
             blogPostagemRecent.value = result.data;
         } catch (err: any) {
             error.value = err?.message ?? String(err);

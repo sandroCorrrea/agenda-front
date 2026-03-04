@@ -8,6 +8,8 @@ import { useFindAllBlogCategoriaQtdPostagem } from '@/presentation/composables/B
 import { useFindTagBlogPostagem } from '@/presentation/composables/BlogPostagem/useFindTagBlogPostagem';
 import { useFindBlogPostagemById } from '@/presentation/composables/BlogPostagem/useFindBlogPostagemById';
 import { useFindRecentBlogPostagem } from '@/presentation/composables/BlogPostagem/useFindRecentBlogPostagem';
+import { useFindCategoriaByIdBlogPostagem } from '@/presentation/composables/BlogPostagem/useFindCategoriaByIdBlogPostagem';
+import { useFindBlogPostagemByNome } from '@/presentation/composables/BlogPostagem/useFindBlogPostagemByNome';
 
 const route = useRoute();
 
@@ -38,25 +40,58 @@ const {
 const { findTag, blogPostagemTag } = useFindTagBlogPostagem();
 const {findAllRecent, blogPostagemRecent} = useFindRecentBlogPostagem();
 
+const { findCategoriaByIdBlogPostagem, findAllCategorias } = useFindCategoriaByIdBlogPostagem();
+
+const { findBlogPostagemByNome, findAllNome } = useFindBlogPostagemByNome();
+
+const categoriaId = computed(() => {
+  return route.query.categoria ? Number(route.query.categoria) : null;
+});
+
+const tagName = computed(() => {
+  return route.query.tag ? String(route.query.tag) : null;
+});
+
 const postsToRender = computed(() => {
   if (blogPostagemById.value) {
     return [blogPostagemById.value];
+  }
+  if (categoriaId.value) {
+    return findAllCategorias.value;
+  }
+  if (tagName.value) {
+    return findAllNome.value;
   }
   return blogPostagem.value;
 });
 
 watch(
-  () => route.params.id,
-    async (id) => {
+  () => [route.params.id, route.query.categoria, route.query.tag],
+  async ([id, categoria, tag]) => {
+    try {
+      blogPostagemById.value = null;
+      findAllCategorias.value = [];
+      findAllNome.value = [];
       if (id) {
-        await findById(Number(id))
-      } else {
-        blogPostagemById.value = null;
-        await findAllPostagem(1, perPage.value)
+        await findById(Number(id));
+        return;
       }
-    },
+      if (categoria) {
+        await findCategoriaByIdBlogPostagem(Number(categoria));
+        return;
+      }
+      if (tag) {
+        await findBlogPostagemByNome(String(tag));
+        return;
+      }
+      await findAllPostagem(1, perPage.value);
+
+    } catch (e) {
+      console.error('Erro ao carregar blog:', e);
+    }
+  },
   { immediate: true }
-)
+);
 </script>
 
 <template>
@@ -80,5 +115,11 @@ watch(
 
     :findAllRecent="findAllRecent"
     :blogPostagemRecent="blogPostagemRecent"
+
+    :findCategoriaByIdBlogPostagem = "findCategoriaByIdBlogPostagem"
+    :findAllCategorias = "findAllCategorias"
+
+    :findBlogPostagemByNome = "findBlogPostagemByNome"
+    :findAllNome = "findAllNome"
   />
 </template>

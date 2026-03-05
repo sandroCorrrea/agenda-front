@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, computed, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import noPost from '@/presentation/assets/img/no-post.png';
 import profile from '@/presentation/assets/img/profile.svg';
@@ -19,6 +19,11 @@ import {
 } from "@remixicon/vue";
 
 const route = useRoute();
+const router = useRouter();
+
+const searchQuery = ref('');
+const searchError = ref(false);
+const newsletterEmail = ref('');
 
 const props = withDefaults(defineProps<{
     findAllPostagem: (page?: number, per_page?: number, nome?: string) => Promise<void>;
@@ -97,6 +102,32 @@ const filtroAtivo = computed(() => {
 
     return null;
 });
+
+const handleInput = () => {
+    if (searchQuery.value.trim()) {
+        searchError.value = false;
+    }
+};
+
+const handleSearch = () => {
+    const termo = searchQuery.value.trim();
+
+    if (!termo) {
+        searchError.value = true;
+        return;
+    }
+
+    searchError.value = false;
+
+    router.push({
+        path: '/blog',
+        query: {
+            tag: termo
+        }
+    });
+
+    searchQuery.value = '';
+};
 </script>
 
 <template>
@@ -191,11 +222,20 @@ const filtroAtivo = computed(() => {
                         <h3 class="sidebar-title">Buscar</h3>
                         <form class="search-form" @submit.prevent="handleSearch">
                             <div class="input-group">
-                                <input v-model="searchQuery" type="text" class="form-control"
-                                    placeholder="Digite sua busca..." />
+                               <input
+                                    v-model="searchQuery"
+                                    @input="handleInput"
+                                    type="text"
+                                    class="form-control"
+                                    :class="{ 'is-invalid': searchError }"
+                                    placeholder="Digite sua busca..."
+                                />
                                 <button class="btn btn-primary" type="submit">
                                     <RiSearchLine />
                                 </button>
+                                <div class="invalid-feedback">
+                                    Digite um termo para realizar a busca.
+                                </div>
                             </div>
                         </form>
                     </div>

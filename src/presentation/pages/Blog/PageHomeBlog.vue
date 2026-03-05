@@ -10,6 +10,7 @@ import { useFindBlogPostagemById } from '@/presentation/composables/BlogPostagem
 import { useFindRecentBlogPostagem } from '@/presentation/composables/BlogPostagem/useFindRecentBlogPostagem';
 import { useFindCategoriaByIdBlogPostagem } from '@/presentation/composables/BlogPostagem/useFindCategoriaByIdBlogPostagem';
 import { useFindBlogPostagemByNome } from '@/presentation/composables/BlogPostagem/useFindBlogPostagemByNome';
+import { usePersistNewsletter } from '@/presentation/composables/Newsletter/usePersistNewsletter';
 
 const route = useRoute();
 
@@ -43,6 +44,13 @@ const {findAllRecent, blogPostagemRecent} = useFindRecentBlogPostagem();
 const { findCategoriaByIdBlogPostagem, findAllCategorias } = useFindCategoriaByIdBlogPostagem();
 
 const { findBlogPostagemByNome, findAllNome } = useFindBlogPostagemByNome();
+
+const {
+  loading: loadingNewsletter,
+  error: errorNewsletter,
+  responseNewsletter,
+  persistNewsletter
+} = usePersistNewsletter();
 
 const categoriaId = computed(() => {
   return route.query.categoria ? Number(route.query.categoria) : null;
@@ -121,5 +129,10 @@ watch(
 
     :findBlogPostagemByNome = "findBlogPostagemByNome"
     :findAllNome = "findAllNome"
+
+    :loadingNewsletter = "loadingNewsletter"
+    :errorNewsletter = "errorNewsletter"
+    :responseNewsletter = "responseNewsletter"
+    :persistNewsletter = "persistNewsletter"
   />
 </template>

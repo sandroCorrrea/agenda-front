@@ -25,6 +25,20 @@ const searchQuery = ref('');
 const searchError = ref(false);
 const newsletterEmail = ref('');
 
+const subscribeNewsletter = async () => {
+    if (!newsletterEmail.value.trim()) {
+        return;
+    }
+    try {
+        await props.persistNewsletter({
+            email: newsletterEmail.value
+        });
+        newsletterEmail.value = '';
+    } catch (e) {
+        console.error('Erro ao cadastrar newsletter', e);
+    }
+};
+
 const props = withDefaults(defineProps<{
     findAllPostagem: (page?: number, per_page?: number, nome?: string) => Promise<void>;
     blogPostagem: any[];
@@ -50,6 +64,11 @@ const props = withDefaults(defineProps<{
 
     findBlogPostagemByNome: (nome: string) => Promise<void>;
     findAllNome: any[];
+
+    loadingNewsletter: boolean;
+    errorNewsletter: string | null;
+    responseNewsletter: any | null;
+    persistNewsletter: (data: { email: string }) => Promise<any>;
 }>(), {
     blogPostagem: () => [],
     errorPostagem: null,
@@ -281,10 +300,38 @@ const handleSearch = () => {
                         <p class="text-muted">Receba as últimas notícias e atualizações no seu e-mail.</p>
                         <form @submit.prevent="subscribeNewsletter">
                             <div class="mb-3">
-                                <input v-model="newsletterEmail" type="email" class="form-control"
-                                    placeholder="Seu e-mail" required />
+                                <input
+                                    v-model="newsletterEmail"
+                                    type="email"
+                                    class="form-control"
+                                    placeholder="Seu e-mail"
+                                    required
+                                />
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Assinar</button>
+                            <button
+                                type="submit"
+                                class="btn btn-primary w-100"
+                                :disabled="loadingNewsletter"
+                            >
+                                <span v-if="loadingNewsletter">
+                                    Enviando...
+                                </span>
+                                <span v-else>
+                                    Assinar
+                                </span>
+                            </button>
+                            <div
+                                v-if="errorNewsletter"
+                                class="text-warning mt-2"
+                            >
+                                {{ errorNewsletter }}
+                            </div>
+                            <div
+                                v-if="responseNewsletter"
+                                class="text-white mt-2"
+                            >
+                                Newsletter cadastrada com sucesso!
+                            </div>
                         </form>
                     </div>
                 </div>

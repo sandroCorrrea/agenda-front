@@ -38,12 +38,12 @@ const {
   blogCategoriaQtdPostagem
 } = useFindAllBlogCategoriaQtdPostagem();
 
-const { findTag, blogPostagemTag } = useFindTagBlogPostagem();
+const { findTag, blogPostagemTag, loading: loadingTag } = useFindTagBlogPostagem();
 const {findAllRecent, blogPostagemRecent} = useFindRecentBlogPostagem();
 
-const { findCategoriaByIdBlogPostagem, findAllCategorias } = useFindCategoriaByIdBlogPostagem();
+const { findCategoriaByIdBlogPostagem, findAllCategorias, loading: loadingCategoria } = useFindCategoriaByIdBlogPostagem();
 
-const { findBlogPostagemByNome, findAllNome } = useFindBlogPostagemByNome();
+const { findBlogPostagemByNome, findAllNome, loading: loadingNome } = useFindBlogPostagemByNome();
 
 const {
   loading: loadingNewsletter,
@@ -74,12 +74,17 @@ const postsToRender = computed(() => {
 });
 
 watch(
-  () => [route.params.id, route.query.categoria, route.query.tag],
-  async ([id, categoria, tag]) => {
+  () => route.fullPath,
+  async () => {
     try {
+      const id = route.params.id;
+      const categoria = route.query.categoria;
+      const tag = route.query.tag;
+
       blogPostagemById.value = null;
       findAllCategorias.value = [];
       findAllNome.value = [];
+      blogPostagem.value = [];
       if (id) {
         await findById(Number(id));
         return;
@@ -106,7 +111,7 @@ watch(
   <Blog
     :findAllPostagem="findAllPostagem"
     :blogPostagem="postsToRender"
-    :loadingPostagem="loadingPostagem || loadingById"
+    :loadingPostagem="loadingPostagem || loadingById || loadingCategoria || loadingTag || loadingNome"
     :errorPostagem="errorPostagem || errorById"
 
     :url="url"

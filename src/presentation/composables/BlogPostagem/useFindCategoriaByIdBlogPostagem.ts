@@ -8,11 +8,11 @@ export function useFindCategoriaByIdBlogPostagem() {
     const repo: IBlogPostagemRepository = repoInject;
 
     const findAllCategorias = ref<BlogPostagem[]>([]);
-    const loadind = ref(false);
+    const loading = ref(false);
     const error = ref<string | null>(null);
     
     async function findCategoriaByIdBlogPostagem(id: number) {
-        loadind.value = true;
+        loading.value = true;
         error.value = null;
 
         try {
@@ -21,12 +21,13 @@ export function useFindCategoriaByIdBlogPostagem() {
         } catch (err: any) {
             error.value = err?.message ?? String(err);
         } finally {
-            loadind.value = false;
+            loading.value = false;
         }
     }
 
     return {
         findCategoriaByIdBlogPostagem,
-        findAllCategorias
+        findAllCategorias,
+        loading
     }
 }

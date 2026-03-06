@@ -27,6 +27,7 @@ export function useFindBlogPostagemByNome() {
     }
     return {
         findBlogPostagemByNome,
-        findAllNome
+        findAllNome,
+        loading
     }
 };

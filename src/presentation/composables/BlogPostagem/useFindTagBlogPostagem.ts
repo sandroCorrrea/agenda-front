@@ -31,6 +31,7 @@ export function useFindTagBlogPostagem() {
     return {
         findTag,
         blogPostagemTag,
-        url
+        url,
+        loading
     }
 }

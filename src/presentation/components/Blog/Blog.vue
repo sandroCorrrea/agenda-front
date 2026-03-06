@@ -10,7 +10,7 @@ import { useNavigation } from '@/shared/composables/useNavigation';
 import { formatarData } from '@/shared/utils/date.util';
 
 import BasePagination from '../Shared/BasePagination.vue';
-import BaseSkeleton from '../Shared/BaseSkeleton.vue';
+import BaseLoading from '../Shared/BaseLoading.vue';
 
 import {
     RiArrowRightDoubleLine,
@@ -24,20 +24,6 @@ const router = useRouter();
 const searchQuery = ref('');
 const searchError = ref(false);
 const newsletterEmail = ref('');
-
-const subscribeNewsletter = async () => {
-    if (!newsletterEmail.value.trim()) {
-        return;
-    }
-    try {
-        await props.persistNewsletter({
-            email: newsletterEmail.value
-        });
-        newsletterEmail.value = '';
-    } catch (e) {
-        console.error('Erro ao cadastrar newsletter', e);
-    }
-};
 
 const props = withDefaults(defineProps<{
     findAllPostagem: (page?: number, per_page?: number, nome?: string) => Promise<void>;
@@ -94,9 +80,9 @@ onMounted(() => {
 });
 
 const isDetail = computed(() =>
-  Boolean(route.params.id) ||
-  Boolean(route.query.categoria) ||
-  Boolean(route.query.tag)
+    Boolean(route.params.id) ||
+    Boolean(route.query.categoria) ||
+    Boolean(route.query.tag)
 );
 
 const filtroAtivo = computed(() => {
@@ -106,12 +92,14 @@ const filtroAtivo = computed(() => {
             nome: `ID ${route.query.categoria}`
         };
     }
+
     if (route.query.tag) {
         return {
             tipo: 'Tag',
             nome: `ID ${route.query.tag}`
         };
     }
+
     if (route.params.id && props.blogPostagem.length === 1) {
         return {
             tipo: 'Post',
@@ -129,6 +117,7 @@ const handleInput = () => {
 };
 
 const handleSearch = () => {
+
     const termo = searchQuery.value.trim();
 
     if (!termo) {
@@ -147,28 +136,58 @@ const handleSearch = () => {
 
     searchQuery.value = '';
 };
+
+const subscribeNewsletter = async () => {
+
+    if (!newsletterEmail.value.trim()) {
+        return;
+    }
+
+    try {
+
+        await props.persistNewsletter({
+            email: newsletterEmail.value
+        });
+
+        newsletterEmail.value = '';
+
+    } catch (e) {
+
+        console.error('Erro ao cadastrar newsletter', e);
+
+    }
+};
 </script>
 
 <template>
     <article class="page-servicos d-flex align-items-start min-vh-100 py-4">
+
         <div class="container">
+
             <div
                 class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+
                 <div class="mb-2 mb-md-0">
+
                     <h1 class="section-title">Blog</h1>
+
                     <p class="text-muted">
                         Conteúdo atualizado para manter você informado sobre o mundo contábil
                     </p>
+
                 </div>
+
             </div>
 
-            <div class="row g-5" v-if="blogPostagem?.length">
+
+            <!-- LOADING -->
+            <BaseLoading v-if="loadingPostagem" text="Carregando postagens..." />
+
+
+            <!-- LISTA DE POSTS -->
+            <div v-else-if="blogPostagem.length" class="row g-5">
+
                 <div class="col-12 col-lg-8 order-2 order-lg-1">
-                    <div v-if="!blogPostagem.length && !loadingPostagem" class="text-center py-5">
-                        <img :src="noPost" alt="Nenhuma postagem" class="img-fluid mb-3"
-                            style="max-width: 200px; opacity: 0.7" />
-                        <p class="text-muted">Nenhum artigo encontrado.</p>
-                    </div>
 
                     <div v-if="filtroAtivo" class="filtro-alert mb-4">
                         <strong>Filtro aplicado:</strong>
@@ -176,167 +195,329 @@ const handleSearch = () => {
                     </div>
 
                     <div class="posts-list">
+
                         <div v-if="isDetail" class="mb-4">
-                        <button
-                            @click="irPara('Blog')"
-                            class="btn-back d-flex align-items-center gap-2 btn btn-sm"
-                        >
-                            <RiArrowLeftLine />
-                            <span class="label">Voltar para o Blog</span>
-                        </button>
+
+                            <button @click="irPara('Blog')" class="btn-back d-flex align-items-center gap-2 btn btn-sm">
+
+                                <RiArrowLeftLine />
+
+                                <span class="label">
+                                    Voltar para o Blog
+                                </span>
+
+                            </button>
+
                         </div>
 
+
                         <div v-for="post in blogPostagem" :key="post.id" class="blog-card">
+
                             <div class="blog-img">
+
                                 <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
 
                                 <div class="blog-dates">
+
                                     <span class="blog-date">
-                                        Publicado em {{ formatarData(new Date(post.dataCriacao)) }}
+                                        Publicado em
+                                        {{ formatarData(new Date(post.dataCriacao)) }}
                                     </span>
 
                                     <span v-if="post.dataAlteracao && post.dataAlteracao !== post.dataCriacao"
                                         class="blog-update">
-                                        Atualizado em {{ formatarData(new Date(post.dataAlteracao)) }}
+                                        Atualizado em
+                                        {{ formatarData(new Date(post.dataAlteracao)) }}
                                     </span>
+
                                 </div>
+
                             </div>
 
+
                             <div class="blog-content">
+
                                 <h3 class="blog-title">
-                                    <router-link :to="`/blog/${post.id}`">{{ post.nome }}</router-link>
+
+                                    <router-link :to="`/blog/${post.id}`">
+                                        {{ post.nome }}
+                                    </router-link>
+
                                 </h3>
 
                                 <p class="blog-text">
-                                    {{ isDetail ? post.descricao : (post.descricao.length > 120 
-                                        ? post.descricao.slice(0, 120) + ' ...' 
-                                        : post.descricao) }}
+
+                                    {{ isDetail
+                                        ? post.descricao
+                                        : (post.descricao.length > 120
+                                    ? post.descricao.slice(0,120) + ' ...'
+                                    : post.descricao)
+                                    }}
+
                                 </p>
 
-                                <div class="blog-meta">
-                                    <div class="blog-author">
-                                        <img :src="post.autor_imagem ? `/storage/usuarios/${post.autor_imagem}` : profile"
-                                            :alt="post.autor" />
-                                        <span>Por Sandro Corrêa Rocha Júnior</span>
+
+                                <div v-if="post.arquivo" class="blog-download">
+
+                                    <div class="download-info">
+
+                                        <span class="download-icon">📎</span>
+
+                                        <span class="download-text">
+                                            Arquivo disponível para download
+                                        </span>
+
                                     </div>
 
-                                    <router-link v-if="!isDetail" :to="`/blog/${post.id}`" class="read-more-btn">
-                                        <span>Ler mais</span>
-                                        <RiArrowRightDoubleLine />
-                                    </router-link>
+                                    <a :href="`${url}/${post.arquivo}`" download target="_blank" class="download-btn">
+
+                                        Baixar
+                                        {{ post.arquivo.split('.').pop().toUpperCase() }}
+
+                                    </a>
+
                                 </div>
+
+
+                                <div class="blog-meta">
+
+                                    <div class="blog-author">
+
+                                        <img :src="post.autor_imagem ? `/storage/usuarios/${post.autor_imagem}` : profile"
+                                            :alt="post.autor" />
+
+                                        <span>
+                                            Por Sandro Corrêa Rocha Júnior
+                                        </span>
+
+                                    </div>
+
+
+                                    <router-link v-if="!isDetail" :to="`/blog/${post.id}`" class="read-more-btn">
+
+                                        <span>
+                                            Ler mais
+                                        </span>
+
+                                        <RiArrowRightDoubleLine />
+
+                                    </router-link>
+
+                                </div>
+
                             </div>
+
                         </div>
 
-                        <BasePagination 
-                            v-if="!isDetail"
-                            :currentPage="currentPage" 
-                            :lastPage="lastPage" 
-                            @change="goToPage" 
-                        />
+
+                        <BasePagination v-if="!isDetail" :currentPage="currentPage" :lastPage="lastPage"
+                            @change="goToPage" />
+
                     </div>
+
                 </div>
+
+
+                <!-- SIDEBAR -->
                 <div class="col-12 col-lg-4 order-1 order-lg-2">
+
+                    <!-- BUSCA -->
+
                     <div class="sidebar mb-4">
+
                         <h3 class="sidebar-title">Buscar</h3>
+
                         <form class="search-form" @submit.prevent="handleSearch">
+
                             <div class="input-group">
-                               <input
-                                    v-model="searchQuery"
-                                    @input="handleInput"
-                                    type="text"
-                                    class="form-control"
-                                    :class="{ 'is-invalid': searchError }"
-                                    placeholder="Digite sua busca..."
-                                />
+
+                                <input v-model="searchQuery" @input="handleInput" type="text" class="form-control"
+                                    :class="{ 'is-invalid': searchError }" placeholder="Digite sua busca..." />
+
                                 <button class="btn btn-primary" type="submit">
+
                                     <RiSearchLine />
+
                                 </button>
+
                                 <div class="invalid-feedback">
                                     Digite um termo para realizar a busca.
                                 </div>
+
                             </div>
+
                         </form>
+
                     </div>
+
+
+                    <!-- CATEGORIAS -->
 
                     <div class="sidebar mb-4" v-if="blogCategoriaQtdPostagem?.length">
-                        <h3 class="sidebar-title">Categorias</h3>
+
+                        <h3 class="sidebar-title">
+                            Categorias
+                        </h3>
+
                         <ul class="categories-list">
+
                             <li v-for="cat in blogCategoriaQtdPostagem" :key="cat.id">
+
                                 <router-link :to="`/blog?categoria=${cat.id}`">
-                                    {{ cat.nome }} <span>({{ cat.quantidade }})</span>
+
+                                    {{ cat.nome }}
+
+                                    <span>
+                                        ({{ cat.quantidade }})
+                                    </span>
+
                                 </router-link>
+
                             </li>
+
                         </ul>
+
                     </div>
+
+
+                    <!-- POSTS RECENTES -->
 
                     <div class="sidebar mb-4" v-if="blogPostagemRecent?.length">
-                        <h3 class="sidebar-title">Posts Recentes</h3>
+
+                        <h3 class="sidebar-title">
+                            Posts Recentes
+                        </h3>
+
                         <div v-for="post in blogPostagemRecent" :key="post.id" class="recent-post">
+
                             <div class="recent-post-img">
-                                <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
+
+                                <img :src="`${url}/${post.imagem}`" class="img-fluid" />
+
                             </div>
+
                             <div class="recent-post-content">
+
                                 <h5>
-                                    <router-link :to="`/blog/${post.id}`">{{ post.nome }}</router-link>
+
+                                    <router-link :to="`/blog/${post.id}`">
+
+                                        {{ post.nome }}
+
+                                    </router-link>
+
                                 </h5>
-                                <span>{{ formatarData(post.dataAlteracao) }}</span>
+
+                                <span>
+
+                                    {{ formatarData(post.dataAlteracao) }}
+
+                                </span>
+
                             </div>
+
                         </div>
+
                     </div>
+
+
+                    <!-- TAGS -->
 
                     <div class="sidebar mb-4" v-if="blogPostagemTag?.length">
-                        <h3 class="sidebar-title">Tags</h3>
+
+                        <h3 class="sidebar-title">
+                            Tags
+                        </h3>
+
                         <div class="tags">
+
                             <router-link v-for="tag in blogPostagemTag" :key="tag.nome" :to="`/blog?tag=${tag.nome}`"
                                 class="tag-link">
+
                                 {{ tag.nome }}
+
                             </router-link>
+
                         </div>
+
                     </div>
 
+
+                    <!-- NEWSLETTER -->
+
                     <div class="newsletter-card">
-                        <h4>Assine nossa Newsletter</h4>
-                        <p class="text-muted">Receba as últimas notícias e atualizações no seu e-mail.</p>
+
+                        <h4>
+                            Assine nossa Newsletter
+                        </h4>
+
+                        <p class="text-muted">
+                            Receba as últimas notícias e atualizações no seu e-mail.
+                        </p>
+
                         <form @submit.prevent="subscribeNewsletter">
+
                             <div class="mb-3">
-                                <input
-                                    v-model="newsletterEmail"
-                                    type="email"
-                                    class="form-control"
-                                    placeholder="Seu e-mail"
-                                    required
-                                />
+
+                                <input v-model="newsletterEmail" type="email" class="form-control"
+                                    placeholder="Seu e-mail" required />
+
                             </div>
-                            <button
-                                type="submit"
-                                class="btn btn-primary w-100"
-                                :disabled="loadingNewsletter"
-                            >
+
+                            <button type="submit" class="btn btn-primary w-100" :disabled="loadingNewsletter">
+
                                 <span v-if="loadingNewsletter">
                                     Enviando...
                                 </span>
+
                                 <span v-else>
                                     Assinar
                                 </span>
+
                             </button>
-                            <div
-                                v-if="errorNewsletter"
-                                class="text-warning mt-2"
-                            >
+
+
+                            <div v-if="errorNewsletter" class="text-warning mt-2">
+
                                 {{ errorNewsletter }}
+
                             </div>
-                            <div
-                                v-if="responseNewsletter"
-                                class="text-white mt-2"
-                            >
+
+
+                            <div v-if="responseNewsletter" class="text-white mt-2">
+
                                 Newsletter cadastrada com sucesso!
+
                             </div>
+
                         </form>
+
                     </div>
+
                 </div>
+
             </div>
+
+
+            <!-- SEM POST -->
+
+            <div v-else class="row g-5 text-center py-5">
+
+                <div class="col-12 col-lg-8">
+
+                    <img :src="noPost" alt="Nenhuma postagem" class="img-fluid mb-3"
+                        style="max-width:200px;opacity:.7" />
+
+                    <p class="text-muted">
+                        Nenhuma postagem encontrada
+                    </p>
+
+                </div>
+
+            </div>
+
         </div>
+
     </article>
 </template>
 
@@ -715,6 +896,59 @@ const handleSearch = () => {
     color: #334155;
 }
 
+.blog-download {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    background: rgba(92, 107, 192, 0.05);
+    border: 1px dashed rgba(92, 107, 192, 0.25);
+
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+}
+
+.download-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.download-icon {
+    font-size: 1rem;
+}
+
+.download-text {
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.download-btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+    color: #fff;
+
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+@media (max-width: 576px) {
+    .blog-download {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .download-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
 
 @media (max-width: 576px) {
     .filtro-alert {

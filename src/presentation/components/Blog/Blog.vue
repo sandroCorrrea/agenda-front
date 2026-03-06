@@ -179,12 +179,8 @@ const subscribeNewsletter = async () => {
 
             </div>
 
-
-            <!-- LOADING -->
             <BaseLoading v-if="loadingPostagem" text="Carregando postagens..." />
 
-
-            <!-- LISTA DE POSTS -->
             <div v-else-if="blogPostagem.length" class="row g-5">
 
                 <div class="col-12 col-lg-8 order-2 order-lg-1">
@@ -317,11 +313,7 @@ const subscribeNewsletter = async () => {
 
                 </div>
 
-
-                <!-- SIDEBAR -->
                 <div class="col-12 col-lg-4 order-1 order-lg-2">
-
-                    <!-- BUSCA -->
 
                     <div class="sidebar mb-4">
 
@@ -350,9 +342,6 @@ const subscribeNewsletter = async () => {
 
                     </div>
 
-
-                    <!-- CATEGORIAS -->
-
                     <div class="sidebar mb-4" v-if="blogCategoriaQtdPostagem?.length">
 
                         <h3 class="sidebar-title">
@@ -378,9 +367,6 @@ const subscribeNewsletter = async () => {
                         </ul>
 
                     </div>
-
-
-                    <!-- POSTS RECENTES -->
 
                     <div class="sidebar mb-4" v-if="blogPostagemRecent?.length">
 
@@ -420,9 +406,6 @@ const subscribeNewsletter = async () => {
 
                     </div>
 
-
-                    <!-- TAGS -->
-
                     <div class="sidebar mb-4" v-if="blogPostagemTag?.length">
 
                         <h3 class="sidebar-title">
@@ -441,9 +424,6 @@ const subscribeNewsletter = async () => {
                         </div>
 
                     </div>
-
-
-                    <!-- NEWSLETTER -->
 
                     <div class="newsletter-card">
 
@@ -498,19 +478,12 @@ const subscribeNewsletter = async () => {
 
             </div>
 
-
-            <!-- SEM POST -->
-
             <div v-else class="row g-5 text-center py-5">
 
                 <div class="col-12 col-lg-8">
 
                     <img :src="noPost" alt="Nenhuma postagem" class="img-fluid mb-3"
                         style="max-width:200px;opacity:.7" />
-
-                    <p class="text-muted">
-                        Nenhuma postagem encontrada
-                    </p>
 
                 </div>
 

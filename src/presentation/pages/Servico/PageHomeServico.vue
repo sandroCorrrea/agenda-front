@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue';
 import { useFindAllServico } from '@/presentation/composables/Servico/useFindAllServico';
+import BaseLoading from '@/presentation/components/Shared/BaseLoading.vue';
 
 const { findAll, servicos, loading, error } = useFindAllServico();
 
@@ -12,17 +13,11 @@ onMounted(async () => {
 <template>
     <article class="page-servicos d-flex align-items-start min-vh-100 py-4">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="mb-0">Serviços</h1>
-                <div v-if="loading" class="text-muted">Carregando...</div>
-            </div>
 
-            <div v-if="error" class="alert alert-danger">Erro: {{ error }}</div>
+            <BaseLoading v-if="loading" text="Carregando serviços ..."/>
 
-            <div v-else>
-                <div v-if="!servicos || servicos.length === 0" class="text-muted">Nenhum serviço encontrado.</div>
-
-                <div class="row g-3 mt-2" v-else>
+            <div v-else-if="servicos && servicos.length > 0">
+                <div class="row g-3 mt-2">
                     <div class="col-12 col-sm-6 col-md-4" v-for="servico in servicos" :key="servico.id">
                         <div class="card shadow-sm h-100">
                             <div class="card-body d-flex flex-column">
@@ -47,6 +42,15 @@ onMounted(async () => {
                     </div>
                 </div>
             </div>
+            <div v-else class="col-12 col-sm-6 col-md-4">
+
+                <div class="col-12 col-lg-8">
+                    <p class="text-muted">
+                        Nenhum serviço encontrado
+                    </p>
+                </div>
+
+            </div>
         </div>
     </article>
 </template>
@@ -63,9 +67,31 @@ onMounted(async () => {
     padding: 1rem 1.25rem;
 }
 
-.page-servicos h1 {
-    font-size: 1.5rem;
+.page-servicos {
+    background: linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 247, 250, 1) 100%);
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
     font-weight: 700;
+    color: #1e293b;
+    position: relative;
+    display: inline-block;
+    padding-bottom: .5rem;
+    margin-bottom: 2rem;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+    border-radius: 3px;
 }
 
 .status-badge {

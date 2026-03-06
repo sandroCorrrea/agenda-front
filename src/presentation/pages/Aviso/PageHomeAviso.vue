@@ -3,6 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue';
 import { useFindAllAviso } from '@/presentation/composables/Aviso/useFindAllAviso';
 import { useDownloadAviso } from '@/presentation/composables/Aviso/useDownloadAviso';
 import { RiInfoCardLine } from '@remixicon/vue';
+import BaseLoading from '@/presentation/components/Shared/BaseLoading.vue';
 
 const { findAll, avisos, loading, error } = useFindAllAviso();
 const { download, loading: downloadLoading, error: downloadError } = useDownloadAviso();
@@ -67,11 +68,10 @@ async function handleDownload(avisoId: number) {
 <template>
     <article class="page-servicos d-flex align-items-start min-vh-100 py-4">
         <div class="container">
-            <div
-                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
                 <div class="mb-2 mb-md-0">
-                    <h1 class="mb-1">Avisos</h1>
-                    <p class="text-muted mb-0 small">
+                    <h1 class="section-title">Avisos</h1>
+                    <p class="text-muted">
                         <RiInfoCardLine /> Os avisos ficam disponíveis apenas por 24 horas; após esse período eles
                         expiram automaticamente.
                     </p>
@@ -85,16 +85,10 @@ async function handleDownload(avisoId: number) {
                 </div>
             </div>
 
-            <div class="mb-3">
-                <div v-if="loading" class="text-muted">Carregando...</div>
-                <div v-if="error" class="alert alert-danger">Erro: {{ error }}</div>
-            </div>
+            <BaseLoading v-if="loading" text="Carregando avisos ..."/>
 
-            <div>
-                <div v-if="!filteredAvisos || filteredAvisos.length === 0" class="text-muted">Nenhum aviso encontrado.
-                </div>
-
-                <div class="row g-3 mt-2 justify-content-center" v-else>
+            <div v-else-if="filteredAvisos && filteredAvisos.length > 0">
+                <div class="row g-3 mt-2 justify-content-center">
                     <div class="col-12 col-md-8" v-for="aviso in filteredAvisos" :key="aviso.id">
                         <div class="card shadow-sm mb-3">
                             <div class="card-body d-flex flex-column">
@@ -119,6 +113,16 @@ async function handleDownload(avisoId: number) {
                     </div>
                 </div>
             </div>
+
+            <div v-else class="col-12 col-sm-6 col-md-4">
+
+                <div class="col-12 col-lg-8">
+                    <p class="text-muted">
+                        Nenhum aviso encontrado
+                    </p>
+                </div>
+
+            </div>
         </div>
     </article>
 </template>
@@ -135,9 +139,31 @@ async function handleDownload(avisoId: number) {
     padding: 1.25rem 1.5rem;
 }
 
-.page-servicos h1 {
-    font-size: 1.5rem;
+.page-servicos {
+    background: linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 247, 250, 1) 100%);
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
     font-weight: 700;
+    color: #1e293b;
+    position: relative;
+    display: inline-block;
+    padding-bottom: .5rem;
+    margin-bottom: 2rem;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+    border-radius: 3px;
 }
 
 .status-badge {

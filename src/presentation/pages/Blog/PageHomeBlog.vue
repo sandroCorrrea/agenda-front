@@ -60,6 +60,10 @@ const tagName = computed(() => {
   return route.query.tag ? String(route.query.tag) : null;
 });
 
+const page = computed(() => {
+  return route.query.page ? Number(route.query.page) : 1;
+});
+
 const postsToRender = computed(() => {
   if (blogPostagemById.value) {
     return [blogPostagemById.value];
@@ -97,8 +101,7 @@ watch(
         await findBlogPostagemByNome(String(tag));
         return;
       }
-      await findAllPostagem(1, perPage.value);
-
+      await findAllPostagem(page.value, perPage.value);
     } catch (e) {
       console.error('Erro ao carregar blog:', e);
     }

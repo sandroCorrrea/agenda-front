@@ -16,9 +16,9 @@ import {
     RiChatHistoryLine
 } from "@remixicon/vue";
 import logo from '@/presentation/assets/img/logo.svg';
+import { useMatrizStore } from '@/presentation/store/useMatrizStore';
 
-const navToggle = ref<HTMLElement | null>(null);
-const navMenu = ref<HTMLElement | null>(null);
+const matriz = useMatrizStore();
 const isOpen = ref(false);
 
 function toggleHandler() {
@@ -31,7 +31,7 @@ function toggleHandler() {
         <nav class="nav container">
             <div class="nav__data">
                 <RouterLink class="nav__logo" to="/">
-                    <img :src="logo" alt="Logo" class="nav__logo-img"> Agenda Contabilidade
+                    <img :src="logo" alt="Logo" class="nav__logo-img"> {{ matriz.matriz?.apelido }}
                 </RouterLink>
 
                 <div

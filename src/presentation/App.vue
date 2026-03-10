@@ -1,6 +1,29 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 import Navbar from './components/Layout/Navbar.vue';
+import { onMounted, inject, watch } from 'vue';
+import { useMatrizStore } from './store/useMatrizStore';
+import type { IMatrizRepository } from '@/domain/repositories/IMatrizRepository';
+
+const repo = inject<IMatrizRepository>('IMatrizRepository');
+const matrizStore = useMatrizStore();
+
+onMounted(() => {
+  if (!repo) throw new Error('IMatrizRepository not found');
+  matrizStore.load(repo);
+});
+
+watch(
+  () => matrizStore.matriz,
+  (matriz) => {
+    if (matriz) {
+      document.title = matriz.apelido;
+    }
+  },
+  {
+    immediate: true
+  }
+);
 </script>
 
 <template>
@@ -16,19 +39,16 @@ import Navbar from './components/Layout/Navbar.vue';
 
 <style>
 .main-content {
-  padding-top: var(--header-height); /* evita conteúdo escondido atrás do header fixo */
+  padding-top: var(--header-height);
   min-height: calc(100vh - var(--header-height));
 }
-
-/* Wrapper padrão para todas as páginas: padroniza espaçamento interno e centraliza o conteúdo */
 .page-wrapper {
-  padding: 1.5rem; /* espaçamento interno padrão entre navbar e conteúdo */
+  padding: 1.5rem;
   box-sizing: border-box;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Força que o primeiro elemento interno não tenha margem superior diferente */
 .page-wrapper > * {
   margin-top: 0 !important;
   padding-top: 0 !important;

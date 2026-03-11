@@ -1,6 +1,20 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import logo from '@/presentation/assets/img/logo.jpeg';
+import BaseLoading from '../Shared/BaseLoading.vue';
+
+const props = withDefaults(defineProps<{
+    loadingContato: boolean,
+    errorContato: string | null;
+    persistContato: (dto: {
+        nome: string,
+        email: string,
+        mensagem: string,
+        empresa?: string
+    }) => Promise<any>;
+    resultContato: any | null;
+}>(), {
+});
 
 const emit = defineEmits<{
     (e: 'submit', payload: { nome: string; email: string; empresa?: string; mensagem: string }): void;
@@ -28,17 +42,28 @@ function validate() {
     return !errors.nome && !errors.email && !errors.mensagem;
 }
 
-function submitContact(e: Event) {
+async function submitContact(e: Event) {
     e.preventDefault();
     if (!validate()) return;
-    emit('submit', {
-        nome: form.nome.trim(),
-        email: form.email.trim(),
-        empresa: form.empresa.trim() || undefined,
-        mensagem: form.mensagem.trim()
-    });
-    // opcional: limpar formulário
-    form.nome = form.email = form.empresa = form.mensagem = '';
+    
+    try {
+        await props.persistContato({
+            nome: form.nome.trim(),
+            email: form.email.trim(),
+            empresa: form.empresa.trim() || undefined,
+            mensagem: form.mensagem.trim()
+        });
+        
+
+        if (!props.errorContato) {
+            form.nome = '';
+            form.email = '';
+            form.empresa = '';
+            form.mensagem = '';
+        }
+    } catch (error) {
+        console.error('Erro ao enviar contato:', error);
+    }
 }
 </script>
 
@@ -100,8 +125,27 @@ function submitContact(e: Event) {
                                             <div class="invalid-feedback">{{ errors.mensagem }}</div>
                                         </div>
 
-                                        <div class="d-grid mt-2">
+                                        <BaseLoading v-if="loadingContato" text="Enviando mensagem..." />
+
+                                        <div v-else-if="resultContato && !errorContato" class="newsletter-card-success mt-3">
+                                            <h4 class="mb-2">✓ Mensagem enviada!</h4>
+                                            <p class="mb-0">
+                                                Agradecemos seu contato. Retornaremos em breve.
+                                            </p>
+                                        </div>
+
+                                        <div v-else-if="errorContato" class="filtro-alert mb-3">
+                                            <strong>Erro ao enviar:</strong> {{ errorContato }}
+                                        </div>
+
+                                        <div v-if="!loadingContato && !(resultContato && !errorContato)" class="d-grid mt-2">
                                             <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+                                        </div>
+
+                                        <div v-else-if="resultContato && !errorContato" class="d-grid mt-3">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" @click="resultContato = null">
+                                                Enviar nova mensagem
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -126,7 +170,6 @@ function submitContact(e: Event) {
 </template>
 
 <style scoped>
-/* Mantém padrão visual dos demais formulários */
 .login-wrapper {
     background: linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 247, 250, 1) 100%);
 }
@@ -187,7 +230,22 @@ h4 {
     box-shadow: 0 14px 28px rgba(45, 160, 168, 0.16);
 }
 
-/* Estilos para o toggle de views */
+.btn-outline-primary {
+    border: 2px solid #5c6bc0 !important;
+    color: #5c6bc0 !important;
+    background: transparent !important;
+    border-radius: 12px !important;
+    padding: 12px 18px !important;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
 .view-toggle {
     display: inline-flex;
     gap: 6px;
@@ -209,14 +267,12 @@ h4 {
     box-shadow: none;
 }
 
-/* botão ativo com destaque da marca */
 .view-toggle .btn.btn-primary {
     background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
     color: #fff !important;
     box-shadow: 0 10px 26px rgba(45, 160, 168, 0.12);
 }
 
-/* botões não-ativos mais suaves */
 .view-toggle .btn.btn-outline-primary,
 .view-toggle .btn.btn-outline-secondary {
     background: transparent;
@@ -230,12 +286,9 @@ h4 {
     transform: none;
 }
 
-/* Painel de visualização */
 .view-panel {
     padding-top: 0.25rem;
 }
-
-/* Animação */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
     transition: all .22s ease;
@@ -247,7 +300,37 @@ h4 {
     transform: translateY(6px);
 }
 
-/* Mobile: botões ocupam largura total e ficam lado a lado com pesos iguais */
+.filtro-alert {
+    background: rgba(220, 53, 69, 0.08);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #721c24;
+    font-weight: 500;
+}
+
+.newsletter-card-success {
+    background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+    padding: 1.5rem;
+    border-radius: 20px;
+    color: #fff;
+    box-shadow: 0 15px 35px rgba(40, 167, 69, 0.25);
+    text-align: center;
+}
+
+.newsletter-card-success h4 {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.newsletter-card-success p {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+
 @media (max-width: 575.98px) {
     .view-toggle {
         display: flex;
@@ -265,8 +348,6 @@ h4 {
         margin-left: 6px;
     }
 }
-
-/* Responsividade: mostrar lado a lado em desktop, empilhar em mobile */
 @media (min-width: 992px) {
     .row>.col-12.col-sm-10.col-md-8.col-lg-6.col-xl-5:first-child {
         margin-right: 0;

@@ -13,6 +13,7 @@ import { BlogCategoriaRepository } from "@/infrastructure/repositories/BlogCateg
 import { BlogPostagemRepository } from "@/infrastructure/repositories/BlogPostagemRepository";
 import { NewsletterRepository } from "@/infrastructure/repositories/NewsletterRepository";
 import { MatrizRepository } from "@/infrastructure/repositories/MatrizRepository";
+import { ContatoRepository } from "@/infrastructure/repositories/ContatoRepository";
 
 const app = createApp(App);
 const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL ?? import.meta.env.BASE_URL });
@@ -24,6 +25,7 @@ const blogCategoria = new BlogCategoriaRepository(api);
 const blogPostagem = new BlogPostagemRepository(api);
 const blogNewsletter = new NewsletterRepository(api);
 const matriz = new MatrizRepository(api);
+const contato = new ContatoRepository(api);
 
 app.provide('IPessoaRepository', pessoaRespository);
 app.provide('IServicoRepository', servicoRepository);
@@ -32,6 +34,7 @@ app.provide('IBlogCategoriaRepository', blogCategoria);
 app.provide('IBlogPostagemRepository', blogPostagem);
 app.provide('INewsletterRepository', blogNewsletter);
 app.provide('IMatrizRepository', matriz);
+app.provide('IContatoRepository', contato);
 
 app.use(createPinia());
 app.use(router);

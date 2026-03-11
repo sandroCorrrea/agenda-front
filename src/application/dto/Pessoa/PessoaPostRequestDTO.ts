@@ -1,9 +1,8 @@
-export class Pessoa {
-    constructor(
-        public id: number,
+export class PessoaPostRequestDTO {
+    constructor (
         public nome: string,
         public cpf: string,
-        public dataNascimento: Date,
+        public data_nascimento: string,
         public email: string,
         public celular: string,
         public senha: string

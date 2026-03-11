@@ -7,7 +7,6 @@ const {
   error: errorContato,
   persistContato,
   resultContato
-  
 } = usePersistContato();
 </script>
 <template>

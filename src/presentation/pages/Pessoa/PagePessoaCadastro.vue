@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
 import FormCadastro from '@/presentation/components/Pessoa/FormCadastro.vue';
+import { usePersistPessoa } from '@/presentation/composables/Pessoa/usePersistPessoa';
 
-const router = useRouter();
+const {persit, loading, error, pessoaEntity} = usePersistPessoa();
 </script>
 
 <template>
     <section>
-        <FormCadastro />
+        <FormCadastro
+            :persist = "persit"
+            :loading = "loading"
+            :error = "error"
+            :pessoaEntity = "pessoaEntity"
+        />
     </section>
 </template>

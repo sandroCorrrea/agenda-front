@@ -4,5 +4,8 @@ export interface ErroResponseDTO {
         email?: string[];
         mensagem?: string[];
         nome?: string[];
+        cpf?: string[];
+        data_nascimento?: string[];
+        celular?: string[];
     };
 }

@@ -315,7 +315,6 @@ h4 {
     padding: 1.5rem;
     border-radius: 20px;
     color: #fff;
-    box-shadow: 0 15px 35px rgba(40, 167, 69, 0.25);
     text-align: center;
 }
 

@@ -3,6 +3,7 @@ import { onMounted, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import noPost from '@/presentation/assets/img/no-post.png';
+import imgBlog from '@/presentation/assets/img/blog.png'
 import profile from '@/presentation/assets/img/profile.svg';
 
 import { usePagination } from '@/presentation/composables/usePagination';
@@ -211,7 +212,18 @@ const subscribeNewsletter = async () => {
 
                             <div class="blog-img">
 
-                                <img :src="`${url}/${post.imagem}`" :alt="post?.imagem" class="img-fluid" />
+                                <img
+                                    v-if="post?.imagem"
+                                    :src="`${url}/${post.imagem}`"
+                                    :alt="post?.imagem" 
+                                    class="img-fluid" 
+                                />
+                                <img
+                                    v-else
+                                    :src="`${imgBlog}`"
+                                    :alt="post?.imagem" 
+                                    class="img-fluid" 
+                                />
 
                                 <div class="blog-dates">
 
@@ -378,7 +390,18 @@ const subscribeNewsletter = async () => {
 
                             <div class="recent-post-img">
 
-                                <img :src="`${url}/${post.imagem}`" class="img-fluid" />
+                                <img
+                                    v-if="post?.imagem"
+                                    :src="`${url}/${post.imagem}`"
+                                    :alt="post?.imagem" 
+                                    class="img-fluid" 
+                                />
+                                <img
+                                    v-else
+                                    :src="`${imgBlog}`"
+                                    :alt="post?.imagem" 
+                                    class="img-fluid" 
+                                />
 
                             </div>
 

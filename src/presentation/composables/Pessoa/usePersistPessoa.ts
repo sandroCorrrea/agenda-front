@@ -30,6 +30,7 @@ export function usePersistPessoa() {
                     data?.errors?.cpf?.[0] ||
                     data?.errors?.data_nascimento?.[0] ||
                     data?.errors?.celular?.[0] ||
+                    data?.errors?.senha?.[0] ||
                     data?.message ||
                     'Erro ao enviar mensagem de contato';
 

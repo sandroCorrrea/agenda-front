@@ -15,14 +15,23 @@ const props = withDefaults(defineProps<{
     data_nascimento: string,
     email: string,
     celular: string,
-    senha: string
+    senha: string,
+    senha_confirmation: string
   }) => Promise<any>;
   pessoaEntity: any | null;
 }>(), {
 });
 
 const emit = defineEmits<{
-  (e: 'submit', payload: { nome: string; cpf: string; data_nascimento: string; email: string; celular: string, senha: string }): void;
+  (e: 'submit', payload: {
+    nome: string;
+    cpf: string;
+    data_nascimento: string;
+    email: string;
+    celular: string;
+    senha: string;
+    senha_confirmation: string;
+  }): void;
 }>();
 
 const form = reactive({
@@ -32,7 +41,7 @@ const form = reactive({
   email: '',
   celular: '',
   senha: '',
-  confirmar_senha: ''
+  senha_confirmation: ''
 });
 
 const errors = reactive({
@@ -42,11 +51,10 @@ const errors = reactive({
   email: '',
   celular: '',
   senha: '',
-  confirmar_senha: ''
+  senha_confirmation: ''
 });
 
 function validate() {
-  const senha = form.senha;
   errors.nome = form.nome.trim() ? '' : 'Nome é obrigatório';
 
   errors.cpf =
@@ -69,32 +77,15 @@ function validate() {
       ? ''
       : 'Informe um celular válido';
 
-  if (!senha) {
-    errors.senha = 'Senha é obrigatória';
-  }
-  else if (senha.length < 8) {
-    errors.senha = 'Senha deve conter no mínimo 8 caracteres';
-  }
-  else if (!/[A-Z]/.test(senha)) {
-    errors.senha = 'Senha deve conter uma letra maiúscula';
-  }
-  else if (!/[a-z]/.test(senha)) {
-    errors.senha = 'Senha deve conter uma letra minúscula';
-  }
-  else if (!/[0-9]/.test(senha)) {
-    errors.senha = 'Senha deve conter um número';
-  }
-  else if (!/[!@#$%^&*(),.?":{}|<>]/.test(senha)) {
-    errors.senha = 'Senha deve conter um caractere especial';
-  }
-  else {
-    errors.senha = '';
-  }
+  errors.senha =
+    form.senha.length >= 8
+      ? ''
+      : 'Senha deve conter no mínimo 8 caracteres';
 
-  errors.confirmar_senha =
-    !form.confirmar_senha
+  errors.senha_confirmation =
+    !form.senha_confirmation
       ? 'Confirme sua senha'
-      : form.confirmar_senha !== form.senha
+      : form.senha_confirmation !== form.senha
         ? 'As senhas devem ser iguais'
         : '';
 
@@ -105,7 +96,7 @@ function validate() {
     !errors.email &&
     !errors.celular &&
     !errors.senha &&
-    !errors.confirmar_senha
+    !errors.senha_confirmation
   );
 }
 
@@ -120,7 +111,8 @@ async function submitCadastro(e: Event) {
       data_nascimento: form.data_nascimento.trim(),
       email: form.email.trim(),
       celular: onlyNumbers(form.celular),
-      senha: form.senha
+      senha: form.senha,
+      senha_confirmation: form.senha_confirmation
     });
 
     if (!props.error) {
@@ -130,7 +122,7 @@ async function submitCadastro(e: Event) {
       form.email = '';
       form.celular = '';
       form.senha = '';
-      form.confirmar_senha = '';
+      form.senha_confirmation = '';
     }
   } catch (error) {
     console.error('Erro ao enviar contato:', error);
@@ -147,11 +139,11 @@ function handleCelularInput(event: Event) {
   form.celular = phoneMask(input.value);
 }
 
-watch([() => form.senha, () => form.confirmar_senha], () => {
-  if (form.confirmar_senha && form.confirmar_senha !== form.senha) {
-    errors.confirmar_senha = 'As senhas devem ser iguais';
+watch([() => form.senha, () => form.senha_confirmation], () => {
+  if (form.senha_confirmation && form.senha_confirmation !== form.senha) {
+    errors.senha_confirmation = 'As senhas devem ser iguais';
   } else {
-    errors.confirmar_senha = '';
+    errors.senha_confirmation = '';
   }
 });
 </script>
@@ -226,19 +218,19 @@ watch([() => form.senha, () => form.confirmar_senha], () => {
                 </div>
 
                 <div class="mb-3">
-                  <label for="confirmar_senha" class="form-label">Confirmar senha</label>
+                  <label for="senha_confirmation" class="form-label">Confirmar senha</label>
 
                   <div class="password-wrapper">
-                    <input v-model="form.confirmar_senha" id="confirmar_senha"
+                    <input v-model="form.senha_confirmation" id="senha_confirmation"
                       :type="showConfirmarSenha ? 'text' : 'password'" class="form-control form-control-lg"
-                      :class="{ 'is-invalid': errors.confirmar_senha }" placeholder="Confirme sua senha" required />
+                      :class="{ 'is-invalid': errors.senha_confirmation }" placeholder="Confirme sua senha" required />
 
                     <button type="button" class="password-toggle" @click="showConfirmarSenha = !showConfirmarSenha">
                       {{ showConfirmarSenha ? '🙈' : '👁' }}
                     </button>
 
                     <div class="invalid-feedback">
-                      {{ errors.confirmar_senha }}
+                      {{ errors.senha_confirmation }}
                     </div>
                   </div>
                 </div>

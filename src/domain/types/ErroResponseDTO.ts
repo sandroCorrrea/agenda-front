@@ -7,5 +7,6 @@ export interface ErroResponseDTO {
         cpf?: string[];
         data_nascimento?: string[];
         celular?: string[];
+        senha?: string[];
     };
 }

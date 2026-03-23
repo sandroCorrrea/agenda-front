@@ -7,8 +7,9 @@ export class FindAllAvisoUseCase {
 
     async execute(
         page: number,
-        per_page: number
+        per_page: number,
+        nome?: string
     ) {
-        return this.repository.findAll(page, per_page);
+        return this.repository.findAll(page, per_page, nome);
     }
 }

@@ -13,6 +13,7 @@ const props = withDefaults(defineProps<{
         empresa?: string
     }) => Promise<any>;
     resultContato: any | null;
+    limparResultadoContato: () => void;
 }>(), {
 });
 
@@ -143,7 +144,7 @@ async function submitContact(e: Event) {
                                         </div>
 
                                         <div v-else-if="resultContato && !errorContato" class="d-grid mt-3">
-                                            <button type="button" class="btn btn-outline-primary btn-sm" @click="resultContato = null">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" @click="props.limparResultadoContato">
                                                 Enviar nova mensagem
                                             </button>
                                         </div>

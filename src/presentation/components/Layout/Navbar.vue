@@ -7,6 +7,7 @@ import {
     RiArrowDownSLine,
     RiArrowDownLine,
     RiArrowUpDownLine,
+    RiCarLine,
     RiLockLine,
     RiUserLine,
     RiUser2Line,
@@ -53,9 +54,9 @@ function toggleHandler() {
 
             <div class="nav__menu" id="nav-menu" ref="navMenu" :class="{ 'show-menu': isOpen }">
                 <ul class="nav__list">
-                    <li><a href="#" class="nav__link">Home</a></li>
+                    <li><RouterLink to="/" class="nav__link">Home</RouterLink></li>
 
-                    <li><a href="/servico" class="nav__link">Serviços</a></li>
+                    <li><RouterLink to="/servico" class="nav__link">Serviços</RouterLink></li>
 
                     <li class="dropdown__item">
                         <div class="nav__link">
@@ -73,6 +74,12 @@ function toggleHandler() {
                             <li>
                                 <a href="#" class="dropdown__link">
                                     <RiClipboardLine /> Protocolo
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="#" class="dropdown__link">
+                                    <RiCarLine /> BP-e
                                 </a>
                             </li>
 
@@ -105,7 +112,7 @@ function toggleHandler() {
                         </ul>
                     </li>
 
-                    <li><a href="/contato" class="nav__link">Contato</a></li>
+                    <li><RouterLink to="/contato" class="nav__link">Contato</RouterLink></li>
 
                     <li class="dropdown__item">
                         <div class="nav__link">
@@ -115,14 +122,14 @@ function toggleHandler() {
 
                         <ul class="dropdown__menu">
                             <li>
-                                <a href="/aviso" class="dropdown__link">
+                                <RouterLink to="/aviso" class="dropdown__link">
                                     <RiChatHistoryLine /> Aviso
-                                </a>
+                                </RouterLink>
                             </li>
                             <li>
-                                <a href="/blog" class="dropdown__link">
+                                <RouterLink to="/blog" class="dropdown__link">
                                     <RiNewsLine /> Blog
-                                </a>
+                                </RouterLink>
                             </li>
 
                         </ul>
@@ -136,15 +143,15 @@ function toggleHandler() {
 
                         <ul class="dropdown__menu">
                             <li>
-                                <a href="/cadastro" class="dropdown__link">
+                                <RouterLink to="/cadastro" class="dropdown__link">
                                     <RiUserLine /> Cadastro
-                                </a>
+                                </RouterLink>
                             </li>
 
                             <li>
-                                <a href="/login" class="dropdown__link">
+                                <RouterLink to="/login" class="dropdown__link">
                                     <RiLockLine /> Login
-                                </a>
+                                </RouterLink>
                             </li>
                         </ul>
                     </li>

@@ -18,7 +18,7 @@ export const useMatrizStore = defineStore('matriz', () => {
 
             matriz.value = await useCase.execute();
         } finally {
-            loading.value = true;
+            loading.value = false;
         }
     }
 

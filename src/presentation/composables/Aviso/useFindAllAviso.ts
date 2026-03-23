@@ -1,10 +1,12 @@
 import { inject, ref } from "vue";
 import type { IAvisoRepository } from "@/domain/repositories/IAvisoRepository";
+import { FindAllAvisoUseCase } from "@/application/use-cases/Aviso/FindAllAvisoUseCase";
 
 export function useFindAllAviso() {
     const repoInjected = inject<IAvisoRepository | null>('IAvisoRepository', null);
     if (!repoInjected) throw new Error('IAvisoRepository not found');
     const repo: IAvisoRepository = repoInjected;
+    const casoUso = new FindAllAvisoUseCase(repo);
 
     const avisos = ref<any[]>([]);
     const loading = ref(false);
@@ -15,7 +17,7 @@ export function useFindAllAviso() {
         error.value = null;
 
         try {
-            const result = await repo.findAll(page, per_page, nome);
+            const result = await casoUso.execute(page, per_page, nome);
 
             if (Array.isArray(result)) {
                 avisos.value = result;

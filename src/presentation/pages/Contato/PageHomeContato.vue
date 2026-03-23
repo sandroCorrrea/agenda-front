@@ -6,7 +6,8 @@ const {
   loading: loadingContato,
   error: errorContato,
   persistContato,
-  resultContato
+  resultContato,
+  limparResultadoContato
 } = usePersistContato();
 </script>
 <template>
@@ -14,6 +15,7 @@ const {
         :loadingContato = "loadingContato"
         :errorContato = "errorContato"
         :persistContato = "persistContato"
-        :resultContato = "resultContato"    
+        :resultContato = "resultContato"
+        :limparResultadoContato = "limparResultadoContato"
     />
 </template>

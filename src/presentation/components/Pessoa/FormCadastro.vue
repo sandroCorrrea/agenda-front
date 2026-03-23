@@ -2,6 +2,7 @@
 import { reactive, ref, watch } from 'vue';
 import logo from '@/presentation/assets/img/logo.jpeg';
 import { cpfMask, onlyNumbers, phoneMask } from '@/shared/utils/masks';
+import { TipoUsuario } from '@/domain/types/TipoUsuario';
 
 const showSenha = ref(false);
 const showConfirmarSenha = ref(false);
@@ -15,8 +16,11 @@ const props = withDefaults(defineProps<{
     data_nascimento: string,
     email: string,
     celular: string,
-    senha: string,
-    senha_confirmation: string
+    usuario: {
+      senha: string,
+      senha_confirmation: string,
+      tipo_usuario: TipoUsuario
+    }
   }) => Promise<any>;
   pessoaEntity: any | null;
 }>(), {
@@ -29,8 +33,11 @@ const emit = defineEmits<{
     data_nascimento: string;
     email: string;
     celular: string;
-    senha: string;
-    senha_confirmation: string;
+    usuario: {
+      senha: string;
+      senha_confirmation: string;
+      tipo_usuario: TipoUsuario;
+    };
   }): void;
 }>();
 
@@ -41,7 +48,8 @@ const form = reactive({
   email: '',
   celular: '',
   senha: '',
-  senha_confirmation: ''
+  senha_confirmation: '',
+  tipo_usuario: TipoUsuario.CLIENTE
 });
 
 const errors = reactive({
@@ -111,8 +119,11 @@ async function submitCadastro(e: Event) {
       data_nascimento: form.data_nascimento.trim(),
       email: form.email.trim(),
       celular: onlyNumbers(form.celular),
-      senha: form.senha,
-      senha_confirmation: form.senha_confirmation
+      usuario: {
+        senha: form.senha,
+        senha_confirmation: form.senha_confirmation,
+        tipo_usuario: form.tipo_usuario
+      }
     });
 
     if (!props.error) {
@@ -255,7 +266,7 @@ watch([() => form.senha, () => form.senha_confirmation], () => {
                 </div>
 
                 <div class="text-center mt-3">
-                  <small class="text-muted">Já tem conta? <a href="/login">Entrar</a></small>
+                  <small class="text-muted">Já tem conta? <RouterLink to="/login">Entrar</RouterLink></small>
                 </div>
               </form>
             </div>

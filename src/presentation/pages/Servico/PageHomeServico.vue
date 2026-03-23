@@ -34,7 +34,7 @@ onMounted(async () => {
 
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <div>
-                                        <a class="btn btn-sm btn-primary" href="/login" type="button">Agendar</a>
+                                        <RouterLink class="btn btn-sm btn-primary" to="/login">Agendar</RouterLink>
                                     </div>
                                 </div>
                             </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import Navbar from './components/Layout/Navbar.vue';
+import Footer from './components/Layout/Footer.vue';
 import { onMounted, inject, watch } from 'vue';
 import { useMatrizStore } from './store/useMatrizStore';
 import type { IMatrizRepository } from '@/domain/repositories/IMatrizRepository';
@@ -34,13 +35,20 @@ watch(
         <RouterView />
       </div>
     </main>
+    <Footer />
   </div>
 </template>
 
 <style>
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .main-content {
   padding-top: var(--header-height);
-  min-height: calc(100vh - var(--header-height));
+  flex: 1;
 }
 .page-wrapper {
   padding: 1.5rem;

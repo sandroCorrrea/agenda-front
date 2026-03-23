@@ -1,12 +1,14 @@
 import { inject, ref } from "vue";
 import type { IBlogPostagemRepository } from "@/domain/repositories/IBlogPostagemRepository";
 import type { BlogPostagemTagGetResponse } from "@/application/dto/BlogPostagem/BlogPostagemTagGetResponse";
+import { FindTagBlogPostagemUseCase } from "@/application/use-cases/BlogPostagem/FindTagBlogPostagemUseCase";
 
 export function useFindTagBlogPostagem() {
     const repoInjected = inject<IBlogPostagemRepository | null>('IBlogPostagemRepository', null);
     if (!repoInjected) throw new Error('IBlogPostagemRepository not found');
 
     const repo: IBlogPostagemRepository = repoInjected;
+    const casoUso = new FindTagBlogPostagemUseCase(repo);
 
     const blogPostagemTag = ref<BlogPostagemTagGetResponse[]>([]);
 
@@ -19,7 +21,7 @@ export function useFindTagBlogPostagem() {
         error.value = null;
 
         try {
-            const result = await repo.findTag();
+            const result = await casoUso.execute();
             blogPostagemTag.value = result;
         } catch (err: any) {
             error.value = err?.message ?? String(err);
@@ -32,6 +34,7 @@ export function useFindTagBlogPostagem() {
         findTag,
         blogPostagemTag,
         url,
-        loading
+        loading,
+        error
     }
 }

@@ -48,7 +48,7 @@ function submitLogin(e: Event) {
                     <label class="form-check-label" for="remember">Lembrar-me</label>
                   </div>
 
-                  <a href="/recuperar-senha" class="small ms-sm-auto">Esqueceu a senha?</a>
+                  <RouterLink to="/recuperar-senha" class="small ms-sm-auto">Esqueceu a senha?</RouterLink>
                 </div>
 
                 <div class="d-grid">
@@ -56,7 +56,7 @@ function submitLogin(e: Event) {
                 </div>
 
                 <div class="text-center mt-3">
-                  <small class="text-muted">Ainda não tem conta? <a href="/cadastro">Cadastre-se</a></small>
+                  <small class="text-muted">Ainda não tem conta? <RouterLink to="/cadastro">Cadastre-se</RouterLink></small>
                 </div>
               </form>
             </div>

@@ -1,11 +1,13 @@
 import { inject, ref } from "vue";
 import type { IBlogPostagemRepository } from "@/domain/repositories/IBlogPostagemRepository";
 import type { BlogPostagem } from "@/domain/entities/BlogPostagem";
+import { FindBlogPostagemByIdUseCase } from "@/application/use-cases/BlogPostagem/FindBlogPostagemByIdUseCase";
 
 export function useFindBlogPostagemById() {
     const repoInjected = inject<IBlogPostagemRepository | null>('IBlogPostagemRepository', null);
     if (!repoInjected) throw new Error('IBlogPostagemRepository not found');
     const repo: IBlogPostagemRepository = repoInjected;
+    const casoUso = new FindBlogPostagemByIdUseCase(repo);
 
     const blogPostagem = ref<BlogPostagem | null>(null);
     const loading = ref(false);
@@ -16,7 +18,7 @@ export function useFindBlogPostagemById() {
         error.value = null;
 
         try {
-            blogPostagem.value = await repo.findById(id);
+            blogPostagem.value = await casoUso.execute(id);
         } catch (err: any) {
             error.value = err?.message ?? String(err);
         } finally {

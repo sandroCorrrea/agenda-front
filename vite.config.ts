@@ -18,7 +18,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       'process.env': {
-        VITE_APP_API_URL: env.VITE_APP_API_URL
+        VITE_APP_API_URL: env.VITE_APP_API_URL,
+        VITE_API_BASE_URL: env.VITE_API_BASE_URL
       }
     }
   }

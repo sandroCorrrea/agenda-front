@@ -1,11 +1,13 @@
 import { BlogPostagem } from "@/domain/entities/BlogPostagem";
 import type { IBlogPostagemRepository } from "@/domain/repositories/IBlogPostagemRepository";
 import { inject, ref } from "vue";
+import { FindCategoriaByIdBlogPostagemUseCase } from "@/application/use-cases/BlogPostagem/FindCategoriaByIdBlogPostagemUseCase";
 
 export function useFindCategoriaByIdBlogPostagem() {
     const repoInject = inject<IBlogPostagemRepository | null>('IBlogPostagemRepository');
     if (!repoInject) throw new Error('IBlogPostagemRepository not found');
     const repo: IBlogPostagemRepository = repoInject;
+    const casoUso = new FindCategoriaByIdBlogPostagemUseCase(repo);
 
     const findAllCategorias = ref<BlogPostagem[]>([]);
     const loading = ref(false);
@@ -16,7 +18,7 @@ export function useFindCategoriaByIdBlogPostagem() {
         error.value = null;
 
         try {
-            const result = await repo.findByCategoriaId(id);
+            const result = await casoUso.execute(id);
             findAllCategorias.value = result;
         } catch (err: any) {
             error.value = err?.message ?? String(err);
@@ -28,6 +30,7 @@ export function useFindCategoriaByIdBlogPostagem() {
     return {
         findCategoriaByIdBlogPostagem,
         findAllCategorias,
-        loading
+        loading,
+        error
     }
 }

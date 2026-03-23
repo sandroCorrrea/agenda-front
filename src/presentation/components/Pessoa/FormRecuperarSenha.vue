@@ -41,7 +41,7 @@ function submitRecover(e: Event) {
                 </div>
 
                 <div class="text-center mt-3">
-                  <small class="text-muted">Lembrou a senha? <a href="/login">Entrar</a></small>
+                  <small class="text-muted">Lembrou a senha? <RouterLink to="/login">Entrar</RouterLink></small>
                 </div>
               </form>
             </div>

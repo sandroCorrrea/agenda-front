@@ -1,10 +1,12 @@
 import { inject, ref } from "vue";
 import type { IBlogCategoriaRepository } from "@/domain/repositories/IBlogCategoriaRepository";
+import { FindAllBlogCategoriaQtdPostagemUseCase } from "@/application/use-cases/BlogCategoria/FindAllBlogCategoriaQtdPostagemUseCase";
 
 export function useFindAllBlogCategoriaQtdPostagem() {
     const repoInjected = inject<IBlogCategoriaRepository | null>('IBlogCategoriaRepository');
     if (!repoInjected) throw new Error('IBlogCategoriaRepository not found');
     const repo: IBlogCategoriaRepository = repoInjected;
+    const casoUso = new FindAllBlogCategoriaQtdPostagemUseCase(repo);
 
     const blogCategoriaQtdPostagem = ref<any[]>([]);
     const loading = ref(false);
@@ -15,7 +17,7 @@ export function useFindAllBlogCategoriaQtdPostagem() {
         error.value = null;
 
         try {
-            const result = await repo.findQtdPostagem();
+            const result = await casoUso.execute();
 
             if (Array.isArray(result)) {
                 blogCategoriaQtdPostagem.value = result;

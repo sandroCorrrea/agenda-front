@@ -1,3 +1,5 @@
+import type { UsuarioPostRequestDTO } from "../Usuario/UsuarioPostRequestDTO";
+
 export class PessoaPostRequestDTO {
     constructor (
         public nome: string,
@@ -5,7 +7,6 @@ export class PessoaPostRequestDTO {
         public data_nascimento: string,
         public email: string,
         public celular: string,
-        public senha: string,
-        public senha_confirmation: string
+        public usuario: UsuarioPostRequestDTO
     ) {}
 }

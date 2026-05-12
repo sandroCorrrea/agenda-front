@@ -1,13 +1,29 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed, inject, onMounted, watch } from 'vue';
+import { RouterView, useRoute } from 'vue-router';
 import Navbar from './components/Layout/Navbar.vue';
 import Footer from './components/Layout/Footer.vue';
-import { onMounted, inject, watch } from 'vue';
+import FooterAdministrador from './components/Layout/FooterAdministrador.vue';
 import { useMatrizStore } from './store/useMatrizStore';
+import { useAuthStore } from './store/useAuthStore';
+import { TipoUsuario } from '@/domain/types/TipoUsuario';
 import type { IMatrizRepository } from '@/domain/repositories/IMatrizRepository';
 
 const repo = inject<IMatrizRepository>('IMatrizRepository');
 const matrizStore = useMatrizStore();
+const route = useRoute();
+const auth = useAuthStore();
+
+/** Rodapé do painel em rotas administrativas (/admin e telas com meta de administrador). */
+const mostrarFooterAdministrador = computed(() => {
+  if (!auth.estaAutenticado || auth.usuario?.tipo_usuario !== TipoUsuario.ADMINISTRADOR) {
+    return false;
+  }
+  if (route.path.startsWith('/admin')) {
+    return true;
+  }
+  return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
+});
 
 onMounted(() => {
   if (!repo) throw new Error('IMatrizRepository not found');
@@ -35,7 +51,8 @@ watch(
         <RouterView />
       </div>
     </main>
-    <Footer />
+    <FooterAdministrador v-if="mostrarFooterAdministrador" />
+    <Footer v-else />
   </div>
 </template>
 

@@ -30,6 +30,11 @@ body {
     background-color: var(--body-color);
 }
 
+/** Fundo das listagens do painel admin (alinhado à tela de protocolos). */
+.admin-list-page {
+    background: radial-gradient(circle at top right, #edf5ff 0%, #f6f8fc 35%, #eef4f3 100%);
+}
+
 .container {
     max-width: 1120px;
     margin-inline: 1.5rem;

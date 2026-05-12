@@ -1,16 +1,28 @@
 import { inject, ref } from "vue";
+import { useRouter } from "vue-router";
 import type { IPessoaRepository } from "@/domain/repositories/IPessoaRepository";
+import type { IAuthRepository } from "@/domain/repositories/IAuthRepository";
 import { PersistPessoaUseCase } from "@/application/use-cases/Pessoa/PersistPessoaUseCase";
+import { LoginUsuarioUseCase } from "@/application/use-cases/Auth/LoginUsuarioUseCase";
 import type { PessoaPostRequestDTO } from "@/application/dto/Pessoa/PessoaPostRequestDTO";
+import { LoginPostRequestDTO } from "@/application/dto/Auth/LoginPostRequestDTO";
 import type { Pessoa } from "@/domain/entities/Pessoa";
+import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { TipoUsuario } from "@/domain/types/TipoUsuario";
+import { onlyNumbers } from "@/shared/utils/masks";
 import axios from "axios";
 import type { ErroResponseDTO } from "@/domain/types/ErroResponseDTO";
 
 export function usePersistPessoa() {
-    const repo = inject<IPessoaRepository>('IPessoaRepository');
-    if (!repo) throw new Error('IPessoaRepository not provided');
+    const repo = inject<IPessoaRepository>("IPessoaRepository");
+    const authRepo = inject<IAuthRepository>("IAuthRepository");
+    if (!repo) throw new Error("IPessoaRepository not provided");
+    if (!authRepo) throw new Error("IAuthRepository not provided");
 
+    const router = useRouter();
+    const authStore = useAuthStore();
     const useCase = new PersistPessoaUseCase(repo);
+    const loginUseCase = new LoginUsuarioUseCase(authRepo);
     const loading = ref(false);
     const error = ref<string | null>(null);
     const pessoaEntity = ref<Pessoa | null>(null);
@@ -20,6 +32,24 @@ export function usePersistPessoa() {
         error.value = null;
         try {
             pessoaEntity.value = await useCase.execute(dto);
+
+            const cpfLogin = onlyNumbers(dto.cpf);
+            const senhaLogin = dto.usuario.senha;
+            try {
+                const loginRes = await loginUseCase.execute(
+                    new LoginPostRequestDTO(cpfLogin, senhaLogin)
+                );
+                authStore.definirSessao(loginRes.token, loginRes.usuario);
+                if (
+                    loginRes.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR
+                ) {
+                    await router.push({ name: "AdministradorPainel" });
+                } else {
+                    await router.push({ name: "AreaCliente" });
+                }
+            } catch {
+                /* cadastro ok; login automático falhou — usuário pode entrar manualmente */
+            }
         } catch (err: any) {
             if (axios.isAxiosError(err)) {
                 const data = err.response?.data as ErroResponseDTO;

@@ -13,6 +13,13 @@ onMounted(async () => {
 <template>
     <article class="page-servicos d-flex align-items-start min-vh-100 py-4">
         <div class="container">
+            <div
+                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3"
+            >
+                <div class="mb-2 mb-md-0">
+                    <h1 class="section-title">Serviços</h1>
+                </div>
+            </div>
 
             <BaseLoading v-if="loading" text="Carregando serviços ..."/>
 

@@ -45,3 +45,10 @@ export function phoneMask(value: string): string {
 export function onlyNumbers(value: string): string {
   return value.replace(/\D/g, '');
 }
+
+/** CEP: 00000-000 */
+export function cepMask(value: string): string {
+  const n = value.replace(/\D/g, '').slice(0, 8);
+  if (n.length <= 5) return n;
+  return `${n.slice(0, 5)}-${n.slice(5)}`;
+}

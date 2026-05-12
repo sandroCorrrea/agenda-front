@@ -9,6 +9,7 @@ import profile from '@/presentation/assets/img/profile.svg';
 import { usePagination } from '@/presentation/composables/usePagination';
 import { useNavigation } from '@/shared/composables/useNavigation';
 import { formatarData } from '@/shared/utils/date.util';
+import { nomeAutorPostagem, urlAvatarAutorPostagem } from '@/shared/utils/blogPostagemAutor';
 
 import BasePagination from '../Shared/BasePagination.vue';
 import BaseLoading from '../Shared/BaseLoading.vue';
@@ -291,11 +292,13 @@ const subscribeNewsletter = async () => {
 
                                     <div class="blog-author">
 
-                                        <img :src="post.autor_imagem ? `/storage/usuarios/${post.autor_imagem}` : profile"
-                                            :alt="post.autor" />
+                                        <img
+                                            :src="urlAvatarAutorPostagem(post.usuario) ?? profile"
+                                            :alt="nomeAutorPostagem(post)"
+                                        />
 
                                         <span>
-                                            Por Sandro Corrêa Rocha Júnior
+                                            Por {{ nomeAutorPostagem(post) }}
                                         </span>
 
                                     </div>

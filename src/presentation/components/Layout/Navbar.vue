@@ -1,472 +1,774 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, ref, watch } from "vue";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
-    RiMenuLine,
-    RiCloseLine,
     RiArrowDownSLine,
-    RiArrowDownLine,
-    RiArrowUpDownLine,
-    RiCarLine,
+    RiCloseLine,
+    RiDashboardLine,
     RiLockLine,
-    RiUserLine,
-    RiUser2Line,
-    RiClipboardLine,
-    RiBuildingLine,
-    RiNewsLine,
-    RiChatHistoryLine
+    RiLogoutBoxRLine,
+    RiMenuLine,
+    RiUserLine
 } from "@remixicon/vue";
-import logo from '@/presentation/assets/img/logo.svg';
-import { useMatrizStore } from '@/presentation/store/useMatrizStore';
+import logo from "@/presentation/assets/img/logo.svg";
+import { useMatrizStore } from "@/presentation/store/useMatrizStore";
+import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { TipoUsuario } from "@/domain/types/TipoUsuario";
+import { useLogoutUsuario } from "@/presentation/composables/Pessoa/useLogoutUsuario";
 
 const matriz = useMatrizStore();
-const isOpen = ref(false);
+const auth = useAuthStore();
+const router = useRouter();
+const route = useRoute();
+const { sair: chamarLogoutApi } = useLogoutUsuario();
 
-function toggleHandler() {
-    isOpen.value = !isOpen.value;
+const menuAberto = ref(false);
+const saindo = ref(false);
+const adminSubmenuAberto = ref<"" | "gestao" | "blog" | "clientes" | "conta">(
+    ""
+);
+/** Submenu do portal do cliente (Perfil / Chaves), mesmo padrao do admin Conta. */
+const clienteSubmenuAberto = ref<"" | "conta">("");
+const apisMenuAberto = ref(false);
+/** Submenu visitante: Login e Cadastro em um único item. */
+const acessoVisitanteAberto = ref(false);
+/** Submenu público: Aviso e Blog sob “Conteúdo”. */
+const conteudoMenuAberto = ref(false);
+const modalConfirmarSaidaAberto = ref(false);
+
+const isCliente = computed(
+    () => auth.estaAutenticado && auth.usuario?.tipo_usuario === TipoUsuario.CLIENTE
+);
+const isAdmin = computed(
+    () =>
+        auth.estaAutenticado &&
+        auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR
+);
+
+/** Logo + nome da empresa: admin ao painel; cliente à área de protocolos; demais, home pública. */
+const marcaDestino = computed(() => {
+    if (isAdmin.value) return { name: "AdministradorPainel" as const };
+    if (isCliente.value) return "/cliente/protocolos";
+    return "/";
+});
+
+/** Rotas filhas por grupo — os toggles são <button>, então não recebem router-link-active. */
+const ROTAS_ADMIN_GESTAO = new Set<string>([
+    "AdministradorServicos",
+    "AdministradorServicoCadastro",
+    "AdministradorServicoEditar",
+    "AdministradorProtocolos",
+    "AdministradorProtocoloCadastro",
+    "AdministradorProtocoloEditar",
+    "AdministradorAvisos",
+    "AdministradorAvisoCadastro",
+    "AdministradorAvisoEditar"
+]);
+const ROTAS_ADMIN_BLOG = new Set<string>([
+    "BlogCategorias",
+    "BlogCategoriaCadastro",
+    "BlogCategoriaEditar",
+    "BlogPostagem",
+    "BlogPostagemCadastro",
+    "BlogPostagemEditar"
+]);
+const ROTAS_ADMIN_CLIENTES = new Set<string>([
+    "AdministradorClientesPessoaFisica",
+    "AdministradorClienteFisicaEditar",
+    "AdministradorEmpresas",
+    "AdministradorEmpresaEditar",
+    "AdministradorUsuarios"
+]);
+const ROTAS_ADMIN_CONTA = new Set<string>(["AdministradorPerfil", "AdministradorChaves"]);
+const ROTAS_CLIENTE_CONTA = new Set<string>(["ClientePerfil", "ClienteChaves"]);
+
+function nomeRotaAtual(): string | null {
+    const n = route.name;
+    return typeof n === "string" ? n : null;
+}
+
+const adminGestaoAtivo = computed(() => {
+    const n = nomeRotaAtual();
+    return n != null && ROTAS_ADMIN_GESTAO.has(n);
+});
+const adminBlogAtivo = computed(() => {
+    const n = nomeRotaAtual();
+    return n != null && ROTAS_ADMIN_BLOG.has(n);
+});
+const adminClientesAtivo = computed(() => {
+    const n = nomeRotaAtual();
+    return n != null && ROTAS_ADMIN_CLIENTES.has(n);
+});
+const adminContaAtivo = computed(() => {
+    const n = nomeRotaAtual();
+    return n != null && ROTAS_ADMIN_CONTA.has(n);
+});
+const clienteContaAtivo = computed(() => {
+    const n = nomeRotaAtual();
+    return n != null && ROTAS_CLIENTE_CONTA.has(n);
+});
+const apisDocumentacaoAtiva = computed(
+    () => route.name === "BpeDocumentacao" || route.name === "ProtocoloDocumentacao"
+);
+const acessoVisitanteAtivo = computed(
+    () => route.name === "Login" || route.name === "Cadastro"
+);
+const conteudoPublicoAtivo = computed(() => {
+    const n = route.name;
+    return n === "Aviso" || n === "Blog" || n === "BlogDetalhe";
+});
+
+function toggleMenu() {
+    menuAberto.value = !menuAberto.value;
+}
+
+function closeMenu() {
+    menuAberto.value = false;
+    adminSubmenuAberto.value = "";
+    clienteSubmenuAberto.value = "";
+    apisMenuAberto.value = false;
+    acessoVisitanteAberto.value = false;
+    conteudoMenuAberto.value = false;
+}
+
+function toggleApisMenu() {
+    apisMenuAberto.value = !apisMenuAberto.value;
+}
+
+function toggleAcessoVisitante() {
+    acessoVisitanteAberto.value = !acessoVisitanteAberto.value;
+}
+
+function toggleConteudoMenu() {
+    conteudoMenuAberto.value = !conteudoMenuAberto.value;
+}
+
+function toggleAdminSubmenu(chave: "gestao" | "blog" | "clientes" | "conta") {
+    adminSubmenuAberto.value =
+        adminSubmenuAberto.value === chave ? "" : chave;
+}
+
+function toggleClienteSubmenu(chave: "conta") {
+    clienteSubmenuAberto.value =
+        clienteSubmenuAberto.value === chave ? "" : chave;
+}
+
+function abrirModalSaida() {
+    modalConfirmarSaidaAberto.value = true;
+}
+
+function fecharModalSaida() {
+    if (saindo.value) return;
+    modalConfirmarSaidaAberto.value = false;
+}
+
+watch(
+    () => route.fullPath,
+    () => {
+        closeMenu();
+    }
+);
+
+async function sair() {
+    if (saindo.value) return;
+    saindo.value = true;
+    try {
+        await chamarLogoutApi();
+        auth.encerrarSessao();
+        modalConfirmarSaidaAberto.value = false;
+        closeMenu();
+        await router.push({ name: "Home" });
+    } finally {
+        saindo.value = false;
+    }
 }
 </script>
 
 <template>
-    <header class="header">
-        <nav class="nav container">
-            <div class="nav__data">
-                <RouterLink class="nav__logo" to="/">
-                    <img :src="logo" alt="Logo" class="nav__logo-img"> {{ matriz.matriz?.apelido }}
-                </RouterLink>
+    <header class="navsafe">
+        <nav class="navsafe__inner container-fluid px-3 px-xl-4">
+            <RouterLink class="navsafe__brand" :to="marcaDestino" @click="closeMenu">
+                <img :src="logo" alt="Logo" class="navsafe__logo" />
+                <span class="navsafe__title">{{ matriz.matriz?.apelido }}</span>
+            </RouterLink>
 
-                <div
-                  class="nav__toggle"
-                  id="nav-toggle"
-                  role="button"
-                  tabindex="0"
-                  aria-controls="nav-menu"
-                  :aria-expanded="isOpen"
-                  :class="{ 'show-icon': isOpen }"
-                  @click="toggleHandler"
-                  @keydown.enter.prevent="toggleHandler"
-                  @keydown.space.prevent="toggleHandler"
-                >
-                    <RiMenuLine class="nav__burger" />
-                    <RiCloseLine class="nav__close" />
-                </div>
-            </div>
+            <button
+                type="button"
+                class="navsafe__toggle"
+                :aria-expanded="menuAberto"
+                aria-label="Abrir menu"
+                @click="toggleMenu"
+            >
+                <RiMenuLine v-if="!menuAberto" />
+                <RiCloseLine v-else />
+            </button>
 
-            <div class="nav__menu" id="nav-menu" ref="navMenu" :class="{ 'show-menu': isOpen }">
-                <ul class="nav__list">
-                    <li><RouterLink to="/" class="nav__link">Home</RouterLink></li>
+            <div
+                class="navsafe__overlay"
+                :class="{ 'navsafe__overlay--open': menuAberto }"
+                @click="closeMenu"
+            />
 
-                    <li><RouterLink to="/servico" class="nav__link">Serviços</RouterLink></li>
-
-                    <li class="dropdown__item">
-                        <div class="nav__link">
-                            APIs
-                            <RiArrowDownSLine class="dropdown__arrow" />
-                        </div>
-
-                        <ul class="dropdown__menu">
-                            <li>
-                                <a href="#" class="dropdown__link">
-                                    <RiUser2Line /> eSocial
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="#" class="dropdown__link">
-                                    <RiClipboardLine /> Protocolo
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="#" class="dropdown__link">
-                                    <RiCarLine /> BP-e
-                                </a>
-                            </li>
-
-                            <li class="dropdown__subitem">
-                                <div class="dropdown__link">
-                                    <RiBuildingLine /> CASP
-                                    <RiArrowDownLine class="dropdown__add" />
-                                </div>
-
-                                <ul class="dropdown__submenu">
-                                    <li>
-                                        <a href="#" class="dropdown__sublink">
-                                            <RiArrowUpDownLine /> Documents
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a href="#" class="dropdown__sublink">
-                                            <RiArrowUpDownLine /> Payments
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a href="#" class="dropdown__sublink">
-                                            <RiArrowUpDownLine /> Refunds
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li><RouterLink to="/contato" class="nav__link">Contato</RouterLink></li>
-
-                    <li class="dropdown__item">
-                        <div class="nav__link">
-                            Conteúdos
-                            <RiArrowDownSLine class="dropdown__arrow" />
-                        </div>
-
-                        <ul class="dropdown__menu">
-                            <li>
-                                <RouterLink to="/aviso" class="dropdown__link">
-                                    <RiChatHistoryLine /> Aviso
+            <div class="navsafe__menu" :class="{ 'navsafe__menu--open': menuAberto }">
+                <ul class="navsafe__list">
+                    <template v-if="!auth.estaAutenticado">
+                        <li><RouterLink to="/" class="navsafe__link" @click="closeMenu">Home</RouterLink></li>
+                        <li><RouterLink to="/servico" class="navsafe__link" @click="closeMenu">Serviços</RouterLink></li>
+                        <li><RouterLink to="/contato" class="navsafe__link" @click="closeMenu">Contato</RouterLink></li>
+                        <li
+                            class="navsafe__item-submenu"
+                            :class="{ 'navsafe__item-submenu--open': conteudoMenuAberto }"
+                        >
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': conteudoPublicoAtivo }"
+                                @click="toggleConteudoMenu"
+                            >
+                                Conteúdo
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink to="/aviso" class="navsafe__submenu-link" @click="closeMenu">
+                                    Aviso
                                 </RouterLink>
-                            </li>
-                            <li>
-                                <RouterLink to="/blog" class="dropdown__link">
-                                    <RiNewsLine /> Blog
+                                <RouterLink to="/blog" class="navsafe__submenu-link" @click="closeMenu">
+                                    Blog
                                 </RouterLink>
-                            </li>
-
-                        </ul>
-                    </li>
-
-                    <li class="dropdown__item">
-                        <div class="nav__link">
-                            Entrar
-                            <RiArrowDownSLine class="dropdown__arrow" />
-                        </div>
-
-                        <ul class="dropdown__menu">
-                            <li>
-                                <RouterLink to="/cadastro" class="dropdown__link">
-                                    <RiUserLine /> Cadastro
-                                </RouterLink>
-                            </li>
-
-                            <li>
-                                <RouterLink to="/login" class="dropdown__link">
+                            </div>
+                        </li>
+                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': apisMenuAberto }">
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': apisDocumentacaoAtiva }"
+                                @click="toggleApisMenu"
+                            >
+                                APIs
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink :to="{ name: 'BpeDocumentacao' }" class="navsafe__submenu-link" @click="closeMenu">BPe</RouterLink>
+                                <RouterLink :to="{ name: 'ProtocoloDocumentacao' }" class="navsafe__submenu-link" @click="closeMenu">Protocolo</RouterLink>
+                            </div>
+                        </li>
+                        <li
+                            class="navsafe__item-submenu"
+                            :class="{ 'navsafe__item-submenu--open': acessoVisitanteAberto }"
+                        >
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': acessoVisitanteAtivo }"
+                                @click="toggleAcessoVisitante"
+                            >
+                                Acesso
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink
+                                    to="/login"
+                                    class="navsafe__submenu-link navsafe__submenu-link--with-icon"
+                                    @click="closeMenu"
+                                >
                                     <RiLockLine /> Login
                                 </RouterLink>
-                            </li>
-                        </ul>
-                    </li>
+                                <RouterLink
+                                    to="/cadastro"
+                                    class="navsafe__submenu-link navsafe__submenu-link--with-icon"
+                                    @click="closeMenu"
+                                >
+                                    <RiUserLine /> Cadastro
+                                </RouterLink>
+                            </div>
+                        </li>
+                    </template>
+
+                    <template v-else-if="isCliente">
+                        <li><RouterLink to="/cliente/protocolos" class="navsafe__link" @click="closeMenu">Protocolos</RouterLink></li>
+                        <li
+                            class="navsafe__item-submenu"
+                            :class="{ 'navsafe__item-submenu--open': clienteSubmenuAberto === 'conta' }"
+                        >
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': clienteContaAtivo }"
+                                @click="toggleClienteSubmenu('conta')"
+                            >
+                                Conta
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink
+                                    :to="{ name: 'ClientePerfil' }"
+                                    class="navsafe__submenu-link"
+                                    @click="closeMenu"
+                                >
+                                    Perfil
+                                </RouterLink>
+                                <RouterLink
+                                    :to="{ name: 'ClienteChaves' }"
+                                    class="navsafe__submenu-link"
+                                    @click="closeMenu"
+                                >
+                                    Chaves
+                                </RouterLink>
+                            </div>
+                        </li>
+                        <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
+                    </template>
+
+                    <template v-else-if="isAdmin">
+                        <li>
+                            <RouterLink
+                                :to="{ name: 'AdministradorPainel' }"
+                                class="navsafe__link"
+                                @click="closeMenu"
+                            >
+                                <RiDashboardLine /> Painel
+                            </RouterLink>
+                        </li>
+
+                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'gestao' }">
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': adminGestaoAtivo }"
+                                @click="toggleAdminSubmenu('gestao')"
+                            >
+                                Gestão
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink :to="{ name: 'AdministradorServicos' }" class="navsafe__submenu-link" @click="closeMenu">Serviços</RouterLink>
+                                <RouterLink :to="{ name: 'AdministradorProtocolos' }" class="navsafe__submenu-link" @click="closeMenu">Protocolos</RouterLink>
+                                <RouterLink :to="{ name: 'AdministradorAvisos' }" class="navsafe__submenu-link" @click="closeMenu">Avisos</RouterLink>
+                            </div>
+                        </li>
+
+                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'blog' }">
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': adminBlogAtivo }"
+                                @click="toggleAdminSubmenu('blog')"
+                            >
+                                Blog
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink :to="{ name: 'BlogCategorias' }" class="navsafe__submenu-link" @click="closeMenu">Categorias</RouterLink>
+                                <RouterLink :to="{ name: 'BlogPostagem' }" class="navsafe__submenu-link" @click="closeMenu">Postagens</RouterLink>
+                            </div>
+                        </li>
+
+                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'clientes' }">
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': adminClientesAtivo }"
+                                @click="toggleAdminSubmenu('clientes')"
+                            >
+                                Clientes
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink to="/admin/clientes/pessoa-fisica" class="navsafe__submenu-link" @click="closeMenu">Pessoa física</RouterLink>
+                                <RouterLink to="/admin/empresas" class="navsafe__submenu-link" @click="closeMenu">Pessoa jurídica</RouterLink>
+                                <RouterLink :to="{ name: 'AdministradorUsuarios' }" class="navsafe__submenu-link" @click="closeMenu">Administradores</RouterLink>
+                            </div>
+                        </li>
+
+                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'conta' }">
+                            <button
+                                type="button"
+                                class="navsafe__link navsafe__submenu-toggle"
+                                :class="{ 'navsafe__submenu-toggle--active': adminContaAtivo }"
+                                @click="toggleAdminSubmenu('conta')"
+                            >
+                                Conta
+                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                            </button>
+                            <div class="navsafe__submenu">
+                                <RouterLink to="/admin/perfil" class="navsafe__submenu-link" @click="closeMenu">Perfil</RouterLink>
+                                <RouterLink to="/admin/chaves" class="navsafe__submenu-link" @click="closeMenu">Chaves</RouterLink>
+                            </div>
+                        </li>
+
+                        <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
+                    </template>
                 </ul>
             </div>
         </nav>
+
+        <Teleport to="body">
+            <div v-if="modalConfirmarSaidaAberto" class="navsafe-modal" @click.self="fecharModalSaida">
+                <div class="navsafe-modal__card">
+                    <h3>Confirmar saída</h3>
+                    <p>Tem certeza que você realmente deseja sair da sua conta?</p>
+                    <div class="navsafe-modal__acoes">
+                        <button type="button" class="navsafe-modal__btn navsafe-modal__btn--ghost" :disabled="saindo" @click="fecharModalSaida">
+                            Cancelar
+                        </button>
+                        <button type="button" class="navsafe-modal__btn navsafe-modal__btn--danger" :disabled="saindo" @click="sair">
+                            {{ saindo ? "Saindo..." : "Sair" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </header>
 </template>
 
 <style scoped>
-* {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-}
-
-ul {
-    list-style: none;
-    /*-webkit-tap-highlight-color: transparent;*/
-}
-
-a {
-    text-decoration: none;
-}
-
-.header {
+.navsafe {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    background-color: var(--black-color);
-    box-shadow: 0 2px 16px hsla(220, 32%, 8%, .3);
-    z-index: var(--z-fixed);
+    right: 0;
+    z-index: 2300;
+    background: linear-gradient(120deg, #11182b 0%, #182641 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
 }
 
-/* Garantir que a navbar e os menus dropdown fiquem acima de outros componentes (cards/formulários) */
-.header {
-    /* Mantém demais estilos existentes e garante sobreposição quando a variável for baixa */
-    z-index: 2000; /* sobrescreve var(--z-fixed) se necessário */
-}
-
-.nav__menu,
-.dropdown__menu,
-.dropdown__submenu {
-    z-index: 2100; /* dropdowns devem ficar acima do header para aparecer sobre cards */
-}
-
-.nav {
-    height: var(--header-height);
-}
-
-.nav__logo,
-.nav__burger,
-.nav__close {
-    color: var(--white-color);
-}
-
-.nav__data {
-    height: 100%;
+.navsafe__inner {
+    min-height: 72px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
 }
 
-.nav__logo {
+.navsafe__brand {
     display: inline-flex;
     align-items: center;
-    column-gap: .25rem;
-    font-weight: var(--font-semi-bold);
-    /*-webkit-tap-highlight-color: transparent;*/
+    gap: 0.7rem;
+    text-decoration: none;
+    color: #fff;
+    min-width: 0;
 }
 
-.nav__logo i {
-    font-weight: initial;
-    font-size: 1.25rem;
+.navsafe__logo {
+    height: 36px;
+    width: auto;
+    flex-shrink: 0;
 }
 
-.nav__toggle {
-    position: relative;
-    width: 32px;
-    height: 32px;
-}
-
-.nav__burger,
-.nav__close {
-    position: absolute;
-    width: max-content;
-    height: max-content;
-    inset: 0;
-    margin: auto;
-    font-size: 1.25rem;
-    cursor: pointer;
-    transition: opacity .1s, transform .4s;
-}
-
-.nav__close {
-    opacity: 0;
-}
-
-@media screen and (max-width: 1118px) {
-    .nav__menu {
-        position: absolute;
-        left: 0;
-        top: 2.5rem;
-        width: 100%;
-        height: calc(100vh - 3.5rem);
-        overflow: auto;
-        pointer-events: none;
-        opacity: 0;
-        transition: top .4s, opacity .3s;
-    }
-
-    .nav__menu::-webkit-scrollbar {
-        width: 0;
-    }
-
-    .nav__list {
-        background-color: var(--black-color);
-        padding-top: 1rem;
-    }
-}
-
-.nav__link {
-    color: var(--white-color);
-    background-color: var(--black-color);
-    font-weight: var(--font-semi-bold);
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background-color .3s;
-}
-
-.nav__link:hover {
-    background-color: var(--black-color-light);
-}
-
-.show-menu {
-    opacity: 1;
-    top: 3.5rem;
-    pointer-events: initial;
-}
-
-.show-icon .nav__burger {
-    opacity: 0;
-    transform: rotate(90deg);
-}
-
-.show-icon .nav__close {
-    opacity: 1;
-    transform: rotate(90deg);
-}
-
-.dropdown__item {
-    cursor: pointer;
-}
-
-.dropdown__arrow {
-    font-size: 1.25rem;
-    font-weight: initial;
-    transition: transform .4s;
-}
-
-.dropdown__link,
-.dropdown__sublink {
-    padding: 1.25rem 1.25rem 1.25rem 2.5rem;
-    color: var(--white-color);
-    background-color: var(--black-color-light);
-    display: flex;
-    align-items: center;
-    column-gap: .5rem;
-    font-weight: var(--font-semi-bold);
-    transition: background-color .3s;
-}
-
-.dropdown__link i,
-.dropdown__sublink i {
-    font-size: 1.25rem;
-    font-weight: initial;
-}
-
-.dropdown__link:hover,
-.dropdown__sublink:hover {
-    background-color: var(--black-color);
-}
-
-.dropdown__menu,
-.dropdown__submenu {
-    max-height: 0;
+.navsafe__title {
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
     overflow: hidden;
-    transition: max-height .4s ease-out;
+    text-overflow: ellipsis;
 }
 
-.dropdown__item:hover .dropdown__menu,
-.dropdown__subitem:hover>.dropdown__submenu {
-    max-height: 1000px;
-    transition: max-height .4s ease-in;
+.navsafe__desktop-highlight {
+    display: none;
 }
 
-.dropdown__item:hover .dropdown__arrow {
+.navsafe__highlight-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    text-decoration: none;
+    color: #d7e5ff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.navsafe__toggle {
+    border: none;
+    background: transparent;
+    color: #e6efff;
+    font-size: 1.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.navsafe__toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navsafe__overlay {
+    position: fixed;
+    inset: 72px 0 0 0;
+    background: rgba(8, 12, 22, 0.52);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 5;
+}
+
+.navsafe__overlay--open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.navsafe__menu {
+    position: fixed;
+    top: 72px;
+    right: 0;
+    width: min(350px, 100vw);
+    height: calc(100vh - 72px);
+    overflow: auto;
+    background: #121a2d;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(100%);
+    transition: all 0.18s ease;
+    z-index: 10;
+}
+
+.navsafe__menu--open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.navsafe__list {
+    list-style: none;
+    margin: 0;
+    padding: 0.75rem 0.7rem 1rem;
+}
+
+.navsafe__link {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.85rem 0.85rem;
+    color: #f0f4ff;
+    text-decoration: none;
+    font-weight: 650;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 12px;
+    margin-bottom: 0.2rem;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.navsafe__link:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navsafe__link--cta,
+.navsafe__link--role {
+    background: rgba(77, 141, 255, 0.16);
+    border: 1px solid rgba(150, 186, 255, 0.25);
+}
+
+.navsafe__link.router-link-active {
+    background: rgba(91, 153, 255, 0.18);
+    color: #ffffff;
+}
+
+.navsafe__link.navsafe__submenu-toggle--active {
+    background: rgba(91, 153, 255, 0.18);
+    color: #ffffff;
+}
+
+.navsafe__submenu-link--with-icon {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.navsafe__btn-danger {
+    color: #ffcece;
+}
+
+.navsafe__item-submenu {
+    position: relative;
+}
+
+.navsafe__submenu-toggle {
+    justify-content: space-between;
+}
+
+.navsafe__submenu-icon {
+    transition: transform 0.2s ease;
+}
+
+.navsafe__submenu {
+    display: none;
+    padding: 0 0.35rem 0.35rem 1rem;
+}
+
+.navsafe__submenu-link {
+    display: block;
+    color: #d9e6ff;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.9rem;
+}
+
+.navsafe__submenu-link:hover,
+.navsafe__submenu-link.router-link-active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.navsafe__item-submenu--open .navsafe__submenu {
+    display: block;
+}
+
+.navsafe__item-submenu--open .navsafe__submenu-icon {
     transform: rotate(180deg);
 }
 
-.dropdown__add {
-    margin-left: auto;
+.navsafe-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 10, 18, 0.58);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 3000;
 }
 
-.dropdown__sublink {
-    background-color: var(--black-color-lighten);
+.navsafe-modal__card {
+    width: min(440px, 100%);
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.2rem 1.1rem;
+    box-shadow: 0 24px 44px rgba(7, 14, 30, 0.3);
 }
 
-@media screen and (max-width: 340px) {
-    .container {
-        margin-inline: 1rem;
-    }
-
-    .nav__link {
-        padding-inline: 1rem;
-    }
+.navsafe-modal__card h3 {
+    margin: 0;
+    color: #16254e;
+    font-size: 1.2rem;
+    font-weight: 800;
 }
 
-@media screen and (min-width: 1118px) {
-    .container {
-        margin-inline: auto;
+.navsafe-modal__card p {
+    margin: 0.7rem 0 0;
+    color: #4f5f7c;
+}
+
+.navsafe-modal__acoes {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+}
+
+.navsafe-modal__btn {
+    border: none;
+    border-radius: 999px;
+    padding: 0.5rem 0.92rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.navsafe-modal__btn--ghost {
+    background: #edf2fb;
+    color: #233b6a;
+}
+
+.navsafe-modal__btn--danger {
+    background: linear-gradient(90deg, #f26b6b 0%, #d33f49 100%);
+    color: #fff;
+}
+
+@media (min-width: 1200px) {
+    .navsafe__inner {
+        gap: 1.1rem;
     }
 
-    .nav {
-        height: calc(var(--header-height) + 2rem);
-        display: flex;
-        justify-content: space-between;
+    .navsafe__desktop-highlight {
+        display: block;
     }
 
-    .nav__toggle {
+    .navsafe__toggle {
         display: none;
     }
 
-    .nav__list {
-        height: 100%;
-        display: flex;
-        column-gap: 3rem;
+    .navsafe__overlay {
+        display: none;
     }
 
-    .nav__link {
-        height: 100%;
-        padding: 0;
-        justify-content: initial;
-        column-gap: .25rem;
-    }
-
-    .nav__link:hover {
-        background-color: transparent;
-    }
-
-    .dropdown__item,
-    .dropdown__subitem {
+    .navsafe__menu {
         position: relative;
-    }
-
-    .dropdown__menu,
-    .dropdown__submenu {
-        max-height: initial;
-        overflow: initial;
-        position: absolute;
-        left: 0;
-        top: 6rem;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity .3s, top .3s;
-    }
-
-    .dropdown__link,
-    .dropdown__sublink {
-        padding-inline: 1rem 3.5rem;
-    }
-
-    .dropdown__subitem .dropdown__link {
-        padding-inline: 1rem;
-    }
-
-    .dropdown__submenu {
-        position: absolute;
-        left: 100%;
-        top: .5rem;
-    }
-
-    .dropdown__item:hover .dropdown__menu {
+        top: auto;
+        right: auto;
+        height: auto;
+        width: auto;
+        max-width: 100%;
+        overflow: visible;
         opacity: 1;
-        top: 5.5rem;
-        pointer-events: initial;
-        transition: top .3s;
+        pointer-events: auto;
+        transform: none;
+        background: transparent;
+        border-left: 0;
+        z-index: 1;
     }
 
-    .dropdown__subitem:hover>.dropdown__submenu {
-        opacity: 1;
-        top: 0;
-        pointer-events: initial;
-        transition: top .3s;
+    .navsafe__list {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.35rem;
+        padding: 0;
+    }
+
+    .navsafe__link {
+        width: auto;
+        border-radius: 999px;
+        padding: 0.42rem 0.74rem;
+        margin-bottom: 0;
+        font-size: 0.84rem;
+        white-space: nowrap;
+    }
+
+    .navsafe__submenu-toggle {
+        min-width: 100px;
+        justify-content: center;
+    }
+
+    .navsafe__submenu {
+        position: absolute;
+        top: calc(100% + 0.25rem);
+        right: 0;
+        min-width: 185px;
+        background: #121a2d;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 0.35rem;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+        z-index: 20;
     }
 }
 
-.nav__logo-img {
-    height: 32px;
-    width: auto;
-}
+@media (max-width: 768px) {
+    .navsafe__logo {
+        height: 32px;
+    }
 
-@media screen and (max-width: 768px) {
-    .nav__logo-img {
-        height: 26px;
+    .navsafe__title {
+        max-width: 165px;
+        font-size: 0.9rem;
+    }
+
+    .navsafe__highlight-link {
+        font-size: 0.78rem;
+        padding: 0.28rem 0.62rem;
     }
 }
-
-@media screen and (min-width: 1118px) {
-    .nav__logo-img {
-        height: 36px;
-    }
-}
-
 </style>

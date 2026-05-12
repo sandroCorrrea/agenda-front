@@ -1,3 +1,6 @@
+import type { ReceitaWsAtividadeDTO } from "@/application/dto/Empresa/ReceitaWs/ReceitaWsAtividadeDTO";
+import type { ReceitaWsSocioDTO } from "@/application/dto/Empresa/ReceitaWs/ReceitaWsSocioDTO";
+
 export class Matriz {
     constructor(
         public id: number,
@@ -18,6 +21,9 @@ export class Matriz {
         public data_situacao_uf: string,
         public situacao_cnpj: string,
         public situacao_ie: string,
-        public cnae: string
+        public cnae: string,
+        public atividades_principais: ReceitaWsAtividadeDTO[],
+        public atividades_secundarias: ReceitaWsAtividadeDTO[],
+        public qsa: ReceitaWsSocioDTO[]
     ) {}
 }

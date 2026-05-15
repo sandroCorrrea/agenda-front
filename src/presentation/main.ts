@@ -18,6 +18,7 @@ import { ContatoRepository } from "@/infrastructure/repositories/ContatoReposito
 import { AuthRepository } from "@/infrastructure/repositories/AuthRepository";
 import { EnderecoRepository } from "@/infrastructure/repositories/EnderecoRepository";
 import { ProtocoloRepository } from "@/infrastructure/repositories/ProtocoloRepository";
+import { HomeCarrosselImagemRepository } from "@/infrastructure/repositories/HomeCarrosselImagemRepository";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 
 const app = createApp(App);
@@ -40,6 +41,7 @@ const contato = new ContatoRepository(api);
 const autenticacao = new AuthRepository(api);
 const enderecoRepository = new EnderecoRepository(api);
 const protocoloRepository = new ProtocoloRepository(api);
+const homeCarrosselImagemRepository = new HomeCarrosselImagemRepository(api);
 
 app.provide('IPessoaRepository', pessoaRespository);
 app.provide('IUsuarioRepository', usuarioRepository);
@@ -53,6 +55,7 @@ app.provide('IContatoRepository', contato);
 app.provide('IAuthRepository', autenticacao);
 app.provide('IEnderecoRepository', enderecoRepository);
 app.provide('IProtocoloRepository', protocoloRepository);
+app.provide('IHomeCarrosselImagemRepository', homeCarrosselImagemRepository);
 
 const pinia = createPinia();
 app.use(pinia);
@@ -62,7 +65,7 @@ api.interceptors.request.use((config) => {
     const auth = useAuthStore();
     config.headers = config.headers ?? {};
     config.headers.Accept = "application/json";
-    if (auth.token) {
+    if (!config.skipAuth && auth.token) {
         config.headers.Authorization = `Bearer ${auth.token}`;
     }
     return config;

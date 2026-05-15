@@ -2,6 +2,7 @@ export interface ErroResponseDTO {
     message: string;
     errors: {
         email?: string[];
+        token?: string[];
         mensagem?: string[];
         nome?: string[];
         descricao?: string[];
@@ -34,5 +35,11 @@ export interface ErroResponseDTO {
         rua_destinatario?: string[];
         bairro_destinatario?: string[];
         cidade_destinatario?: string[];
+        ordem?: string[];
+        ativo?: string[];
+        alt_text?: string[];
+        link_url?: string[];
+        abrir_em_nova_aba?: string[];
+        imagem_base64?: string[];
     };
 }

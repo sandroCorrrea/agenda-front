@@ -2,6 +2,8 @@ import type { AxiosInstance } from "axios";
 import type { IAuthRepository } from "@/domain/repositories/IAuthRepository";
 import type { LoginPostRequestDTO } from "@/application/dto/Auth/LoginPostRequestDTO";
 import type { LoginResponse } from "@/application/dto/Auth/LoginPostResponseDTO";
+import type { ApiMessageResponseDTO } from "@/application/dto/Auth/ApiMessageResponseDTO";
+import type { RedefinirSenhaComTokenDTO } from "@/application/dto/Auth/RedefinirSenhaComTokenDTO";
 import { TokenIntegracaoResponseDTO } from "@/application/dto/Auth/TokenIntegracaoResponseDTO";
 import {
     LoginPostResponseDTO,
@@ -42,5 +44,31 @@ export class AuthRepository implements IAuthRepository {
             res.data.token,
             res.data.token_type
         );
+    }
+
+    async solicitarRecuperacaoSenha(
+        email: string
+    ): Promise<ApiMessageResponseDTO> {
+        const res = await this.api.post<ApiMessageResponseDTO>(
+            "/auth/senha/recuperacao",
+            { email },
+            { skipAuth: true }
+        );
+        return res.data;
+    }
+
+    async redefinirSenhaComToken(
+        dto: RedefinirSenhaComTokenDTO
+    ): Promise<ApiMessageResponseDTO> {
+        const res = await this.api.post<ApiMessageResponseDTO>(
+            "/auth/senha/redefinir",
+            {
+                token: dto.token,
+                nova_senha: dto.nova_senha,
+                nova_senha_confirmation: dto.nova_senha_confirmation
+            },
+            { skipAuth: true }
+        );
+        return res.data;
     }
 }

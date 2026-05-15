@@ -65,8 +65,9 @@ function chipTipo(tipo: string) {
   return tipo === "fisica" ? "Física" : "Jurídica";
 }
 
-function destinatarioDisplay(item: Pick<Protocolo, "destinatarioTipo">) {
-  return item.destinatarioTipo === "fisica" ? "Pessoa física" : "Pessoa jurídica";
+function destinatarioNomeDisplay(item: Pick<Protocolo, "destinatarioNome">) {
+  const nome = item.destinatarioNome?.trim();
+  return nome && nome.length > 0 ? nome : "—";
 }
 </script>
 
@@ -127,38 +128,138 @@ function destinatarioDisplay(item: Pick<Protocolo, "destinatarioTipo">) {
 
           <div v-if="carregandoLista" class="text-muted py-4">Carregando protocolos...</div>
           <div v-else-if="protocolos.length === 0" class="text-center py-5 text-muted">Nenhum protocolo encontrado.</div>
-          <div v-else class="table-responsive">
-            <table class="table align-middle proto-table">
+          <div v-else class="proto-list">
+            <div class="table-responsive d-none d-lg-block">
+              <table class="table align-middle proto-table mb-0">
               <thead>
                 <tr>
-                  <th>Título</th><th>Tipo</th><th>Destinatário</th><th>Ano</th><th>Entrega</th><th>Cidade</th><th class="text-end">Ações</th>
+                  <th>Título</th>
+                  <th>Tipo</th>
+                  <th>Destinatário</th>
+                  <th>Entrega</th>
+                  <th class="proto-actions-head">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in protocolos" :key="item.id">
-                  <td>{{ item.titulo || "Sem título" }}</td>
+                <tr v-for="item in protocolos" :key="`tbl-${item.id}`">
+                  <td class="proto-table__titulo">{{ item.titulo || "Sem título" }}</td>
                   <td><span class="proto-chip">{{ chipTipo(item.destinatarioTipo) }}</span></td>
-                  <td>{{ destinatarioDisplay(item) }}</td>
-                  <td>{{ item.ano }}</td>
-                  <td>{{ formatarDataIsoPtBr(item.dataParaEntrega) }}</td>
-                  <td>{{ item.cidadeDestinatario }}</td>
-                  <td class="text-end">
-                    <button class="btn btn-sm btn-outline-secondary me-1" @click="carregarDetalhe(item.id)"><RiEyeLine /></button>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline-dark me-1"
-                      :disabled="baixandoPdfId !== null"
-                      title="Baixar PDF"
-                      @click="baixarPdf(item.id)"
+                  <td class="proto-table__destinatario">{{ destinatarioNomeDisplay(item) }}</td>
+                  <td class="text-nowrap">{{ formatarDataIsoPtBr(item.dataParaEntrega) }}</td>
+                  <td class="proto-actions-cell">
+                    <div
+                      class="proto-actions"
+                      role="group"
+                      :aria-label="`Ações do protocolo ${item.titulo || item.id}`"
                     >
-                      <RiFilePdf2Line />
-                    </button>
-                    <RouterLink class="btn btn-sm btn-outline-primary me-1" :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"><RiPencilLine /></RouterLink>
-                    <button class="btn btn-sm btn-outline-danger" :disabled="excluindoId!==null" @click="abrirModalExcluir(item.id)"><RiDeleteBinLine /></button>
+                      <button
+                        type="button"
+                        class="proto-action-btn proto-action-btn--view"
+                        title="Ver detalhes"
+                        aria-label="Ver detalhes"
+                        @click="carregarDetalhe(item.id)"
+                      >
+                        <RiEyeLine />
+                      </button>
+                      <button
+                        type="button"
+                        class="proto-action-btn proto-action-btn--pdf"
+                        :disabled="baixandoPdfId !== null"
+                        :aria-busy="baixandoPdfId === item.id"
+                        title="Baixar PDF"
+                        aria-label="Baixar PDF"
+                        @click="baixarPdf(item.id)"
+                      >
+                        <RiFilePdf2Line />
+                      </button>
+                      <RouterLink
+                        class="proto-action-btn proto-action-btn--edit"
+                        :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
+                        title="Editar"
+                        aria-label="Editar"
+                      >
+                        <RiPencilLine />
+                      </RouterLink>
+                      <button
+                        type="button"
+                        class="proto-action-btn proto-action-btn--delete"
+                        :disabled="excluindoId !== null"
+                        :aria-busy="excluindoId === item.id"
+                        title="Excluir"
+                        aria-label="Excluir"
+                        @click="abrirModalExcluir(item.id)"
+                      >
+                        <RiDeleteBinLine />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
-            </table>
+              </table>
+            </div>
+
+            <ul class="proto-cards d-lg-none list-unstyled mb-0">
+              <li v-for="item in protocolos" :key="`card-${item.id}`" class="proto-card">
+                <div class="proto-card__head">
+                  <h3 class="proto-card__titulo">{{ item.titulo || "Sem título" }}</h3>
+                  <span class="proto-chip">{{ chipTipo(item.destinatarioTipo) }}</span>
+                </div>
+                <dl class="proto-card__meta">
+                  <div class="proto-card__meta--full"><dt>Destinatário</dt><dd>{{ destinatarioNomeDisplay(item) }}</dd></div>
+                  <div><dt>Ano</dt><dd>{{ item.ano }}</dd></div>
+                  <div><dt>Entrega</dt><dd>{{ formatarDataIsoPtBr(item.dataParaEntrega) }}</dd></div>
+                </dl>
+                <div
+                  class="proto-actions proto-actions--card"
+                  role="group"
+                  :aria-label="`Ações do protocolo ${item.titulo || item.id}`"
+                >
+                  <button
+                    type="button"
+                    class="proto-action-btn proto-action-btn--view"
+                    title="Ver detalhes"
+                    aria-label="Ver detalhes"
+                    @click="carregarDetalhe(item.id)"
+                  >
+                    <RiEyeLine />
+                    <span class="proto-action-btn__label">Detalhes</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="proto-action-btn proto-action-btn--pdf"
+                    :disabled="baixandoPdfId !== null"
+                    :aria-busy="baixandoPdfId === item.id"
+                    title="Baixar PDF"
+                    aria-label="Baixar PDF"
+                    @click="baixarPdf(item.id)"
+                  >
+                    <RiFilePdf2Line />
+                    <span class="proto-action-btn__label">PDF</span>
+                  </button>
+                  <RouterLink
+                    class="proto-action-btn proto-action-btn--edit"
+                    :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
+                    title="Editar"
+                    aria-label="Editar"
+                  >
+                    <RiPencilLine />
+                    <span class="proto-action-btn__label">Editar</span>
+                  </RouterLink>
+                  <button
+                    type="button"
+                    class="proto-action-btn proto-action-btn--delete"
+                    :disabled="excluindoId !== null"
+                    :aria-busy="excluindoId === item.id"
+                    title="Excluir"
+                    aria-label="Excluir"
+                    @click="abrirModalExcluir(item.id)"
+                  >
+                    <RiDeleteBinLine />
+                    <span class="proto-action-btn__label">Excluir</span>
+                  </button>
+                </div>
+              </li>
+            </ul>
           </div>
 
           <div v-if="protocolos.length > 0" class="proto-pag mt-3">
@@ -183,7 +284,7 @@ function destinatarioDisplay(item: Pick<Protocolo, "destinatarioTipo">) {
             <p><strong>Título:</strong> {{ protocoloDetalhe.titulo || "Sem título" }}</p>
             <p><strong>Descrição:</strong> {{ protocoloDetalhe.descricao }}</p>
             <p><strong>Tipo:</strong> {{ chipTipo(protocoloDetalhe.destinatarioTipo) }}</p>
-            <p><strong>Destinatário:</strong> {{ destinatarioDisplay(protocoloDetalhe) }}</p>
+            <p><strong>Destinatário:</strong> {{ destinatarioNomeDisplay(protocoloDetalhe) }}</p>
             <p><strong>Ano:</strong> {{ protocoloDetalhe.ano }}</p>
             <p><strong>Data para entrega:</strong> {{ formatarDataIsoPtBr(protocoloDetalhe.dataParaEntrega) }}</p>
             <p><strong>CEP:</strong> {{ protocoloDetalhe.cepDestinatario }}</p>
@@ -235,6 +336,31 @@ function destinatarioDisplay(item: Pick<Protocolo, "destinatarioTipo">) {
 .proto-pdf-btn{border:none!important;background:linear-gradient(90deg,#5c6bc0,#2da0a8)!important;color:#fff!important;border-radius:10px!important;font-weight:700!important}
 .proto-pdf-btn:disabled{opacity:.65}
 .proto-chip{font-size:.74rem;background:#eef3ff;color:#2d4d8f;border:1px solid #d8e2ff;border-radius:999px;padding:.15rem .5rem;font-weight:700}
+.proto-table__titulo{max-width:14rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proto-table__destinatario{max-width:12rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proto-card__meta--full{grid-column:1/-1}
+.proto-actions-head,.proto-actions-cell{width:1%;white-space:nowrap;text-align:right;vertical-align:middle}
+.proto-actions{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:.15rem;padding:.2rem;background:#f4f7fb;border:1px solid #e8edf4;border-radius:10px}
+.proto-action-btn{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;padding:0;border-radius:8px;border:1px solid transparent;background:#fff;color:#3f5284;text-decoration:none;transition:background .15s ease,border-color .15s ease,color .15s ease}
+.proto-action-btn svg{width:1.05rem;height:1.05rem}
+.proto-action-btn:hover:not(:disabled){background:#eef3ff;border-color:#d8e2ff;color:#2d4d8f}
+.proto-action-btn:disabled{opacity:.55;cursor:not-allowed}
+.proto-action-btn--view{color:#5c6b8a}
+.proto-action-btn--pdf{color:#2d4d8f}
+.proto-action-btn--edit{color:#2d6a9f}
+.proto-action-btn--delete{color:#a32d2d}
+.proto-action-btn--delete:hover:not(:disabled){background:#fff3f3;border-color:#f1b4b4;color:#8b2222}
+.proto-action-btn__label{display:none}
+.proto-cards{display:flex;flex-direction:column;gap:.85rem}
+.proto-card{border:1px solid #e8edf4;border-radius:14px;padding:1rem 1.05rem;background:linear-gradient(180deg,#fff 0%,#fbfdff 100%)}
+.proto-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:.75rem}
+.proto-card__titulo{font-size:1rem;font-weight:700;color:#16254e;margin:0;line-height:1.35}
+.proto-card__meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem .85rem;margin:0 0 .85rem}
+.proto-card__meta dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#6b7d9c;margin:0}
+.proto-card__meta dd{font-size:.9rem;font-weight:600;color:#16254e;margin:.1rem 0 0}
+.proto-actions--card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;width:100%;padding:.35rem}
+.proto-actions--card .proto-action-btn{width:auto;height:auto;min-height:2.35rem;padding:.4rem .65rem;gap:.35rem;font-size:.82rem;font-weight:600}
+.proto-actions--card .proto-action-btn__label{display:inline}
 .proto-pag{display:flex;justify-content:center;align-items:center;gap:.8rem}.proto-pag__nav{border:1px solid rgba(92,107,192,.3);border-radius:10px}
 .proto-modal__portal{position:fixed;inset:0;z-index:4000}.proto-modal__backdrop{position:absolute;inset:0;background:rgba(22,37,78,.45)}.proto-modal__wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem}.proto-modal__panel{position:relative;width:100%;max-width:560px;background:#fff;border-radius:16px;padding:1.25rem 1.25rem 1rem}.proto-modal__close{position:absolute;right:.7rem;top:.7rem;border:none;background:transparent}
 .admin-alert{border-radius:10px;padding:.75rem .9rem;font-size:.92rem}.admin-alert--erro{background:#fff3f3;border:1px solid #f1b4b4;color:#9e2b2b}.admin-alert--ok{background:#eefaf3;border:1px solid #b7e3c7;color:#1d6d3f}

@@ -10,6 +10,7 @@ import {
   RiFileList3Line,
   RiFolderLine,
   RiGlobalLine,
+  RiImage2Line,
   RiKey2Line,
   RiLightbulbFlashLine,
   RiNotification3Line,
@@ -69,6 +70,12 @@ const atalhos: Atalho[] = [
     accent: "amber"
   },
   {
+    nome: "Carrossel da Home",
+    descricao: "Imagens exibidas no carrossel da página inicial.",
+    rota: "AdministradorHomeCarrossel",
+    accent: "teal"
+  },
+  {
     nome: "Blog — categorias",
     descricao: "Organize as categorias das postagens.",
     rota: "BlogCategorias",
@@ -116,6 +123,7 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorServicos: RiBriefcase4Line,
   AdministradorProtocolos: RiFileList3Line,
   AdministradorAvisos: RiNotification3Line,
+  AdministradorHomeCarrossel: RiImage2Line,
   BlogCategorias: RiFolderLine,
   BlogPostagem: RiArticleLine,
   AdministradorClientesPessoaFisica: RiUser3Line,

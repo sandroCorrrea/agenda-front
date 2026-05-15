@@ -21,6 +21,8 @@ type ProtocoloApi = {
     destinatarioEmpresaId: number | null;
     administradorUsuarioId: number;
     destinatarioTipo: DestinatarioTipo;
+    destinatarioNome?: string | null;
+    destinatario_nome?: string | null;
     titulo: string | null;
     descricao: string;
     ano: number;
@@ -232,6 +234,12 @@ export class ProtocoloRepository implements IProtocoloRepository {
             item.destinatarioEmpresaId != null ? Number(item.destinatarioEmpresaId) : null,
             Number(item.administradorUsuarioId),
             item.destinatarioTipo,
+            (() => {
+                const bruto =
+                    item.destinatarioNome ?? item.destinatario_nome ?? "";
+                const limpo = String(bruto).trim();
+                return limpo.length > 0 ? limpo : null;
+            })(),
             item.titulo ?? null,
             String(item.descricao ?? ""),
             Number(item.ano),

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import logoJpeg from '@/presentation/assets/img/logo.jpeg';
-import profileSvg from '@/presentation/assets/img/profile.svg';
+import { useHomeCarrosselPublico } from '@/presentation/composables/HomeCarrosselImagem/useHomeCarrosselPublico';
 
-const imagensCarrossel = [
-  { src: '/logo.svg', titulo: 'Plataforma contábil integrada' },
-  { src: logoJpeg, titulo: 'Inteligência para escritórios modernos' },
-  { src: profileSvg, titulo: 'Atendimento digital eficiente' },
-  { src: '/logo.svg', titulo: 'Automação fiscal e financeira' },
-  { src: logoJpeg, titulo: 'Produtividade com segurança' },
-  { src: profileSvg, titulo: 'Experiência completa para clientes' }
-];
+const {
+  imagens: imagensCarrossel,
+  trilha: trilhaCarrossel,
+  possuiSlides
+} = useHomeCarrosselPublico();
 
-const trilhaCarrossel = computed(() => [...imagensCarrossel, ...imagensCarrossel]);
+function aoErroDeImagem(event: Event) {
+  const img = event.target as HTMLImageElement | null;
+  if (img) {
+    img.style.visibility = 'hidden';
+  }
+}
 </script>
 
 <template>
@@ -56,17 +56,32 @@ const trilhaCarrossel = computed(() => [...imagensCarrossel, ...imagensCarrossel
       </div>
     </section>
 
-    <section class="bloco bloco-carrossel">
+    <section v-if="possuiSlides" class="bloco bloco-carrossel">
       <div class="topo-secao">
         <h2>Experiência visual da plataforma</h2>
         <p>Soluções desenhadas para evoluir a gestão contábil com tecnologia e agilidade.</p>
       </div>
       <div class="carrossel">
-        <div class="carrossel__trilha">
-          <div class="carrossel__item" v-for="(imagem, indice) in trilhaCarrossel" :key="`${imagem.titulo}-${indice}`">
-            <img :src="imagem.src" :alt="imagem.titulo" />
-            <span>{{ imagem.titulo }}</span>
-          </div>
+        <div
+          class="carrossel__trilha"
+          :style="{ animationDuration: `${Math.max(18, imagensCarrossel.length * 6)}s` }"
+        >
+          <component
+            :is="imagem.linkUrl ? 'a' : 'div'"
+            v-for="(imagem, indice) in trilhaCarrossel"
+            :key="`${imagem.id}-${indice}`"
+            :href="imagem.linkUrl || undefined"
+            :target="imagem.linkUrl && imagem.abrirEmNovaAba ? '_blank' : undefined"
+            :rel="imagem.linkUrl && imagem.abrirEmNovaAba ? 'noopener noreferrer' : undefined"
+            class="carrossel__item"
+          >
+            <img
+              :src="imagem.src || imagem.imagemUrl"
+              :alt="imagem.altText || imagem.titulo"
+              loading="lazy"
+              @error="aoErroDeImagem"
+            />
+          </component>
         </div>
       </div>
     </section>
@@ -315,6 +330,18 @@ const trilhaCarrossel = computed(() => [...imagensCarrossel, ...imagensCarrossel
   overflow: hidden;
   background: #f8fbff;
   border: 1px solid rgba(20, 30, 40, 0.08);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+a.carrossel__item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+a.carrossel__item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(20, 30, 40, 0.12);
 }
 
 .carrossel__item img {

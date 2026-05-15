@@ -62,7 +62,10 @@ const ROTAS_ADMIN_GESTAO = new Set<string>([
     "AdministradorProtocoloEditar",
     "AdministradorAvisos",
     "AdministradorAvisoCadastro",
-    "AdministradorAvisoEditar"
+    "AdministradorAvisoEditar",
+    "AdministradorHomeCarrossel",
+    "AdministradorHomeCarrosselCadastro",
+    "AdministradorHomeCarrosselEditar"
 ]);
 const ROTAS_ADMIN_BLOG = new Set<string>([
     "BlogCategorias",
@@ -344,6 +347,7 @@ async function sair() {
                                 <RouterLink :to="{ name: 'AdministradorServicos' }" class="navsafe__submenu-link" @click="closeMenu">Serviços</RouterLink>
                                 <RouterLink :to="{ name: 'AdministradorProtocolos' }" class="navsafe__submenu-link" @click="closeMenu">Protocolos</RouterLink>
                                 <RouterLink :to="{ name: 'AdministradorAvisos' }" class="navsafe__submenu-link" @click="closeMenu">Avisos</RouterLink>
+                                <RouterLink :to="{ name: 'AdministradorHomeCarrossel' }" class="navsafe__submenu-link" @click="closeMenu">Carrossel da Home</RouterLink>
                             </div>
                         </li>
 

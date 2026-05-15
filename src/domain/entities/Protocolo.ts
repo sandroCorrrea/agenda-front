@@ -25,6 +25,8 @@ export class Protocolo {
         public destinatarioEmpresaId: number | null,
         public administradorUsuarioId: number,
         public destinatarioTipo: DestinatarioTipo,
+        /** Nome da pessoa (PF) ou da empresa (PJ); preenchido quando a API enviar `destinatarioNome`. */
+        public destinatarioNome: string | null,
         public titulo: string | null,
         public descricao: string,
         public ano: number,

@@ -33,6 +33,11 @@ const router = createRouter({
       component: () => import('@/presentation/pages/Pessoa/PageRecuperarSenha.vue')
     },
     {
+      path: '/redefinir-senha',
+      name: 'RedefinirSenha',
+      component: () => import('@/presentation/pages/Pessoa/PageRedefinirSenha.vue')
+    },
+    {
       path: '/contato',
       name: 'Contato',
       component: () => import('@/presentation/pages/Contato/PageHomeContato.vue')
@@ -321,6 +326,39 @@ const router = createRouter({
         requerAutenticacao: true,
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
         tituloCliente: 'Editar protocolo'
+      }
+    },
+    {
+      path: '/admin/home-carrossel',
+      name: 'AdministradorHomeCarrossel',
+      component: () =>
+        import('@/presentation/pages/HomeCarrosselImagem/PageAreaHomeCarrosselAdmin.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Carrossel da Home'
+      }
+    },
+    {
+      path: '/admin/home-carrossel/novo',
+      name: 'AdministradorHomeCarrosselCadastro',
+      component: () =>
+        import('@/presentation/pages/HomeCarrosselImagem/PageCadastroHomeCarrosselImagem.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Nova imagem do carrossel'
+      }
+    },
+    {
+      path: '/admin/home-carrossel/:id/editar',
+      name: 'AdministradorHomeCarrosselEditar',
+      component: () =>
+        import('@/presentation/pages/HomeCarrosselImagem/PageEditarHomeCarrosselImagem.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Editar imagem do carrossel'
       }
     },
     {

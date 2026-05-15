@@ -18,6 +18,15 @@ import { dispararDownloadBlob } from "@/shared/utils/downloadBlob";
 
 const POR_PAGINA_PADRAO = 10;
 
+/** `v-model` em input type="number" pode ser string ou number; evita `.trim()` em number. */
+function normalizarAnoFiltro(ano: string | number): number | undefined {
+    if (ano === "" || ano === null || ano === undefined) return undefined;
+    const texto = String(ano).trim();
+    if (!texto) return undefined;
+    const n = Number(texto);
+    return Number.isFinite(n) ? n : undefined;
+}
+
 export function useProtocolosAdmin() {
     const repoInject = inject<IProtocoloRepository>("IProtocoloRepository");
     if (!repoInject) throw new Error("IProtocoloRepository not provided");
@@ -56,7 +65,8 @@ export function useProtocolosAdmin() {
 
     const filtros = reactive({
         titulo: "",
-        ano: "",
+        /** Input type="number" pode devolver number no v-model. */
+        ano: "" as string | number,
         destinatario_tipo: "" as "" | "fisica" | "juridica"
     });
 
@@ -151,7 +161,7 @@ export function useProtocolosAdmin() {
                 page,
                 per_page: porPagina.value,
                 titulo: filtros.titulo.trim() || undefined,
-                ano: filtros.ano.trim() ? Number(filtros.ano) : undefined,
+                ano: normalizarAnoFiltro(filtros.ano),
                 destinatario_tipo: filtros.destinatario_tipo || undefined
             });
             protocolos.value = resp.protocolo;
@@ -160,8 +170,13 @@ export function useProtocolosAdmin() {
             porPagina.value = resp.porPagina || POR_PAGINA_PADRAO;
         } catch (e: unknown) {
             if (axios.isAxiosError(e)) {
-                const d = e.response?.data as ErroResponseDTO | undefined;
-                erro.value = d?.message ?? "Não foi possível carregar os protocolos.";
+                const d = e.response?.data as ErroResponseDTO & {
+                    errors?: Record<string, string[]>;
+                };
+                erro.value =
+                    d?.errors?.ano?.[0] ||
+                    d?.message ||
+                    "Não foi possível carregar os protocolos.";
             } else {
                 erro.value = "Não foi possível carregar os protocolos.";
             }

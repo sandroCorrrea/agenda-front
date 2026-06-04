@@ -11,6 +11,7 @@ import { EnderecoCreateDTO } from "@/application/dto/Endereco/EnderecoCreateDTO"
 import { EnderecoUpdateDTO } from "@/application/dto/Endereco/EnderecoUpdateDTO";
 import BaseLoading from "@/presentation/components/Shared/BaseLoading.vue";
 import { cepMask, cpfMask, onlyNumbers, phoneMask } from "@/shared/utils/masks";
+import { resolvePublicAssetUrl } from "@/shared/utils/mediaUrl";
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -50,26 +51,11 @@ const {
 const pessoaId = computed(() => auth.usuario?.pessoa_id ?? null);
 const usuarioId = computed(() => perfil.value?.usuario?.id ?? null);
 
-const storageBaseUrl = import.meta.env.VITE_STORAGE_BASE_URL ?? "";
-const baseApi =
-    import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "";
-
 const imgQuebrou = ref(false);
 
-const urlImagemUsuario = computed(() => {
-    const img = (perfil.value?.usuario?.img ?? "").trim();
-    if (!img) return null;
-    if (img.startsWith("http://") || img.startsWith("https://")) return img;
-
-    const baseStorage = storageBaseUrl.replace(/\/$/, "");
-    const apiSemSufixoApi = baseApi.replace(/\/api\/?$/, "");
-    const baseApiStorage = `${apiSemSufixoApi.replace(/\/$/, "")}/storage`;
-    const base = baseStorage || baseApiStorage;
-    const caminhoNormalizado = img
-        .replace(/^\/+/, "")
-        .replace(/^storage\/+/i, "");
-    return `${base}/${encodeURI(caminhoNormalizado)}`;
-});
+const urlImagemUsuario = computed(() =>
+    resolvePublicAssetUrl(perfil.value?.usuario?.img)
+);
 
 const previewLocal = ref<string | null>(null);
 const inputArquivo = ref<HTMLInputElement | null>(null);

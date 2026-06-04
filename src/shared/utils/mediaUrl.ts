@@ -1,11 +1,26 @@
+const LEGACY_UPLOAD_PREFIX = /^upload\//i;
+
+function legacyUploadBaseUrl(): string {
+    const base = (import.meta.env.VITE_LEGACY_UPLOAD_BASE_URL ?? "").trim();
+    return base.replace(/\/$/, "");
+}
+
 /**
  * Monta URL absoluta para arquivos públicos (storage) retornados pela API.
- * Alinhado ao padrão usado em PageClientePerfil (VITE_STORAGE_BASE_URL / API + /storage).
+ * Caminhos legados `Upload/...` (site PHP em public_html) usam VITE_LEGACY_UPLOAD_BASE_URL.
  */
 export function resolvePublicAssetUrl(path: string | null | undefined): string | null {
     const raw = (path ?? "").trim();
     if (!raw) return null;
     if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+
+    const caminhoSemBarra = raw.replace(/^\/+/, "");
+    if (LEGACY_UPLOAD_PREFIX.test(caminhoSemBarra)) {
+        const legado = legacyUploadBaseUrl();
+        if (legado) {
+            return `${legado}/${encodeURI(caminhoSemBarra)}`;
+        }
+    }
 
     const storageBaseUrl = import.meta.env.VITE_STORAGE_BASE_URL ?? "";
     const baseApi =

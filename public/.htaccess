@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # index.html do build Vue
+  RewriteRule ^index\.html$ - [L]
+
+  # Pastas/arquivos reais (ex.: Upload/ legado) — não reescrever para a SPA
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Vue Router — history mode
+  RewriteRule . /index.html [L]
+</IfModule>

@@ -15,7 +15,9 @@ import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 import { TipoUsuario } from "@/domain/types/TipoUsuario";
 import { useLogoutUsuario } from "@/presentation/composables/Pessoa/useLogoutUsuario";
+import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
 
+const layoutMinimo = useLayoutMinimo();
 const matriz = useMatrizStore();
 const auth = useAuthStore();
 const router = useRouter();
@@ -188,7 +190,7 @@ async function sair() {
 </script>
 
 <template>
-    <header class="navsafe">
+    <header v-if="!layoutMinimo" class="navsafe">
         <nav class="navsafe__inner container-fluid px-3 px-xl-4">
             <RouterLink class="navsafe__brand" :to="marcaDestino" @click="closeMenu">
                 <img :src="logo" alt="Logo" class="navsafe__logo" />

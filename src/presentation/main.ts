@@ -68,6 +68,15 @@ api.interceptors.request.use((config) => {
     if (!config.skipAuth && auth.token) {
         config.headers.Authorization = `Bearer ${auth.token}`;
     }
+    // FormData: não forçar Content-Type (axios/navegador definem boundary)
+    if (config.data instanceof FormData) {
+        const headers = config.headers;
+        if (headers && typeof (headers as { delete?: (k: string) => void }).delete === "function") {
+            (headers as { delete: (k: string) => void }).delete("Content-Type");
+        } else if (headers && typeof headers === "object") {
+            delete (headers as Record<string, unknown>)["Content-Type"];
+        }
+    }
     return config;
 });
 api.interceptors.response.use(

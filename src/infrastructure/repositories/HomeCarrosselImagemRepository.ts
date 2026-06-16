@@ -31,6 +31,9 @@ type AdminMutationResponse = {
     data: HomeCarrosselImagemAdminDTO;
 };
 
+/** Resposta de GET /admin/home/carrossel/upload-config (diagnóstico PHP/storage). */
+export type HomeCarrosselUploadConfigDTO = Record<string, unknown>;
+
 type HomeCarrosselImagemApiMedia = {
     src?: string | null;
     imagem_url?: string | null;
@@ -126,12 +129,20 @@ export class HomeCarrosselImagemRepository implements IHomeCarrosselImagemReposi
         await this.api.delete(`/admin/home/carrossel/${id}`);
     }
 
+    /** Diagnóstico de limites PHP e storage (admin). */
+    async obterUploadConfig(): Promise<HomeCarrosselUploadConfigDTO> {
+        const resp = await this.api.get<HomeCarrosselUploadConfigDTO>(
+            "/admin/home/carrossel/upload-config"
+        );
+        return resp.data ?? {};
+    }
+
     private async createComMultipart(
         dto: HomeCarrosselImagemPostRequestDTO
     ): Promise<HomeCarrosselImagem> {
         const form = new FormData();
-        form.append("titulo", dto.titulo);
-        form.append("imagem", dto.imagem);
+        form.append("titulo", dto.titulo.trim());
+        form.append("imagem", dto.imagem, dto.imagem.name || "imagem");
         form.append("ordem", String(dto.ordem ?? 0));
         form.append("ativo", dto.ativo ? "1" : "0");
         form.append("abrir_em_nova_aba", dto.abrirEmNovaAba ? "1" : "0");
@@ -154,7 +165,7 @@ export class HomeCarrosselImagemRepository implements IHomeCarrosselImagemReposi
     ): Promise<HomeCarrosselImagem> {
         const imagemBase64 = await fileToBase64DataUrl(dto.imagem);
         const body: Record<string, unknown> = {
-            titulo: dto.titulo,
+            titulo: dto.titulo.trim(),
             imagem_base64: imagemBase64,
             ordem: dto.ordem ?? 0,
             ativo: dto.ativo,
@@ -182,7 +193,9 @@ export class HomeCarrosselImagemRepository implements IHomeCarrosselImagemReposi
         const form = new FormData();
         form.append("_method", "PUT");
         form.append("titulo", dto.titulo);
-        if (dto.imagem instanceof File) form.append("imagem", dto.imagem);
+        if (dto.imagem instanceof File) {
+            form.append("imagem", dto.imagem, dto.imagem.name || "imagem");
+        }
         if (dto.ordem !== undefined) form.append("ordem", String(dto.ordem));
         if (dto.ativo !== undefined) form.append("ativo", dto.ativo ? "1" : "0");
         if (dto.abrirEmNovaAba !== undefined) {
@@ -246,18 +259,16 @@ export class HomeCarrosselImagemRepository implements IHomeCarrosselImagemReposi
     }
 
     /**
-     * Indica se um erro do multipart sugere problema de limite/aceite de upload
-     * no PHP/Laravel e, portanto, vale tentar novamente em JSON + Base64.
+     * Indica se vale reenviar a imagem em JSON + `imagem_base64` após falha no multipart.
      *
-     * Cobre os casos:
-     *  - PHP recusou o `$_FILES` (`uploaded` / `failed to upload`)
-     *  - Laravel `max:5120` (`may not be greater than ... kilobytes`)
-     *  - `413 Payload Too Large` em proxies/Nginx
+     * Cobre:
+     *  - 413 / 500 (limite PHP, bug no handler multipart em produção)
+     *  - 422 com mensagens de upload (`uploaded`, `failed to upload`, `max`, etc.)
      */
     private deveTentarBase64(err: unknown): boolean {
         if (!axios.isAxiosError(err)) return false;
         const status = err.response?.status;
-        if (status === 413) return true;
+        if (status === 413 || status === 500) return true;
         if (status !== 422) return false;
 
         const data = err.response?.data as
@@ -271,7 +282,7 @@ export class HomeCarrosselImagemRepository implements IHomeCarrosselImagemReposi
             .join(" | ");
 
         if (!msgs.trim()) return false;
-        return /uploaded|failed to upload|greater than|kilobytes|post[_ ]max[_ ]size|upload[_ ]max[_ ]filesize/.test(
+        return /uploaded|failed to upload|greater than|kilobytes|post[_ ]max[_ ]size|upload[_ ]max[_ ]filesize|server error/.test(
             msgs
         );
     }

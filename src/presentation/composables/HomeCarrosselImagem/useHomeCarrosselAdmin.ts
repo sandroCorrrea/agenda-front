@@ -106,6 +106,7 @@ export function useHomeCarrosselAdmin() {
             return criado;
         } catch (e: unknown) {
             if (axios.isAxiosError(e)) {
+                const status = e.response?.status;
                 const d = e.response?.data as ErroResponseDTO | undefined;
                 const msgImagem = traduzirErroImagemCarrossel(
                     d?.errors?.imagem?.[0] ?? d?.errors?.imagem_base64?.[0]
@@ -119,11 +120,18 @@ export function useHomeCarrosselAdmin() {
                     link_url: d?.errors?.link_url?.[0] ?? "",
                     abrir_em_nova_aba: d?.errors?.abrir_em_nova_aba?.[0] ?? ""
                 };
-                erro.value =
-                    msgImagem ||
-                    d?.message ||
-                    erroCampos.value.titulo ||
-                    "Não foi possível criar a imagem do carrossel.";
+                if (status != null && status >= 500) {
+                    erro.value =
+                        "Erro interno no servidor (HTTP " +
+                        status +
+                        "). O envio em Base64 também falhou. Verifique storage/logs/laravel.log no agenda-service na mesma hora da tentativa.";
+                } else {
+                    erro.value =
+                        msgImagem ||
+                        d?.message ||
+                        erroCampos.value.titulo ||
+                        "Não foi possível criar a imagem do carrossel.";
+                }
             } else {
                 erro.value = "Não foi possível criar a imagem do carrossel.";
             }

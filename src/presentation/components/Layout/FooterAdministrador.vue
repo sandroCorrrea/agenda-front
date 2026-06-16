@@ -11,7 +11,9 @@ import {
   RiShieldCheckLine
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
+import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
 
+const layoutMinimo = useLayoutMinimo();
 const matrizStore = useMatrizStore();
 const anoAtual = new Date().getFullYear();
 const nomeEmpresa = computed(() => matrizStore.matriz?.nome || "Agenda Assessoria Contábil");
@@ -19,7 +21,7 @@ const apelidoMatriz = computed(() => matrizStore.matriz?.apelido || nomeEmpresa.
 </script>
 
 <template>
-  <footer class="adm-foot">
+  <footer v-if="!layoutMinimo" class="adm-foot">
     <div class="adm-foot__strip">
       <div class="adm-foot__strip-inner">
         <span class="adm-foot__badge">

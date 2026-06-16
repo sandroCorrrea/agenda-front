@@ -28,13 +28,22 @@ export function useProtocoloAssinaturaPublica(tokenRef: () => string) {
         try {
             dados.value = await repo.consultarAssinaturaPorToken(token);
         } catch (e: unknown) {
-            if (axios.isAxiosError(e) && e.response?.status === 404) {
-                erroConsulta.value =
-                    "Este link não é válido ou o protocolo não foi encontrado.";
-            } else if (axios.isAxiosError(e)) {
+            if (axios.isAxiosError(e)) {
+                const status = e.response?.status;
                 const d = e.response?.data as ErroResponseDTO | undefined;
-                erroConsulta.value =
-                    d?.message ?? "Não foi possível carregar os dados do protocolo.";
+                if (status === 404) {
+                    erroConsulta.value =
+                        "Este link não é válido ou o protocolo não foi encontrado.";
+                } else if (status === 422) {
+                    erroConsulta.value =
+                        d?.message ?? "O link de assinatura está em formato inválido.";
+                } else if (status === 429) {
+                    erroConsulta.value =
+                        "Muitas tentativas. Aguarde um momento e recarregue a página.";
+                } else {
+                    erroConsulta.value =
+                        d?.message ?? "Não foi possível carregar os dados do protocolo.";
+                }
             } else {
                 erroConsulta.value = "Não foi possível carregar os dados do protocolo.";
             }
@@ -80,6 +89,9 @@ export function useProtocoloAssinaturaPublica(tokenRef: () => string) {
                     erroEnvio.value = d?.message ?? "Verifique os dados informados.";
                 } else if (status === 404) {
                     erroEnvio.value = "Link inválido ou protocolo não encontrado.";
+                } else if (status === 429) {
+                    erroEnvio.value =
+                        "Muitas tentativas. Aguarde um momento e tente novamente.";
                 } else {
                     erroEnvio.value =
                         d?.message ?? "Não foi possível registrar a assinatura.";

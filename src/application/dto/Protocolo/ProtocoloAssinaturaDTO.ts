@@ -1,6 +1,8 @@
 /** Resposta GET /api/protocolo/assinatura/{token} */
 export type ProtocoloAssinaturaResumoDTO = {
     destinatario_tipo: string;
+    destinatario_nome: string | null;
+    administrador_nome: string | null;
     titulo: string | null;
     descricao: string;
     ano: number;

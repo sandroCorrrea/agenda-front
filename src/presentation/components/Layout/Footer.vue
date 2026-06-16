@@ -3,7 +3,9 @@ import { RouterLink } from 'vue-router';
 import { computed } from 'vue';
 import { useMatrizStore } from '@/presentation/store/useMatrizStore';
 import { phoneMask } from '@/shared/utils/masks';
+import { useLayoutMinimo } from '@/presentation/composables/useLayoutMinimo';
 
+const layoutMinimo = useLayoutMinimo();
 const matrizStore = useMatrizStore();
 
 const anoAtual = new Date().getFullYear();
@@ -20,7 +22,7 @@ const enderecoEmpresa = computed(() => {
 </script>
 
 <template>
-  <footer class="rodape">
+  <footer v-if="!layoutMinimo" class="rodape">
     <div class="rodape__conteudo">
       <section class="rodape__bloco marca">
         <img src="/logo.svg" alt="Logo Agenda" class="rodape__logo" />

@@ -5,6 +5,7 @@ import {
   RiAddLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
+  RiCheckboxCircleFill,
   RiCloseLine,
   RiDeleteBinLine,
   RiEyeLine,
@@ -18,6 +19,7 @@ import type { Protocolo } from "@/domain/entities/Protocolo";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useProtocolosAdmin } from "@/presentation/composables/Protocolo/useProtocolosAdmin";
 import { formatarDataIsoPtBr } from "@/shared/utils/date.util";
+import { cpfMask } from "@/shared/utils/masks";
 
 const route = useRoute();
 const router = useRouter();
@@ -68,6 +70,23 @@ function chipTipo(tipo: string) {
 function destinatarioNomeDisplay(item: Pick<Protocolo, "destinatarioNome">) {
   const nome = item.destinatarioNome?.trim();
   return nome && nome.length > 0 ? nome : "—";
+}
+
+function protocoloEntregue(item: Protocolo) {
+  return item.entregue;
+}
+
+function tooltipAssinatura(item: Protocolo) {
+  if (!item.entrega) {
+    return item.entregue
+      ? "Protocolo entregue"
+      : "Aguardando assinatura do recebimento";
+  }
+  const nome = item.entrega.nomeResponsavelRecebimento || "—";
+  const cpf = item.entrega.cpfResponsavelRecebimento
+    ? cpfMask(item.entrega.cpfResponsavelRecebimento)
+    : "—";
+  return `Assinado por ${nome} · CPF ${cpf}`;
 }
 </script>
 
@@ -172,25 +191,46 @@ function destinatarioNomeDisplay(item: Pick<Protocolo, "destinatarioNome">) {
                       >
                         <RiFilePdf2Line />
                       </button>
-                      <RouterLink
-                        class="proto-action-btn proto-action-btn--edit"
-                        :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
-                        title="Editar"
-                        aria-label="Editar"
+                      <template v-if="!protocoloEntregue(item)">
+                        <RouterLink
+                          class="proto-action-btn proto-action-btn--edit"
+                          :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
+                          title="Editar"
+                          aria-label="Editar"
+                        >
+                          <RiPencilLine />
+                        </RouterLink>
+                        <button
+                          type="button"
+                          class="proto-action-btn proto-action-btn--delete"
+                          :disabled="excluindoId !== null"
+                          :aria-busy="excluindoId === item.id"
+                          title="Excluir"
+                          aria-label="Excluir"
+                          @click="abrirModalExcluir(item.id)"
+                        >
+                          <RiDeleteBinLine />
+                        </button>
+                      </template>
+                      <span
+                        v-else
+                        class="proto-action-btn proto-action-btn--entregue proto-entregue-check"
+                        tabindex="0"
+                        role="img"
+                        :aria-label="tooltipAssinatura(item)"
                       >
-                        <RiPencilLine />
-                      </RouterLink>
-                      <button
-                        type="button"
-                        class="proto-action-btn proto-action-btn--delete"
-                        :disabled="excluindoId !== null"
-                        :aria-busy="excluindoId === item.id"
-                        title="Excluir"
-                        aria-label="Excluir"
-                        @click="abrirModalExcluir(item.id)"
-                      >
-                        <RiDeleteBinLine />
-                      </button>
+                        <RiCheckboxCircleFill />
+                        <span class="proto-entregue-check__tip" role="tooltip">
+                          <strong>Recebimento assinado</strong>
+                          <template v-if="item.entrega">
+                            <span>{{ item.entrega.nomeResponsavelRecebimento }}</span>
+                            <span>CPF {{ cpfMask(item.entrega.cpfResponsavelRecebimento) }}</span>
+                          </template>
+                          <span v-else class="proto-entregue-check__tip-muted">
+                            Dados da assinatura não retornados pela API
+                          </span>
+                        </span>
+                      </span>
                     </div>
                   </td>
                 </tr>
@@ -236,27 +276,49 @@ function destinatarioNomeDisplay(item: Pick<Protocolo, "destinatarioNome">) {
                     <RiFilePdf2Line />
                     <span class="proto-action-btn__label">PDF</span>
                   </button>
-                  <RouterLink
-                    class="proto-action-btn proto-action-btn--edit"
-                    :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
-                    title="Editar"
-                    aria-label="Editar"
+                  <template v-if="!protocoloEntregue(item)">
+                    <RouterLink
+                      class="proto-action-btn proto-action-btn--edit"
+                      :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
+                      title="Editar"
+                      aria-label="Editar"
+                    >
+                      <RiPencilLine />
+                      <span class="proto-action-btn__label">Editar</span>
+                    </RouterLink>
+                    <button
+                      type="button"
+                      class="proto-action-btn proto-action-btn--delete"
+                      :disabled="excluindoId !== null"
+                      :aria-busy="excluindoId === item.id"
+                      title="Excluir"
+                      aria-label="Excluir"
+                      @click="abrirModalExcluir(item.id)"
+                    >
+                      <RiDeleteBinLine />
+                      <span class="proto-action-btn__label">Excluir</span>
+                    </button>
+                  </template>
+                  <span
+                    v-else
+                    class="proto-action-btn proto-action-btn--entregue proto-entregue-check proto-entregue-check--card"
+                    tabindex="0"
+                    role="img"
+                    :aria-label="tooltipAssinatura(item)"
                   >
-                    <RiPencilLine />
-                    <span class="proto-action-btn__label">Editar</span>
-                  </RouterLink>
-                  <button
-                    type="button"
-                    class="proto-action-btn proto-action-btn--delete"
-                    :disabled="excluindoId !== null"
-                    :aria-busy="excluindoId === item.id"
-                    title="Excluir"
-                    aria-label="Excluir"
-                    @click="abrirModalExcluir(item.id)"
-                  >
-                    <RiDeleteBinLine />
-                    <span class="proto-action-btn__label">Excluir</span>
-                  </button>
+                    <RiCheckboxCircleFill />
+                    <span class="proto-action-btn__label">Entregue</span>
+                    <span class="proto-entregue-check__tip" role="tooltip">
+                      <strong>Recebimento assinado</strong>
+                      <template v-if="item.entrega">
+                        <span>{{ item.entrega.nomeResponsavelRecebimento }}</span>
+                        <span>CPF {{ cpfMask(item.entrega.cpfResponsavelRecebimento) }}</span>
+                      </template>
+                      <span v-else class="proto-entregue-check__tip-muted">
+                        Dados da assinatura não retornados pela API
+                      </span>
+                    </span>
+                  </span>
                 </div>
               </li>
             </ul>
@@ -350,6 +412,15 @@ function destinatarioNomeDisplay(item: Pick<Protocolo, "destinatarioNome">) {
 .proto-action-btn--edit{color:#2d6a9f}
 .proto-action-btn--delete{color:#a32d2d}
 .proto-action-btn--delete:hover:not(:disabled){background:#fff3f3;border-color:#f1b4b4;color:#8b2222}
+.proto-action-btn--entregue{color:#1d6d3f;background:#eefaf3;border-color:#b7e3c7;cursor:help}
+.proto-action-btn--entregue:hover{background:#e0f5ea;border-color:#9fd4b8;color:#145a32}
+.proto-entregue-check{position:relative}
+.proto-entregue-check__tip{position:absolute;bottom:calc(100% + .45rem);right:0;min-width:11rem;max-width:16rem;padding:.55rem .7rem;border-radius:10px;background:#16254e;color:#fff;font-size:.78rem;font-weight:600;line-height:1.35;text-align:left;box-shadow:0 10px 24px rgba(22,37,78,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s ease,transform .15s ease,visibility .15s;z-index:30;pointer-events:none;display:flex;flex-direction:column;gap:.2rem}
+.proto-entregue-check__tip strong{font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#9ec9ff;font-weight:700}
+.proto-entregue-check__tip-muted{opacity:.85;font-weight:500}
+.proto-entregue-check:hover .proto-entregue-check__tip,.proto-entregue-check:focus-visible .proto-entregue-check__tip{opacity:1;visibility:visible;transform:translateY(0)}
+.proto-entregue-check--card .proto-entregue-check__tip{right:auto;left:50%;transform:translateX(-50%) translateY(4px)}
+.proto-entregue-check--card:hover .proto-entregue-check__tip,.proto-entregue-check--card:focus-visible .proto-entregue-check__tip{transform:translateX(-50%) translateY(0)}
 .proto-action-btn__label{display:none}
 .proto-cards{display:flex;flex-direction:column;gap:.85rem}
 .proto-card{border:1px solid #e8edf4;border-radius:14px;padding:1rem 1.05rem;background:linear-gradient(180deg,#fff 0%,#fbfdff 100%)}

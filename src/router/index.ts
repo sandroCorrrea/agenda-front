@@ -60,7 +60,12 @@ const router = createRouter({
     {
       path: '/protocolo/assinar/:token',
       name: 'ProtocoloAssinar',
-      component: () => import('@/presentation/pages/Protocolo/PageProtocoloAssinar.vue')
+      component: () => import('@/presentation/pages/Protocolo/PageProtocoloAssinar.vue'),
+      meta: {
+        publico: true,
+        layoutMinimo: true,
+        tituloPagina: 'Assinatura de protocolo'
+      }
     },
     {
       path: '/aviso',

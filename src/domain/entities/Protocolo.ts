@@ -18,6 +18,13 @@ export type EnderecoDestinatarioResponse = {
     cidadeDestinatario: string;
 };
 
+/** Resumo da assinatura/entrega (`protocolo_entrega`), quando existir. */
+export type ProtocoloEntregaResumo = {
+    nomeResponsavelRecebimento: string;
+    cpfResponsavelRecebimento: string;
+    dataEntrega: string | null;
+};
+
 export class Protocolo {
     constructor(
         public id: number,
@@ -35,6 +42,9 @@ export class Protocolo {
         public ruaDestinatario: string,
         public bairroDestinatario: string,
         public cidadeDestinatario: string,
-        public qrcodeToken: string
+        public qrcodeToken: string,
+        /** `true` quando há registro em `protocolo_entrega` (assinatura concluída). */
+        public entregue: boolean = false,
+        public entrega: ProtocoloEntregaResumo | null = null
     ) {}
 }

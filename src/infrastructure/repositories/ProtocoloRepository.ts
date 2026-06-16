@@ -10,7 +10,8 @@ import {
     type ClienteOption,
     type DestinatarioTipo,
     type EnderecoDestinatarioResponse,
-    type EmpresaOption
+    type EmpresaOption,
+    type ProtocoloEntregaResumo
 } from "@/domain/entities/Protocolo";
 import type { ProtocoloPayloadDTO } from "@/application/dto/Protocolo/ProtocoloPayloadDTO";
 import { ProtocoloListagemResponseDTO } from "@/application/dto/Protocolo/ProtocoloListagemResponseDTO";
@@ -32,6 +33,10 @@ type ProtocoloApi = {
     bairroDestinatario: string;
     cidadeDestinatario: string;
     qrcodeToken: string;
+    entregue?: boolean;
+    jaEntregue?: boolean;
+    ja_entregue?: boolean;
+    entrega?: Record<string, unknown> | null;
 };
 
 export class ProtocoloRepository implements IProtocoloRepository {
@@ -206,10 +211,11 @@ export class ProtocoloRepository implements IProtocoloRepository {
 
     async consultarAssinaturaPorToken(token: string): Promise<ConsultaAssinaturaProtocoloDTO> {
         const encoded = encodeURIComponent(token);
-        const resp = await this.api.get<ConsultaAssinaturaProtocoloDTO>(
-            `/protocolo/assinatura/${encoded}`
+        const resp = await this.api.get<Record<string, unknown>>(
+            `/protocolo/assinatura/${encoded}`,
+            { skipAuth: true }
         );
-        return resp.data;
+        return this.mapConsultaAssinatura(resp.data);
     }
 
     async registrarAssinaturaPorToken(
@@ -220,14 +226,143 @@ export class ProtocoloRepository implements IProtocoloRepository {
         }
     ): Promise<RegistrarAssinaturaResponseDTO> {
         const encoded = encodeURIComponent(token);
-        const resp = await this.api.post<RegistrarAssinaturaResponseDTO>(
+        const resp = await this.api.post<Record<string, unknown>>(
             `/protocolo/assinatura/${encoded}`,
-            payload
+            payload,
+            { skipAuth: true }
         );
-        return resp.data;
+        return this.mapRegistrarAssinatura(resp.data);
+    }
+
+    /** Normaliza JSON da API (camelCase ou snake_case) para o DTO interno. */
+    private mapConsultaAssinatura(raw: Record<string, unknown>): ConsultaAssinaturaProtocoloDTO {
+        const protocoloRaw = (raw.protocolo ?? {}) as Record<string, unknown>;
+        const entregaRaw = raw.entrega as Record<string, unknown> | null | undefined;
+
+        const str = (obj: Record<string, unknown>, ...keys: string[]): string =>
+            String(keys.map((k) => obj[k]).find((v) => v != null && v !== "") ?? "");
+
+        const protocolo = {
+            destinatario_tipo: str(protocoloRaw, "destinatario_tipo", "destinatarioTipo") || "fisica",
+            destinatario_nome:
+                str(protocoloRaw, "destinatario_nome", "destinatarioNome") || null,
+            administrador_nome:
+                str(protocoloRaw, "administrador_nome", "administradorNome") || null,
+            titulo: (protocoloRaw.titulo as string | null) ?? null,
+            descricao: str(protocoloRaw, "descricao"),
+            ano: Number(protocoloRaw.ano ?? 0),
+            data_para_entrega: str(
+                protocoloRaw,
+                "data_para_entrega",
+                "dataParaEntrega"
+            ),
+            cep_destinatario: str(
+                protocoloRaw,
+                "cep_destinatario",
+                "cepDestinatario"
+            ),
+            rua_destinatario: str(
+                protocoloRaw,
+                "rua_destinatario",
+                "ruaDestinatario"
+            ),
+            bairro_destinatario: str(
+                protocoloRaw,
+                "bairro_destinatario",
+                "bairroDestinatario"
+            ),
+            cidade_destinatario: str(
+                protocoloRaw,
+                "cidade_destinatario",
+                "cidadeDestinatario"
+            )
+        };
+
+        let entrega: ConsultaAssinaturaProtocoloDTO["entrega"] = null;
+        if (entregaRaw && typeof entregaRaw === "object") {
+            entrega = {
+                nome_responsavel_recebimento: str(
+                    entregaRaw,
+                    "nome_responsavel_recebimento",
+                    "nomeResponsavelRecebimento"
+                ),
+                cpf_responsavel_recebimento: str(
+                    entregaRaw,
+                    "cpf_responsavel_recebimento",
+                    "cpfResponsavelRecebimento"
+                ),
+                data_entrega: str(entregaRaw, "data_entrega", "dataEntrega")
+            };
+        }
+
+        return {
+            jaAssinado: Boolean(raw.jaAssinado),
+            protocolo,
+            entrega
+        };
+    }
+
+    private mapRegistrarAssinatura(
+        raw: Record<string, unknown>
+    ): RegistrarAssinaturaResponseDTO {
+        const entregaRaw = (raw.entrega ?? {}) as Record<string, unknown>;
+        const str = (obj: Record<string, unknown>, ...keys: string[]): string =>
+            String(keys.map((k) => obj[k]).find((v) => v != null && v !== "") ?? "");
+
+        return {
+            message: String(raw.message ?? "Assinatura registrada com sucesso."),
+            entrega: {
+                id:
+                    entregaRaw.id != null ? Number(entregaRaw.id) : undefined,
+                nome_responsavel_recebimento: str(
+                    entregaRaw,
+                    "nome_responsavel_recebimento",
+                    "nomeResponsavelRecebimento"
+                ),
+                cpf_responsavel_recebimento: str(
+                    entregaRaw,
+                    "cpf_responsavel_recebimento",
+                    "cpfResponsavelRecebimento"
+                ),
+                data_entrega: str(entregaRaw, "data_entrega", "dataEntrega")
+            }
+        };
+    }
+
+    private mapEntregaResumo(
+        raw: Record<string, unknown> | null | undefined
+    ): ProtocoloEntregaResumo | null {
+        if (!raw || typeof raw !== "object") return null;
+        const pick = (...keys: string[]): string => {
+            for (const k of keys) {
+                const v = raw[k];
+                if (v != null && String(v).trim() !== "") return String(v).trim();
+            }
+            return "";
+        };
+        const nome = pick(
+            "nome_responsavel_recebimento",
+            "nomeResponsavelRecebimento"
+        );
+        const cpf = pick(
+            "cpf_responsavel_recebimento",
+            "cpfResponsavelRecebimento"
+        );
+        const data = pick("data_entrega", "dataEntrega");
+        if (!nome && !cpf) return null;
+        return {
+            nomeResponsavelRecebimento: nome,
+            cpfResponsavelRecebimento: cpf,
+            dataEntrega: data || null
+        };
     }
 
     private map(item: ProtocoloApi): Protocolo {
+        const entrega = this.mapEntregaResumo(item.entrega ?? null);
+        const entregue = Boolean(
+            item.entregue ?? item.jaEntregue ?? item.ja_entregue ?? entrega
+        );
+
         return new Protocolo(
             Number(item.id),
             item.destinatarioUsuarioId != null ? Number(item.destinatarioUsuarioId) : null,
@@ -248,7 +383,9 @@ export class ProtocoloRepository implements IProtocoloRepository {
             String(item.ruaDestinatario ?? ""),
             String(item.bairroDestinatario ?? ""),
             String(item.cidadeDestinatario ?? ""),
-            String(item.qrcodeToken ?? "")
+            String(item.qrcodeToken ?? ""),
+            entregue,
+            entrega
         );
     }
 }

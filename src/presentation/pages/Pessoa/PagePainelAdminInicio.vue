@@ -219,11 +219,6 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
           </div>
         </div>
       </section>
-
-      <p class="text-center text-muted small mb-0 dash__footnote">
-        Números agregados (totais de clientes, protocolos pendentes, etc.) podem ser exibidos aqui quando o backend
-        expuser um endpoint de resumo do painel — por exemplo <code>GET /api/admin/dashboard</code>.
-      </p>
     </div>
   </article>
 </template>

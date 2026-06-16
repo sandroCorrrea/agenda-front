@@ -8,14 +8,17 @@ import { useMatrizStore } from './store/useMatrizStore';
 import { useAuthStore } from './store/useAuthStore';
 import { TipoUsuario } from '@/domain/types/TipoUsuario';
 import type { IMatrizRepository } from '@/domain/repositories/IMatrizRepository';
+import { useLayoutMinimo } from '@/presentation/composables/useLayoutMinimo';
 
 const repo = inject<IMatrizRepository>('IMatrizRepository');
 const matrizStore = useMatrizStore();
 const route = useRoute();
 const auth = useAuthStore();
+const layoutMinimo = useLayoutMinimo();
 
 /** Rodapé do painel em rotas administrativas (/admin e telas com meta de administrador). */
 const mostrarFooterAdministrador = computed(() => {
+  if (layoutMinimo.value) return false;
   if (!auth.estaAutenticado || auth.usuario?.tipo_usuario !== TipoUsuario.ADMINISTRADOR) {
     return false;
   }
@@ -44,15 +47,21 @@ watch(
 </script>
 
 <template>
-  <div class="app">
-    <Navbar />
-    <main class="main-content">
-      <div class="page-wrapper">
+  <div class="app" :class="{ 'app--layout-minimo': layoutMinimo }">
+    <Navbar v-if="!layoutMinimo" />
+    <main
+      class="main-content"
+      :class="{ 'main-content--layout-minimo': layoutMinimo }"
+    >
+      <div
+        class="page-wrapper"
+        :class="{ 'page-wrapper--layout-minimo': layoutMinimo }"
+      >
         <RouterView />
       </div>
     </main>
     <FooterAdministrador v-if="mostrarFooterAdministrador" />
-    <Footer v-else />
+    <Footer v-else-if="!layoutMinimo" />
   </div>
 </template>
 
@@ -77,5 +86,33 @@ watch(
 .page-wrapper > * {
   margin-top: 0 !important;
   padding-top: 0 !important;
+}
+
+.app--layout-minimo {
+  min-height: 100dvh;
+}
+
+.main-content--layout-minimo {
+  padding-top: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-wrapper--layout-minimo {
+  padding: 0;
+  max-width: none;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.page-wrapper--layout-minimo > * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 </style>

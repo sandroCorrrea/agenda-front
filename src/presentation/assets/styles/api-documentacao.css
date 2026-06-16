@@ -1,0 +1,585 @@
+.page-servicos {
+  background: linear-gradient(180deg, rgba(250, 250, 250, 1) 0%, rgba(245, 247, 250, 1) 100%);
+  padding-top: 4.75rem;
+  padding-bottom: 2.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.page-servicos > .container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.pagina-bpe {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cabecalho-bpe {
+  background: linear-gradient(140deg, rgba(92, 107, 192, 0.14), rgba(45, 160, 168, 0.16));
+  border: 1px solid rgba(20, 30, 40, 0.06);
+  border-radius: 16px;
+  padding: 1rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #1e293b;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #5c6bc0 0%, #2da0a8 100%);
+  border-radius: 3px;
+}
+
+.section-title {
+  display: inline-flex;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(28, 44, 99, 0.14);
+  color: #1f2f66;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 0.55rem;
+}
+
+.meta-endpoint {
+  margin-top: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.metodo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #1b8c72;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.2rem 0.55rem;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.metodo--get {
+  background: #1d6fb8;
+}
+
+.metodo--post {
+  background: #1b8c72;
+}
+
+.metodo--put {
+  background: #b45309;
+}
+
+.metodo--delete {
+  background: #b91c1c;
+}
+
+.meta-endpoint code,
+.nome-interno {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(20, 30, 40, 0.08);
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.bloco-doc {
+  background: #fff;
+  border: 1px solid rgba(20, 30, 40, 0.08);
+  border-radius: 14px;
+  padding: 0.95rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.bloco-doc h2 {
+  margin: 0 0 0.75rem;
+  color: #1e2d58;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.bloco-doc p {
+  margin: 0 0 0.55rem;
+  color: #4d5d7b;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.bloco-doc p:last-child {
+  margin-bottom: 0;
+}
+
+.doc-valor-texto {
+  display: block;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.doc-valor-tecnico,
+code.doc-valor-tecnico {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.4rem 0.55rem;
+  background: #f4f8ff;
+  border: 1px solid rgba(20, 30, 40, 0.07);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  color: #1f3366;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.doc-scroll-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  scrollbar-width: thin;
+}
+
+.doc-code-inline {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #f4f8ff;
+  border: 1px solid rgba(20, 30, 40, 0.08);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.78rem;
+  color: #1f3366;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.bloco-json--compact {
+  font-size: 0.68rem;
+  padding: 0.65rem;
+}
+
+.grupo-campos-bloco h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: #243c73;
+}
+
+.grupo-campos-bloco > p {
+  margin: 0 0 0.75rem;
+  color: #556584;
+  font-size: 0.88rem;
+}
+
+.resumo-endpoint-unico {
+  display: none;
+}
+
+.grupo-campos {
+  margin-top: 1rem;
+}
+
+.grupo-campos:first-of-type {
+  margin-top: 0;
+}
+
+.grupo-campos h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: #243c73;
+}
+
+.grupo-campos p {
+  margin: 0 0 0.6rem;
+  color: #556584;
+  font-size: 0.88rem;
+}
+
+.tabela-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 30, 40, 0.08);
+}
+
+.tabela-doc {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.tabela-doc th,
+.tabela-doc td {
+  border-bottom: 1px solid rgba(20, 30, 40, 0.08);
+  padding: 0.65rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.84rem;
+  color: #394b6d;
+}
+
+.tabela-doc th {
+  background: #f4f8ff;
+  color: #1f3366;
+  font-weight: 800;
+}
+
+.tabela-doc td code.doc-valor-tecnico {
+  padding: 0.4rem 0.55rem;
+}
+
+.nota {
+  margin-top: 0.7rem;
+  color: #4d5d7b;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: normal;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.nota code {
+  font-size: 0.84em;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.bloco-json {
+  display: block;
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin: 0;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+}
+
+.respostas-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+.resposta-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.resposta-card h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.92rem;
+}
+
+.resposta-card.sucesso h3 {
+  color: #0f766e;
+}
+
+.resposta-card.erro h3 {
+  color: #b91c1c;
+}
+
+.lista-check {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+}
+
+.lista-check li {
+  background: #f8fbff;
+  border: 1px solid rgba(20, 30, 40, 0.08);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  color: #34486b;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+@media (max-width: 767.98px) {
+  .page-servicos > .container {
+    margin-inline: 0;
+    padding-inline: 0.5rem;
+  }
+
+  .cabecalho-bpe,
+  .bloco-doc {
+    padding: 0.85rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .tabela-wrap {
+    overflow-x: visible;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .tabela-doc {
+    min-width: 0;
+  }
+
+  .tabela-doc thead {
+    display: none;
+  }
+
+  .tabela-doc tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tabela-doc tr {
+    display: block;
+    background: #fff;
+    border: 1px solid rgba(20, 30, 40, 0.08);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+
+  .tabela-doc td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid rgba(20, 30, 40, 0.06);
+    font-size: 0.82rem;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tabela-doc td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .tabela-doc td:first-child {
+    padding-top: 0;
+  }
+
+  .tabela-doc td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #1f3366;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.35;
+  }
+
+  .tabela-doc td > .doc-valor-tecnico,
+  .tabela-doc td > .doc-valor-texto,
+  .tabela-doc td > code.doc-valor-tecnico {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .meta-endpoint code,
+  .meta-endpoint .nome-interno,
+  .meta-endpoint .doc-valor-tecnico {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .grupo-campos-bloco + .grupo-campos-bloco {
+    margin-top: 0;
+  }
+
+  .meta-endpoint {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .meta-endpoint .metodo {
+    align-self: flex-start;
+  }
+}
+
+.cabecalho-objetivo {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.bloco-doc--nota-mobile {
+  display: block;
+}
+
+.bloco-doc--intro-campos {
+  padding-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .resumo-endpoint-unico {
+    display: block;
+  }
+
+  .bloco-doc--nota-mobile {
+    display: none;
+  }
+
+  .cabecalho-objetivo {
+    display: none;
+  }
+
+  .page-servicos {
+    padding-top: 5.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .section-title {
+    font-size: 1.65rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pagina-bpe {
+    gap: 1rem;
+  }
+
+  .cabecalho-bpe,
+  .bloco-doc {
+    padding: 1.15rem;
+  }
+
+  .bloco-doc h2 {
+    font-size: 1.1rem;
+  }
+
+  .bloco-json {
+    font-size: 0.78rem;
+    padding: 0.85rem;
+  }
+
+  .lista-check li {
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .tabela-doc {
+    min-width: 980px;
+  }
+
+  .tabela-doc td .doc-valor-tecnico,
+  .tabela-doc td code.doc-valor-tecnico {
+    display: inline-block;
+    width: auto;
+    max-width: 22rem;
+    vertical-align: top;
+  }
+
+  .tabela-doc td .doc-valor-texto {
+    display: inline;
+    max-width: 16rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-servicos {
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-title::after {
+    width: 60px;
+  }
+
+  .pagina-bpe {
+    gap: 1.1rem;
+  }
+
+  .cabecalho-bpe {
+    border-radius: 20px;
+    padding: 1.35rem;
+  }
+
+  .bloco-doc {
+    border-radius: 16px;
+    padding: 1.35rem;
+  }
+
+  .bloco-doc h2 {
+    font-size: 1.15rem;
+  }
+
+  .bloco-json {
+    font-size: 0.8rem;
+    padding: 0.9rem;
+  }
+
+  .respostas-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

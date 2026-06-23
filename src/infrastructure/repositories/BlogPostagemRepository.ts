@@ -23,7 +23,9 @@ export class BlogPostagemRepository implements IBlogPostagemRepository {
     }
 
     async update(id: number, dto: BlogPostagemUpdateRequestDTO): Promise<BlogPostagem> {
+        // PHP/Laravel não interpreta multipart em PUT; usar POST + _method=PUT (padrão do projeto).
         const form = new FormData();
+        form.append("_method", "PUT");
         form.append("nome", dto.nome);
         form.append("descricao", dto.descricao);
         form.append("categoria_id", String(dto.categoria_id));
@@ -32,7 +34,7 @@ export class BlogPostagemRepository implements IBlogPostagemRepository {
         if (dto.imagem) form.append("imagem", dto.imagem);
         if (dto.arquivo) form.append("arquivo", dto.arquivo);
 
-        const resp = await this.api.put(`/blog/postagem/${id}`, form);
+        const resp = await this.api.post(`/blog/postagem/${id}`, form);
         return this.mapPostagem(resp.data);
     }
 

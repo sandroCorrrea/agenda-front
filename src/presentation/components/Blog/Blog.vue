@@ -632,6 +632,7 @@ const subscribeNewsletter = async () => {
     line-height: 1.8;
     font-size: 1rem;
     margin: 0;
+    white-space: pre-line;
 }
 
 .blog-footer {

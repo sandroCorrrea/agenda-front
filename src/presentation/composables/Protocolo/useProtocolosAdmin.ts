@@ -69,6 +69,7 @@ export function useProtocolosAdmin() {
         /** Input type="number" pode devolver number no v-model. */
         ano: "" as string | number,
         destinatario_tipo: "" as "" | "fisica" | "juridica",
+        cpf: "",
         cnpj: "",
         descricao: ""
     });
@@ -167,6 +168,7 @@ export function useProtocolosAdmin() {
                     titulo: filtros.titulo,
                     ano: normalizarAnoFiltro(filtros.ano),
                     destinatario_tipo: filtros.destinatario_tipo || undefined,
+                    cpf: filtros.cpf,
                     cnpj: filtros.cnpj,
                     descricao: filtros.descricao
                 })
@@ -323,6 +325,7 @@ export function useProtocolosAdmin() {
         filtros.titulo = "";
         filtros.ano = "";
         filtros.destinatario_tipo = "";
+        filtros.cpf = "";
         filtros.cnpj = "";
         filtros.descricao = "";
     }

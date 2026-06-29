@@ -35,22 +35,25 @@ describe("sanitizeProtocoloUsuarioQuery", () => {
         expect(r.titulo?.length).toBe(100);
     });
 
-    it("inclui cnpj e descricao quando preenchidos", () => {
+    it("inclui cnpj, cpf e descricao quando preenchidos", () => {
         expect(
             sanitizeProtocoloUsuarioQuery({
                 cnpj: " 61.274.240/0001-06 ",
+                cpf: " 123.456.789-01 ",
                 descricao: "  contrato anual  "
             })
         ).toEqual({
             cnpj: "61.274.240/0001-06",
+            cpf: "123.456.789-01",
             descricao: "contrato anual"
         });
     });
 
-    it("omite cnpj e descricao vazios", () => {
+    it("omite cnpj, cpf e descricao vazios", () => {
         expect(
             sanitizeProtocoloUsuarioQuery({
                 cnpj: "   ",
+                cpf: "",
                 descricao: ""
             })
         ).toEqual({});

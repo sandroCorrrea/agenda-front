@@ -15,7 +15,8 @@ import {
   RiPencilLine,
   RiSearchLine,
   RiShieldCheckLine,
-  RiTimeLine
+  RiTimeLine,
+  RiUserLine
 } from "@remixicon/vue";
 import type { Protocolo } from "@/domain/entities/Protocolo";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
@@ -61,6 +62,7 @@ const temFiltrosAtivos = computed(() =>
     filtros.titulo.trim() ||
       String(filtros.ano).trim() ||
       filtros.destinatario_tipo ||
+      filtros.cpf.trim() ||
       filtros.cnpj.trim() ||
       filtros.descricao.trim()
   )
@@ -92,6 +94,11 @@ function aoLimparFiltros() {
 function aoDigitarCnpj(event: Event) {
   const input = event.target as HTMLInputElement;
   filtros.cnpj = cnpjMask(input.value);
+}
+
+function aoDigitarCpf(event: Event) {
+  const input = event.target as HTMLInputElement;
+  filtros.cpf = cpfMask(input.value);
 }
 
 function abrirModalDescricao() {
@@ -223,6 +230,25 @@ function tooltipAssinatura(item: Protocolo) {
             <div class="w-100" aria-hidden="true" />
 
             <div class="col-12 col-md-6 col-lg-4">
+              <label class="form-label">CPF do destinatário</label>
+              <div class="proto-input-wrap">
+                <RiUserLine class="proto-input-wrap__icon" />
+                <input
+                  :value="filtros.cpf"
+                  type="text"
+                  inputmode="numeric"
+                  class="form-control proto-filter-control"
+                  placeholder="000.000.000-00"
+                  autocomplete="off"
+                  @input="aoDigitarCpf"
+                />
+              </div>
+              <small class="proto-filter-hint">
+                Destinatário físico · busca parcial
+              </small>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4">
               <label class="form-label">CNPJ do destinatário</label>
               <div class="proto-input-wrap">
                 <RiBuilding2Line class="proto-input-wrap__icon" />
@@ -241,7 +267,9 @@ function tooltipAssinatura(item: Protocolo) {
               </small>
             </div>
 
-            <div class="col-12 col-md-6 col-lg-5">
+            <div class="w-100" aria-hidden="true" />
+
+            <div class="col-12 col-lg-8">
               <label class="form-label">Título ou descrição</label>
               <button
                 type="button"
@@ -272,7 +300,7 @@ function tooltipAssinatura(item: Protocolo) {
               </small>
             </div>
 
-            <div class="col-12 col-lg-3">
+            <div class="col-12 col-lg-4">
               <label class="form-label proto-filter-actions-label" aria-hidden="true">&nbsp;</label>
               <div class="proto-filters__acoes">
                 <button

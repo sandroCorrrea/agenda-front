@@ -9,6 +9,8 @@ export interface ProtocoloUsuarioListQuery {
     destinatario_tipo?: DestinatarioTipoProtocoloUsuario;
     /** CNPJ do destinatário jurídico (com ou sem máscara). */
     cnpj?: string;
+    /** CPF do destinatário pessoa física (com ou sem máscara). */
+    cpf?: string;
     /** Busca em título ou descrição (case-insensitive). */
     descricao?: string;
 }

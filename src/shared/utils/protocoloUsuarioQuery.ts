@@ -8,6 +8,7 @@ export type ProtocoloUsuarioQuerySanitizado = {
     ano?: number;
     destinatario_tipo?: "fisica" | "juridica";
     cnpj?: string;
+    cpf?: string;
     descricao?: string;
 };
 
@@ -49,6 +50,13 @@ export function sanitizeProtocoloUsuarioQuery(
         const cnpj = q.cnpj.trim();
         if (cnpj.length > 0) {
             out.cnpj = cnpj.length > 18 ? cnpj.slice(0, 18) : cnpj;
+        }
+    }
+
+    if (typeof q.cpf === "string") {
+        const cpf = q.cpf.trim();
+        if (cpf.length > 0) {
+            out.cpf = cpf.length > 14 ? cpf.slice(0, 14) : cpf;
         }
     }
 

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue';
 import logo from '@/presentation/assets/img/logo.jpeg';
+import BaseTermoLgpdModal from '@/presentation/components/Shared/BaseTermoLgpdModal.vue';
 import { cpfMask, onlyNumbers, phoneMask } from '@/shared/utils/masks';
 import { TipoUsuario } from '@/domain/types/TipoUsuario';
 
 const showSenha = ref(false);
 const showConfirmarSenha = ref(false);
+const aceitouTermoLgpd = ref(true);
+const modalTermoAberto = ref(false);
 
 const props = withDefaults(defineProps<{
   loading: boolean,
@@ -59,7 +62,8 @@ const errors = reactive({
   email: '',
   celular: '',
   senha: '',
-  senha_confirmation: ''
+  senha_confirmation: '',
+  aceite_lgpd: ''
 });
 
 function validate() {
@@ -97,6 +101,10 @@ function validate() {
         ? 'As senhas devem ser iguais'
         : '';
 
+  errors.aceite_lgpd = aceitouTermoLgpd.value
+    ? ''
+    : 'É necessário aceitar o Termo de Transparência nos Dados para concluir o cadastro';
+
   return (
     !errors.nome &&
     !errors.cpf &&
@@ -104,8 +112,14 @@ function validate() {
     !errors.email &&
     !errors.celular &&
     !errors.senha &&
-    !errors.senha_confirmation
+    !errors.senha_confirmation &&
+    !errors.aceite_lgpd
   );
+}
+
+function abrirModalTermo(e: Event) {
+  e.preventDefault();
+  modalTermoAberto.value = true;
 }
 
 async function submitCadastro(e: Event) {
@@ -155,6 +169,12 @@ watch([() => form.senha, () => form.senha_confirmation], () => {
     errors.senha_confirmation = 'As senhas devem ser iguais';
   } else {
     errors.senha_confirmation = '';
+  }
+});
+
+watch(aceitouTermoLgpd, (aceito) => {
+  if (aceito) {
+    errors.aceite_lgpd = '';
   }
 });
 </script>
@@ -259,8 +279,40 @@ watch([() => form.senha, () => form.senha_confirmation], () => {
                   <strong>Erro ao cadastrar:</strong> {{ error }}
                 </div>
 
+                <div
+                  v-if="!loading && !(pessoaEntity && !error)"
+                  class="mb-3 termo-lgpd-aceite"
+                  :class="{ 'termo-lgpd-aceite--invalido': errors.aceite_lgpd }"
+                >
+                  <div class="form-check">
+                    <input
+                      v-model="aceitouTermoLgpd"
+                      id="aceite-termo-lgpd"
+                      class="form-check-input"
+                      type="checkbox"
+                    />
+                    <label class="form-check-label" for="aceite-termo-lgpd">
+                      Li e concordo com o
+                      <button
+                        type="button"
+                        class="termo-lgpd-aceite__link"
+                        @click="abrirModalTermo"
+                      >
+                        Termo de Transparência nos Dados
+                      </button>
+                    </label>
+                  </div>
+                  <div v-if="errors.aceite_lgpd" class="termo-lgpd-aceite__erro">
+                    {{ errors.aceite_lgpd }}
+                  </div>
+                </div>
+
                 <div v-if="!loading && !(pessoaEntity && !error)" class="d-grid mt-2">
-                  <button type="submit" class="btn btn-primary btn-sm">
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-sm"
+                    :disabled="!aceitouTermoLgpd"
+                  >
                     Criar conta
                   </button>
                 </div>
@@ -275,6 +327,11 @@ watch([() => form.senha, () => form.senha_confirmation], () => {
       </div>
     </div>
   </article>
+
+  <BaseTermoLgpdModal
+    :aberto="modalTermoAberto"
+    @fechar="modalTermoAberto = false"
+  />
 </template>
 
 <style scoped>
@@ -417,5 +474,63 @@ a.small:hover {
 
 .password-toggle:hover {
   opacity: 1;
+}
+
+.termo-lgpd-aceite {
+  margin-top: 0.25rem;
+}
+
+.termo-lgpd-aceite .form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.termo-lgpd-aceite .form-check-input {
+  margin-top: 0.2rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-color: #b8c9d4;
+  cursor: pointer;
+}
+
+.termo-lgpd-aceite .form-check-input:checked {
+  background-color: #2da0a8;
+  border-color: #2da0a8;
+}
+
+.termo-lgpd-aceite .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(45, 160, 168, 0.2);
+}
+
+.termo-lgpd-aceite .form-check-label {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #4a5b78;
+  cursor: pointer;
+}
+
+.termo-lgpd-aceite__link {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: #2da0a8;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.termo-lgpd-aceite__link:hover {
+  color: #5c6bc0;
+}
+
+.termo-lgpd-aceite--invalido .form-check-input {
+  border-color: #dc3545;
+}
+
+.termo-lgpd-aceite__erro {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: #dc3545;
 }
 </style>

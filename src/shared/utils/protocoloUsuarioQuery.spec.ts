@@ -34,4 +34,31 @@ describe("sanitizeProtocoloUsuarioQuery", () => {
         const r = sanitizeProtocoloUsuarioQuery({ titulo: long });
         expect(r.titulo?.length).toBe(100);
     });
+
+    it("inclui cnpj e descricao quando preenchidos", () => {
+        expect(
+            sanitizeProtocoloUsuarioQuery({
+                cnpj: " 61.274.240/0001-06 ",
+                descricao: "  contrato anual  "
+            })
+        ).toEqual({
+            cnpj: "61.274.240/0001-06",
+            descricao: "contrato anual"
+        });
+    });
+
+    it("omite cnpj e descricao vazios", () => {
+        expect(
+            sanitizeProtocoloUsuarioQuery({
+                cnpj: "   ",
+                descricao: ""
+            })
+        ).toEqual({});
+    });
+
+    it("trunca descricao acima de 500 caracteres", () => {
+        const long = "x".repeat(520);
+        const r = sanitizeProtocoloUsuarioQuery({ descricao: long });
+        expect(r.descricao?.length).toBe(500);
+    });
 });

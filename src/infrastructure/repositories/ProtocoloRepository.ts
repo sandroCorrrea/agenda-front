@@ -48,6 +48,8 @@ export class ProtocoloRepository implements IProtocoloRepository {
         titulo?: string;
         ano?: number;
         destinatario_tipo?: "fisica" | "juridica";
+        cnpj?: string;
+        descricao?: string;
     }): Promise<ProtocoloListagemResponseDTO> {
         const resp = await this.api.get("/protocolo", { params });
         const data = resp.data;
@@ -68,6 +70,8 @@ export class ProtocoloRepository implements IProtocoloRepository {
             titulo?: string;
             ano?: number;
             destinatario_tipo?: "fisica" | "juridica";
+            cnpj?: string;
+            descricao?: string;
         },
         signal?: AbortSignal
     ): Promise<ProtocoloListagemResponseDTO> {

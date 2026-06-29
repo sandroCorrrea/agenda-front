@@ -7,6 +7,8 @@ export type ProtocoloUsuarioQuerySanitizado = {
     titulo?: string;
     ano?: number;
     destinatario_tipo?: "fisica" | "juridica";
+    cnpj?: string;
+    descricao?: string;
 };
 
 /**
@@ -41,6 +43,20 @@ export function sanitizeProtocoloUsuarioQuery(
 
     if (q.destinatario_tipo === "fisica" || q.destinatario_tipo === "juridica") {
         out.destinatario_tipo = q.destinatario_tipo;
+    }
+
+    if (typeof q.cnpj === "string") {
+        const cnpj = q.cnpj.trim();
+        if (cnpj.length > 0) {
+            out.cnpj = cnpj.length > 18 ? cnpj.slice(0, 18) : cnpj;
+        }
+    }
+
+    if (typeof q.descricao === "string") {
+        const descricao = q.descricao.trim();
+        if (descricao.length > 0) {
+            out.descricao = descricao.length > 500 ? descricao.slice(0, 500) : descricao;
+        }
     }
 
     return out;

@@ -1,5 +1,7 @@
 import type { ProtocoloPayloadDTO } from "@/application/dto/Protocolo/ProtocoloPayloadDTO";
 import type { ProtocoloListagemResponseDTO } from "@/application/dto/Protocolo/ProtocoloListagemResponseDTO";
+import type { ProtocoloUsuarioListQuery } from "@/application/dto/Protocolo/ProtocoloUsuarioListagemQuery";
+import type { ProtocoloUsuarioQuerySanitizado } from "@/shared/utils/protocoloUsuarioQuery";
 import type {
     ConsultaAssinaturaProtocoloDTO,
     RegistrarAssinaturaResponseDTO
@@ -12,23 +14,13 @@ import type {
 } from "../entities/Protocolo";
 
 export interface IProtocoloRepository {
-    listPaginated(params?: {
-        page?: number;
-        per_page?: number;
-        titulo?: string;
-        ano?: number;
-        destinatario_tipo?: "fisica" | "juridica";
-    }): Promise<ProtocoloListagemResponseDTO>;
+    listPaginated(
+        params?: Partial<ProtocoloUsuarioListQuery> | ProtocoloUsuarioQuerySanitizado
+    ): Promise<ProtocoloListagemResponseDTO>;
     /** GET /protocolo/usuario/{usuarioId} — protocolos em que o usuario e destinatario ou administrador */
     listPaginatedByUsuarioId(
         usuarioId: number,
-        params?: {
-            page?: number;
-            per_page?: number;
-            titulo?: string;
-            ano?: number;
-            destinatario_tipo?: "fisica" | "juridica";
-        },
+        params?: Partial<ProtocoloUsuarioListQuery> | ProtocoloUsuarioQuerySanitizado,
         signal?: AbortSignal
     ): Promise<ProtocoloListagemResponseDTO>;
     findById(id: number): Promise<Protocolo>;

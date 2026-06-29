@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   RiAddLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
+  RiBuilding2Line,
   RiCheckboxCircleFill,
   RiCloseLine,
   RiDeleteBinLine,
   RiEyeLine,
   RiFilePdf2Line,
+  RiFileTextLine,
   RiPencilLine,
   RiSearchLine,
   RiShieldCheckLine,
@@ -19,7 +21,7 @@ import type { Protocolo } from "@/domain/entities/Protocolo";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useProtocolosAdmin } from "@/presentation/composables/Protocolo/useProtocolosAdmin";
 import { formatarDataIsoPtBr } from "@/shared/utils/date.util";
-import { cpfMask } from "@/shared/utils/masks";
+import { cnpjMask, cpfMask } from "@/shared/utils/masks";
 
 const route = useRoute();
 const router = useRouter();
@@ -38,6 +40,7 @@ const {
   modalDetalheId,
   protocoloDetalhe,
   carregar,
+  limparFiltros,
   carregarDetalhe,
   fecharDetalhe,
   abrirModalExcluir,
@@ -50,6 +53,24 @@ const {
 } = useProtocolosAdmin();
 
 const criadoMsg = ref(false);
+const modalDescricaoAberto = ref(false);
+const descricaoRascunho = ref("");
+
+const temFiltrosAtivos = computed(() =>
+  Boolean(
+    filtros.titulo.trim() ||
+      String(filtros.ano).trim() ||
+      filtros.destinatario_tipo ||
+      filtros.cnpj.trim() ||
+      filtros.descricao.trim()
+  )
+);
+
+const previewDescricao = computed(() => {
+  const texto = filtros.descricao.trim();
+  if (!texto) return "";
+  return texto.length > 72 ? `${texto.slice(0, 72)}…` : texto;
+});
 
 onMounted(async () => {
   if (route.query.criado === "1") {
@@ -62,6 +83,53 @@ onMounted(async () => {
 function aplicarFiltros() {
   void carregar(1);
 }
+
+function aoLimparFiltros() {
+  limparFiltros();
+  void carregar(1);
+}
+
+function aoDigitarCnpj(event: Event) {
+  const input = event.target as HTMLInputElement;
+  filtros.cnpj = cnpjMask(input.value);
+}
+
+function abrirModalDescricao() {
+  descricaoRascunho.value = filtros.descricao;
+  modalDescricaoAberto.value = true;
+}
+
+function fecharModalDescricao() {
+  modalDescricaoAberto.value = false;
+}
+
+function aplicarDescricaoFiltro() {
+  filtros.descricao = descricaoRascunho.value.trim();
+  fecharModalDescricao();
+}
+
+function limparDescricaoFiltro() {
+  descricaoRascunho.value = "";
+  filtros.descricao = "";
+  fecharModalDescricao();
+}
+
+function onKeydownDescricaoModal(e: KeyboardEvent) {
+  if (e.key === "Escape" && modalDescricaoAberto.value) {
+    fecharModalDescricao();
+  }
+}
+
+watch(modalDescricaoAberto, (aberto) => {
+  if (typeof document === "undefined") return;
+  document.body.style.overflow = aberto ? "hidden" : "";
+});
+
+onUnmounted(() => {
+  if (typeof document !== "undefined") {
+    document.body.style.overflow = "";
+  }
+});
 
 function chipTipo(tipo: string) {
   return tipo === "fisica" ? "Física" : "Jurídica";
@@ -111,19 +179,39 @@ function tooltipAssinatura(item: Protocolo) {
 
       <section class="card border-0 shadow-sm proto-filters mb-4">
         <div class="card-body p-3 p-md-4">
+          <div class="proto-filters__head">
+            <h2 class="proto-filters__title">Filtros de busca</h2>
+            <span v-if="temFiltrosAtivos" class="proto-filters__active">filtros ativos</span>
+          </div>
+
           <form class="row g-3" @submit.prevent="aplicarFiltros">
-            <div class="col-12 col-md-5">
+            <div class="col-12 col-lg-6">
               <label class="form-label">Título</label>
               <div class="proto-input-wrap">
                 <RiSearchLine class="proto-input-wrap__icon" />
-                <input v-model="filtros.titulo" type="text" class="form-control" placeholder="Ex.: Contrato" />
+                <input
+                  v-model="filtros.titulo"
+                  type="text"
+                  class="form-control"
+                  placeholder="Busca parcial no título"
+                />
               </div>
+              <small class="proto-filter-hint">Filtra somente o campo título</small>
             </div>
-            <div class="col-6 col-md-3">
+
+            <div class="col-6 col-lg-3">
               <label class="form-label">Ano</label>
-              <input v-model="filtros.ano" type="number" min="2000" max="9999" class="form-control" />
+              <input
+                v-model="filtros.ano"
+                type="number"
+                min="2000"
+                max="9999"
+                class="form-control"
+                placeholder="2026"
+              />
             </div>
-            <div class="col-6 col-md-3">
+
+            <div class="col-6 col-lg-3">
               <label class="form-label">Tipo</label>
               <select v-model="filtros.destinatario_tipo" class="form-select">
                 <option value="">Todos</option>
@@ -131,8 +219,75 @@ function tooltipAssinatura(item: Protocolo) {
                 <option value="juridica">Jurídica</option>
               </select>
             </div>
-            <div class="col-12 col-md-1 d-grid align-items-end">
-              <button class="btn proto-filter-btn" type="submit">Filtrar</button>
+
+            <div class="w-100" aria-hidden="true" />
+
+            <div class="col-12 col-md-6 col-lg-4">
+              <label class="form-label">CNPJ do destinatário</label>
+              <div class="proto-input-wrap">
+                <RiBuilding2Line class="proto-input-wrap__icon" />
+                <input
+                  :value="filtros.cnpj"
+                  type="text"
+                  inputmode="numeric"
+                  class="form-control proto-filter-control"
+                  placeholder="00.000.000/0000-00"
+                  autocomplete="off"
+                  @input="aoDigitarCnpj"
+                />
+              </div>
+              <small class="proto-filter-hint">
+                Destinatário jurídico · busca parcial
+              </small>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-5">
+              <label class="form-label">Título ou descrição</label>
+              <button
+                type="button"
+                class="proto-descricao-trigger proto-filter-control"
+                :class="{ 'proto-descricao-trigger--ativo': filtros.descricao.trim() }"
+                @click="abrirModalDescricao"
+              >
+                <span class="proto-descricao-trigger__icon" aria-hidden="true">
+                  <RiFileTextLine />
+                </span>
+                <span class="proto-descricao-trigger__texto">
+                  <template v-if="filtros.descricao.trim()">
+                    {{ previewDescricao }}
+                  </template>
+                  <template v-else>
+                    Clique para buscar em título e descrição
+                  </template>
+                </span>
+                <span
+                  v-if="filtros.descricao.trim()"
+                  class="proto-descricao-trigger__badge"
+                >
+                  ativo
+                </span>
+              </button>
+              <small class="proto-filter-hint">
+                Busca ampliada (case-insensitive) em título e descrição
+              </small>
+            </div>
+
+            <div class="col-12 col-lg-3">
+              <label class="form-label proto-filter-actions-label" aria-hidden="true">&nbsp;</label>
+              <div class="proto-filters__acoes">
+                <button
+                  v-if="temFiltrosAtivos"
+                  type="button"
+                  class="btn proto-filter-btn proto-filter-btn--ghost"
+                  @click="aoLimparFiltros"
+                >
+                  Limpar
+                </button>
+                <button class="btn proto-filter-btn" type="submit">
+                  <RiSearchLine class="me-1" />
+                  Filtrar
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -389,12 +544,89 @@ function tooltipAssinatura(item: Protocolo) {
       </div>
     </div>
   </Teleport>
+
+  <Teleport to="body">
+    <div
+      v-if="modalDescricaoAberto"
+      class="proto-modal__portal"
+      role="presentation"
+      @keydown="onKeydownDescricaoModal"
+    >
+      <div class="proto-modal__backdrop" @click="fecharModalDescricao" />
+      <div class="proto-modal__wrap" @click.self="fecharModalDescricao">
+        <div class="proto-modal__panel proto-modal__panel--descricao" @click.stop>
+          <button
+            type="button"
+            class="proto-modal__close"
+            aria-label="Fechar"
+            @click="fecharModalDescricao"
+          >
+            <RiCloseLine />
+          </button>
+
+          <h3 class="proto-modal__titulo-descricao">Busca em título ou descrição</h3>
+          <p class="proto-modal__subtitulo-descricao">
+            Informe palavras ou trechos para localizar protocolos pelo título ou pela descrição completa.
+          </p>
+
+          <label class="form-label" for="filtro-descricao-protocolo">Texto de busca</label>
+          <textarea
+            id="filtro-descricao-protocolo"
+            v-model="descricaoRascunho"
+            class="form-control proto-descricao-textarea"
+            rows="6"
+            maxlength="500"
+            placeholder="Ex.: contrato de prestação de serviços, folha de pagamento, entrega documentação..."
+          />
+          <div class="proto-descricao-textarea__meta">
+            <small class="text-muted">Até 500 caracteres</small>
+            <small class="text-muted">{{ descricaoRascunho.length }}/500</small>
+          </div>
+
+          <div class="proto-modal__acoes-descricao">
+            <button
+              type="button"
+              class="btn proto-filter-btn proto-filter-btn--ghost"
+              @click="limparDescricaoFiltro"
+            >
+              Limpar
+            </button>
+            <button
+              type="button"
+              class="btn proto-filter-btn"
+              @click="aplicarDescricaoFiltro(); aplicarFiltros()"
+            >
+              Aplicar e filtrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
 .proto-subtitle{font-size:1.2rem;font-weight:800;color:#16254e}
-.proto-input-wrap{position:relative}.proto-input-wrap__icon{position:absolute;left:.85rem;top:.7rem;color:#6b7d9c}.proto-input-wrap input{padding-left:2.4rem}
-.proto-filter-btn{border:none;background:linear-gradient(90deg,#5c6bc0,#2da0a8);color:#fff;border-radius:10px;font-weight:700}
+.proto-filters{--proto-filter-control-h:calc(1.5em + .75rem + 2px)}
+.proto-filters__head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
+.proto-filters__title{margin:0;font-size:1rem;font-weight:800;color:#16254e}
+.proto-filters__active{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#2d6a9f;background:#eef3ff;border:1px solid #d8e2ff;border-radius:999px;padding:.2rem .55rem}
+.proto-filter-hint{display:block;margin-top:.35rem;font-size:.75rem;color:#6b7d9c;line-height:1.35}
+.proto-filters__acoes{display:flex;flex-wrap:wrap;gap:.55rem;width:100%;height:var(--proto-filter-control-h);align-items:stretch}
+.proto-filter-control{min-height:var(--proto-filter-control-h);height:var(--proto-filter-control-h)}
+.proto-filter-actions-label{visibility:hidden;user-select:none}
+.proto-input-wrap{position:relative}.proto-input-wrap__icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:#6b7d9c;width:1rem;height:1rem;pointer-events:none}.proto-input-wrap input{padding-left:2.4rem}
+.proto-descricao-trigger{display:flex;align-items:center;gap:.5rem;width:100%;padding:.375rem .75rem;border:1px solid #dce5ef;border-radius:.375rem;background:linear-gradient(180deg,#fff 0%,#f8fbfd 100%);color:#16254e;text-align:left;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.proto-descricao-trigger:hover{border-color:#b8c9e8;background:#fff;box-shadow:0 4px 14px rgba(92,107,192,.08)}
+.proto-descricao-trigger--ativo{border-color:#9eb0e0;background:#f7f9ff}
+.proto-descricao-trigger__icon{display:inline-flex;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;border-radius:6px;background:rgba(92,107,192,.1);color:#4054b8;flex-shrink:0}
+.proto-descricao-trigger__icon svg{width:.95rem;height:.95rem}
+.proto-descricao-trigger__texto{flex:1;min-width:0;font-size:.92rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proto-descricao-trigger--ativo .proto-descricao-trigger__texto{font-weight:600;color:#2f4578}
+.proto-descricao-trigger__badge{flex-shrink:0;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1d6d3f;background:#eefaf3;border:1px solid #b7e3c7;border-radius:999px;padding:.1rem .4rem;line-height:1.2}
+.proto-filter-btn{border:none;background:linear-gradient(90deg,#5c6bc0,#2da0a8);color:#fff;border-radius:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;min-height:var(--proto-filter-control-h);height:100%;padding:.375rem 1rem;flex:1}
+.proto-filter-btn--ghost{background:#fff;color:#3f5284;border:1px solid rgba(92,107,192,.28)}
+.proto-filter-btn--ghost:hover{background:#f4f7ff}
 .proto-pdf-btn{border:none!important;background:linear-gradient(90deg,#5c6bc0,#2da0a8)!important;color:#fff!important;border-radius:10px!important;font-weight:700!important}
 .proto-pdf-btn:disabled{opacity:.65}
 .proto-chip{font-size:.74rem;background:#eef3ff;color:#2d4d8f;border:1px solid #d8e2ff;border-radius:999px;padding:.15rem .5rem;font-weight:700}
@@ -433,6 +665,15 @@ function tooltipAssinatura(item: Protocolo) {
 .proto-actions--card .proto-action-btn{width:auto;height:auto;min-height:2.35rem;padding:.4rem .65rem;gap:.35rem;font-size:.82rem;font-weight:600}
 .proto-actions--card .proto-action-btn__label{display:inline}
 .proto-pag{display:flex;justify-content:center;align-items:center;gap:.8rem}.proto-pag__nav{border:1px solid rgba(92,107,192,.3);border-radius:10px}
-.proto-modal__portal{position:fixed;inset:0;z-index:4000}.proto-modal__backdrop{position:absolute;inset:0;background:rgba(22,37,78,.45)}.proto-modal__wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem}.proto-modal__panel{position:relative;width:100%;max-width:560px;background:#fff;border-radius:16px;padding:1.25rem 1.25rem 1rem}.proto-modal__close{position:absolute;right:.7rem;top:.7rem;border:none;background:transparent}
+.proto-modal__portal{position:fixed;inset:0;z-index:4000}.proto-modal__backdrop{position:absolute;inset:0;background:rgba(22,37,78,.45);backdrop-filter:blur(4px)}.proto-modal__wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:1rem}.proto-modal__panel{position:relative;width:100%;max-width:560px;background:#fff;border-radius:16px;padding:1.25rem 1.25rem 1rem;box-shadow:0 12px 40px rgba(20,30,40,.12)}.proto-modal__panel--descricao{max-width:640px}.proto-modal__close{position:absolute;right:.7rem;top:.7rem;border:none;background:rgba(92,107,192,.08);width:2.1rem;height:2.1rem;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#4a5b78}
+.proto-modal__titulo-descricao{margin:0 2rem .35rem 0;font-size:1.15rem;font-weight:800;color:#16254e}
+.proto-modal__subtitulo-descricao{margin:0 0 1rem;font-size:.9rem;line-height:1.5;color:#5a6b82}
+.proto-descricao-textarea{resize:vertical;min-height:9rem;border-radius:12px;border-color:#dce5ef;background:#f8fbfd}
+.proto-descricao-textarea:focus{border-color:#5c6bc0;box-shadow:0 4px 14px rgba(92,107,192,.1);background:#fff}
+.proto-descricao-textarea__meta{display:flex;justify-content:space-between;margin-top:.35rem;margin-bottom:1rem}
+.proto-modal__acoes-descricao{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.55rem}
 .admin-alert{border-radius:10px;padding:.75rem .9rem;font-size:.92rem}.admin-alert--erro{background:#fff3f3;border:1px solid #f1b4b4;color:#9e2b2b}.admin-alert--ok{background:#eefaf3;border:1px solid #b7e3c7;color:#1d6d3f}
+@media (max-width: 991.98px){
+  .proto-filters__acoes .proto-filter-btn{flex:1}
+}
 </style>

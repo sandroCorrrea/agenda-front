@@ -15,6 +15,7 @@ import { ProtocoloPayloadDTO } from "@/application/dto/Protocolo/ProtocoloPayloa
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 import type { ErroResponseDTO } from "@/domain/types/ErroResponseDTO";
 import { dispararDownloadBlob } from "@/shared/utils/downloadBlob";
+import { sanitizeProtocoloUsuarioQuery } from "@/shared/utils/protocoloUsuarioQuery";
 
 const POR_PAGINA_PADRAO = 10;
 
@@ -67,7 +68,9 @@ export function useProtocolosAdmin() {
         titulo: "",
         /** Input type="number" pode devolver number no v-model. */
         ano: "" as string | number,
-        destinatario_tipo: "" as "" | "fisica" | "juridica"
+        destinatario_tipo: "" as "" | "fisica" | "juridica",
+        cnpj: "",
+        descricao: ""
     });
 
     const protocoloExclusaoNome = computed(() => {
@@ -157,13 +160,17 @@ export function useProtocolosAdmin() {
         carregandoLista.value = true;
         erro.value = null;
         try {
-            const resp = await listarCaso.execute({
-                page,
-                per_page: porPagina.value,
-                titulo: filtros.titulo.trim() || undefined,
-                ano: normalizarAnoFiltro(filtros.ano),
-                destinatario_tipo: filtros.destinatario_tipo || undefined
-            });
+            const resp = await listarCaso.execute(
+                sanitizeProtocoloUsuarioQuery({
+                    page,
+                    per_page: porPagina.value,
+                    titulo: filtros.titulo,
+                    ano: normalizarAnoFiltro(filtros.ano),
+                    destinatario_tipo: filtros.destinatario_tipo || undefined,
+                    cnpj: filtros.cnpj,
+                    descricao: filtros.descricao
+                })
+            );
             protocolos.value = resp.protocolo;
             totalRegistros.value = resp.total;
             paginaAtual.value = resp.pagina;
@@ -312,6 +319,14 @@ export function useProtocolosAdmin() {
         }
     }
 
+    function limparFiltros() {
+        filtros.titulo = "";
+        filtros.ano = "";
+        filtros.destinatario_tipo = "";
+        filtros.cnpj = "";
+        filtros.descricao = "";
+    }
+
     const totalPaginas = () => Math.max(1, Math.ceil(totalRegistros.value / (porPagina.value || 1)));
 
     async function irParaPagina(page: number) {
@@ -371,6 +386,7 @@ export function useProtocolosAdmin() {
         erroDestinatarios,
         erroEnderecoDestinatario,
         carregar,
+        limparFiltros,
         carregarDestinatarios,
         carregarEnderecoDestinatario,
         carregarDetalhe,

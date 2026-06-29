@@ -79,10 +79,33 @@ api.interceptors.request.use((config) => {
     }
     return config;
 });
+function requisicaoEnviouAuthorization(
+    config: import("axios").InternalAxiosRequestConfig | undefined
+): boolean {
+    if (!config?.headers) return false;
+    const headers = config.headers;
+    if (typeof headers.get === "function") {
+        return Boolean(headers.get("Authorization"));
+    }
+    return Boolean((headers as Record<string, string>).Authorization);
+}
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
+            const config = error.config;
+
+            // Rotas públicas (cadastro, login, recuperação de senha): o 401 é erro de negócio, não sessão expirada.
+            if (config?.skipAuth) {
+                return Promise.reject(error);
+            }
+
+            // Sem token enviado nesta requisição: não tratar como expiração de sessão.
+            if (!requisicaoEnviouAuthorization(config)) {
+                return Promise.reject(error);
+            }
+
             const auth = useAuthStore();
             auth.encerrarSessao();
 

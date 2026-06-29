@@ -14,10 +14,14 @@ export class AuthRepository implements IAuthRepository {
     constructor(private api: AxiosInstance) {}
 
     async login(dto: LoginPostRequestDTO): Promise<LoginPostResponseDTO> {
-        const res = await this.api.post<LoginResponse>("/auth/login", {
-            cpf: dto.cpf,
-            senha: dto.senha
-        });
+        const res = await this.api.post<LoginResponse>(
+            "/auth/login",
+            {
+                cpf: dto.cpf,
+                senha: dto.senha
+            },
+            { skipAuth: true }
+        );
         const data = res.data;
         return new LoginPostResponseDTO(
             data.token,

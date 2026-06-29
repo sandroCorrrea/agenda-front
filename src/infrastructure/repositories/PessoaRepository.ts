@@ -43,7 +43,9 @@ export class PessoaRepository implements IPessoaRepository {
     constructor(private api: AxiosInstance) {}
 
     async persist(pessoa: PessoaPostRequestDTO): Promise<Pessoa> {
-        const res = await this.api.post<PessoaApiJson>("/pessoa", pessoa);
+        const res = await this.api.post<PessoaApiJson>("/pessoa", pessoa, {
+            skipAuth: true
+        });
         const data = res.data;
         return new Pessoa(
             data.id,

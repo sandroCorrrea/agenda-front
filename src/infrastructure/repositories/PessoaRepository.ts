@@ -7,6 +7,7 @@ import { PessoaAdministradorDTO } from "@/application/dto/Pessoa/PessoaAdministr
 import { PessoaListagemDTO } from "@/application/dto/Pessoa/PessoaListagemDTO";
 import { PessoaListagemResponseDTO } from "@/application/dto/Pessoa/PessoaListagemResponseDTO";
 import { PessoaPerfilDTO } from "@/application/dto/Pessoa/PessoaPerfilDTO";
+import type { CertificadoDigitalPostResponseDTO } from "@/application/dto/EmpresaVinculo/CertificadoDigitalPostResponseDTO";
 import { UsuarioPerfilDTO } from "@/application/dto/Usuario/UsuarioPerfilDTO";
 
 type UsuarioApiJson = {
@@ -30,6 +31,10 @@ type PessoaApiJson = {
     data_nascimento?: string;
     senha?: string;
     usuario?: UsuarioApiJson | null;
+    tem_certificado?: boolean;
+    temCertificado?: boolean;
+    certificado_enviado_em?: string | null;
+    certificadoEnviadoEm?: string | null;
 };
 
 type PessoaListagemApiJson = {
@@ -145,6 +150,26 @@ export class PessoaRepository implements IPessoaRepository {
         });
     }
 
+    async enviarCertificadoDigital(
+        pessoaId: number,
+        certificado: File,
+        senhaCertificado: string
+    ): Promise<CertificadoDigitalPostResponseDTO> {
+        const form = new FormData();
+        form.append("certificado", certificado);
+        form.append("senha_certificado", senhaCertificado);
+
+        const resp = await this.api.post<{ message?: string }>(
+            `/pessoa/${pessoaId}/certificado`,
+            form
+        );
+
+        return {
+            message:
+                resp.data.message ?? "Certificado digital enviado com sucesso."
+        };
+    }
+
     private mapearUsuario(u: UsuarioApiJson): UsuarioPerfilDTO {
         return new UsuarioPerfilDTO(
             u.id,
@@ -169,7 +194,9 @@ export class PessoaRepository implements IPessoaRepository {
             new Date(raw),
             data.email,
             data.celular,
-            usuario
+            usuario,
+            Boolean(data.tem_certificado ?? data.temCertificado),
+            data.certificado_enviado_em ?? data.certificadoEnviadoEm ?? null
         );
     }
 }

@@ -7,6 +7,8 @@ export type ListarEmpresasParams = {
     page?: number;
     /** Filtro parcial em nome ou apelido (trim no cliente). */
     nome?: string | null;
+    /** CNPJ com ou sem máscara (14 dígitos) — busca exata no banco local. Obrigatório para cliente. */
+    cnpj?: string | null;
 };
 
 /** Resposta paginada de `GET /api/empresa` (`por_pagina` fixo no backend, ex.: 6). */
@@ -50,7 +52,9 @@ export interface IMatrizRepository {
     listarEmpresasPaginado(
         params?: ListarEmpresasParams
     ): Promise<EmpresasPaginadasResultado>;
-    criarEmpresa(dto: EmpresaUpsertDTO): Promise<void>;
+    /** Busca empresa cadastrada pelo CNPJ (14 dígitos) no banco local. */
+    buscarEmpresaPorCnpj(cnpjSemMascara: string): Promise<EmpresaListagemDTO | null>;
+    criarEmpresa(dto: EmpresaUpsertDTO): Promise<EmpresaListagemDTO>;
     atualizarEmpresa(
         id: number,
         dto: EmpresaUpsertDTO

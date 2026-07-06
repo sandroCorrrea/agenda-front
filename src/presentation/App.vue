@@ -4,6 +4,7 @@ import { RouterView, useRoute } from 'vue-router';
 import Navbar from './components/Layout/Navbar.vue';
 import Footer from './components/Layout/Footer.vue';
 import FooterAdministrador from './components/Layout/FooterAdministrador.vue';
+import AdminVinculosPendentesBanner from './components/Admin/AdminVinculosPendentesBanner.vue';
 import { useMatrizStore } from './store/useMatrizStore';
 import { useAuthStore } from './store/useAuthStore';
 import { TipoUsuario } from '@/domain/types/TipoUsuario';
@@ -28,6 +29,16 @@ const mostrarFooterAdministrador = computed(() => {
   return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
 });
 
+/** Banner de vinculações pendentes em todas as telas administrativas. */
+const mostrarBannerVinculosPendentes = computed(() => {
+  if (layoutMinimo.value) return false;
+  if (!auth.estaAutenticado || auth.usuario?.tipo_usuario !== TipoUsuario.ADMINISTRADOR) {
+    return false;
+  }
+  if (route.path.startsWith('/admin')) return true;
+  return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
+});
+
 onMounted(() => {
   if (!repo) throw new Error('IMatrizRepository not found');
   matrizStore.load(repo);
@@ -49,6 +60,7 @@ watch(
 <template>
   <div class="app" :class="{ 'app--layout-minimo': layoutMinimo }">
     <Navbar v-if="!layoutMinimo" />
+    <AdminVinculosPendentesBanner v-if="mostrarBannerVinculosPendentes" />
     <main
       class="main-content"
       :class="{ 'main-content--layout-minimo': layoutMinimo }"

@@ -26,7 +26,6 @@ const {
     salvando,
     erro,
     sucesso,
-    consultaCnpj,
     erroCampos,
     empresas,
     carregandoEmpresas,
@@ -363,86 +362,6 @@ onUnmounted(() => {
                     </div>
                 </div>
             </section>
-
-            <div v-if="consultaCnpj" class="card admin-card border-0 shadow-sm mb-4">
-                <div class="card-body p-4 p-md-5">
-                    <h2 class="admin-subtitle">Dados da Receita (consulta CNPJ)</h2>
-                    <div class="row g-3">
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Abertura</label>
-                            <input :value="consultaCnpj.abertura ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Porte</label>
-                            <input :value="consultaCnpj.porte ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Natureza jurídica</label>
-                            <input :value="consultaCnpj.naturezaJuridica ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Complemento</label>
-                            <input :value="consultaCnpj.complemento ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">EFR</label>
-                            <input :value="consultaCnpj.efr ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Motivo situação</label>
-                            <input :value="consultaCnpj.motivoSituacao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Situação especial</label>
-                            <input :value="consultaCnpj.situacaoEspecial ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Data situação especial</label>
-                            <input :value="consultaCnpj.dataSituacaoEspecial ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Capital social</label>
-                            <input :value="consultaCnpj.capitalSocial ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Última atualização</label>
-                            <input :value="consultaCnpj.ultimaAtualizacao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Simples (optante)</label>
-                            <input :value="consultaCnpj.simples?.optante ? 'Sim' : 'Não'" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">SIMEI (optante)</label>
-                            <input :value="consultaCnpj.simei?.optante ? 'Sim' : 'Não'" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Data opção simples</label>
-                            <input :value="consultaCnpj.simples?.dataOpcao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Data exclusão simples</label>
-                            <input :value="consultaCnpj.simples?.dataExclusao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Data opção SIMEI</label>
-                            <input :value="consultaCnpj.simei?.dataOpcao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <label class="form-label">Data exclusão SIMEI</label>
-                            <input :value="consultaCnpj.simei?.dataExclusao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">Última atualização Simples</label>
-                            <input :value="consultaCnpj.simples?.ultimaAtualizacao ?? ''" class="form-control" disabled />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">Última atualização SIMEI</label>
-                            <input :value="consultaCnpj.simei?.ultimaAtualizacao ?? ''" class="form-control" disabled />
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="card admin-card border-0 shadow-sm mb-4">
                 <div class="card-body p-4 p-md-5">

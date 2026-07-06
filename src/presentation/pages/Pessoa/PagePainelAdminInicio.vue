@@ -17,7 +17,8 @@ import {
   RiShieldUserLine,
   RiSparklingLine,
   RiUser3Line,
-  RiUserSettingsLine
+  RiUserSettingsLine,
+  RiLinkM
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 
@@ -100,6 +101,12 @@ const atalhos: Atalho[] = [
     accent: "slate"
   },
   {
+    nome: "Vinculações",
+    descricao: "Aprovar ou rejeitar solicitações de clientes com empresas.",
+    rota: "AdministradorVinculacoes",
+    accent: "amber"
+  },
+  {
     nome: "Administradores",
     descricao: "Equipe com acesso ao painel e permissões.",
     rota: "AdministradorUsuarios",
@@ -128,6 +135,7 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   BlogPostagem: RiArticleLine,
   AdministradorClientesPessoaFisica: RiUser3Line,
   AdministradorEmpresas: RiBuilding4Line,
+  AdministradorVinculacoes: RiLinkM,
   AdministradorUsuarios: RiShieldUserLine,
   AdministradorPerfil: RiUserSettingsLine,
   AdministradorChaves: RiKey2Line

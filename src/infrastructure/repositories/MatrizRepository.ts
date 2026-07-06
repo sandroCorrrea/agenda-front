@@ -189,6 +189,8 @@ export class MatrizRepository implements IMatrizRepository
         };
         const nome = params?.nome?.trim();
         if (nome) query.nome = nome;
+        const cnpj = params?.cnpj?.replace(/\D/g, "");
+        if (cnpj && cnpj.length === 14) query.cnpj = cnpj;
 
         const resp = await this.api.get<unknown>("/empresa", { params: query });
         const raw = resp.data;
@@ -218,6 +220,25 @@ export class MatrizRepository implements IMatrizRepository
             pagina: Number(body.pagina) || 1,
             por_pagina: Number(body.por_pagina) || 6
         };
+    }
+
+    async buscarEmpresaPorCnpj(
+        cnpjSemMascara: string
+    ): Promise<EmpresaListagemDTO | null> {
+        const digits = cnpjSemMascara.replace(/\D/g, "");
+        if (digits.length !== 14) return null;
+
+        const resultado = await this.listarEmpresasPaginado({
+            page: 1,
+            cnpj: digits
+        });
+
+        if (resultado.total === 0 || resultado.data.length === 0) {
+            return null;
+        }
+
+        const empresa = resultado.data[0];
+        return empresa ?? null;
     }
 
     async atualizarEmpresa(
@@ -283,8 +304,13 @@ export class MatrizRepository implements IMatrizRepository
         });
     }
 
-    async criarEmpresa(dto: EmpresaUpsertDTO): Promise<void> {
-        await this.api.post("/empresa", {
+    async criarEmpresa(dto: EmpresaUpsertDTO): Promise<EmpresaListagemDTO> {
+        type PostResp = {
+            message?: string;
+            empresa?: EmpresaJson;
+            id?: number;
+        };
+        const resp = await this.api.post<PostResp>("/empresa", {
             nome: dto.nome,
             apelido: dto.apelido,
             cnpj: dto.cnpj,
@@ -308,5 +334,44 @@ export class MatrizRepository implements IMatrizRepository
             qsa: dto.qsa,
             meta: dto.meta
         });
+
+        const body = resp.data;
+        if (body.empresa) {
+            return this.mapEmpresaJsonParaListagem(body.empresa);
+        }
+
+        if (body.id != null) {
+            const porCnpj = await this.buscarEmpresaPorCnpj(dto.cnpj);
+            if (porCnpj) return porCnpj;
+            return this.mapEmpresaJsonParaListagem({
+                id: body.id,
+                nome: dto.nome,
+                apelido: dto.apelido,
+                cnpj: dto.cnpj,
+                cep: dto.cep,
+                rua: dto.rua,
+                numero: dto.numero,
+                bairro: dto.bairro,
+                cidade: dto.cidade,
+                uf: dto.uf,
+                telefone: dto.telefone,
+                celular: dto.celular,
+                email: dto.email,
+                inscricao_estadual: dto.inscricao_estadual,
+                tipo_empresa: dto.tipo_empresa,
+                data_situacao_uf: dto.data_situacao_uf,
+                situacao_cnpj: dto.situacao_cnpj,
+                situacao_ie: dto.situacao_ie,
+                cnae: dto.cnae,
+                atividades_principais: dto.atividades_principais,
+                atividades_secundarias: dto.atividades_secundarias,
+                qsa: dto.qsa
+            });
+        }
+
+        const fallback = await this.buscarEmpresaPorCnpj(dto.cnpj);
+        if (fallback) return fallback;
+
+        throw new Error("Empresa criada, mas o identificador não foi retornado pela API.");
     }
 }

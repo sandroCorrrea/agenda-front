@@ -7,6 +7,7 @@ export interface ErroResponseDTO {
         nome?: string[];
         descricao?: string[];
         cpf?: string[];
+        cnpj?: string[];
         usuario_id?: string[];
         senha?: string[];
         data_nascimento?: string[];
@@ -24,7 +25,8 @@ export interface ErroResponseDTO {
         nova_senha?: string[];
         nova_senha_confirmation?: string[];
         status?: string[];
-        destinatario_tipo?: string[];
+        justificativa?: string[];
+        empresa_id?: string[];
         destinatario_usuario_id?: string[];
         destinatario_empresa_id?: string[];
         administrador_usuario_id?: string[];

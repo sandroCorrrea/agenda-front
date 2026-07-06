@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { RiSearchLine } from "@remixicon/vue";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { TipoUsuario } from "@/domain/types/TipoUsuario";
 import { usePessoaPerfil } from "@/presentation/composables/Pessoa/usePessoaPerfil";
 import { useEnderecoUsuario } from "@/presentation/composables/Endereco/useEnderecoUsuario";
 import { UsuarioSenhaUpdateDTO } from "@/application/dto/Usuario/UsuarioSenhaUpdateDTO";
@@ -10,6 +11,7 @@ import { PessoaContatoUpdateDTO } from "@/application/dto/Pessoa/PessoaContatoUp
 import { EnderecoCreateDTO } from "@/application/dto/Endereco/EnderecoCreateDTO";
 import { EnderecoUpdateDTO } from "@/application/dto/Endereco/EnderecoUpdateDTO";
 import BaseLoading from "@/presentation/components/Shared/BaseLoading.vue";
+import CertificadoDigitalPessoaCard from "@/presentation/components/Pessoa/CertificadoDigitalPessoaCard.vue";
 import { cepMask, cpfMask, onlyNumbers, phoneMask } from "@/shared/utils/masks";
 import { resolvePublicAssetUrl } from "@/shared/utils/mediaUrl";
 
@@ -50,6 +52,9 @@ const {
 
 const pessoaId = computed(() => auth.usuario?.pessoa_id ?? null);
 const usuarioId = computed(() => perfil.value?.usuario?.id ?? null);
+const ehCliente = computed(
+    () => auth.usuario?.tipo_usuario === TipoUsuario.CLIENTE
+);
 
 const imgQuebrou = ref(false);
 
@@ -434,6 +439,16 @@ const podeSalvarEndereco = computed(() => {
     if (!formEndereco.estado.trim()) return false;
     return true;
 });
+
+async function aoCertificadoEnviado() {
+    const pid = pessoaId.value;
+    if (pid == null) return;
+    try {
+        await carregar(pid);
+    } catch {
+        return;
+    }
+}
 </script>
 
 <template>
@@ -442,7 +457,11 @@ const podeSalvarEndereco = computed(() => {
             <div class="mb-3">
                 <h1 class="section-title">Perfil</h1>
                 <p class="page-perfil__intro">
-                    Atualize e-mail, celular, foto e senha quando precisar.
+                    {{
+                        ehCliente
+                            ? "Atualize e-mail, celular, endereço, certificado digital, foto e senha quando precisar."
+                            : "Atualize e-mail, celular, endereço, foto e senha quando precisar."
+                    }}
                 </p>
             </div>
 
@@ -673,6 +692,14 @@ const podeSalvarEndereco = computed(() => {
                             </form>
                         </div>
                     </div>
+
+                    <CertificadoDigitalPessoaCard
+                        v-if="ehCliente && pessoaId != null"
+                        :pessoa-id="pessoaId"
+                        :tem-certificado="perfil.temCertificado"
+                        :certificado-enviado-em="perfil.certificadoEnviadoEm"
+                        @enviado="aoCertificadoEnviado"
+                    />
 
                     <div
                         v-if="!podeEditarUsuario"

@@ -16,10 +16,12 @@ import { useAuthStore } from "@/presentation/store/useAuthStore";
 import { TipoUsuario } from "@/domain/types/TipoUsuario";
 import { useLogoutUsuario } from "@/presentation/composables/Pessoa/useLogoutUsuario";
 import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
+import { useVinculosPendentesStore } from "@/presentation/store/useVinculosPendentesStore";
 
 const layoutMinimo = useLayoutMinimo();
 const matriz = useMatrizStore();
 const auth = useAuthStore();
+const vinculosPendentes = useVinculosPendentesStore();
 const router = useRouter();
 const route = useRoute();
 const { sair: chamarLogoutApi } = useLogoutUsuario();
@@ -29,7 +31,7 @@ const saindo = ref(false);
 const adminSubmenuAberto = ref<"" | "gestao" | "blog" | "clientes" | "conta">(
     ""
 );
-/** Submenu do portal do cliente (Perfil / Chaves), mesmo padrao do admin Conta. */
+/** Submenu do portal do cliente (Perfil / Chaves / Empresas), mesmo padrao do admin Conta. */
 const clienteSubmenuAberto = ref<"" | "conta">("");
 const apisMenuAberto = ref(false);
 /** Submenu visitante: Login e Cadastro em um único item. */
@@ -82,10 +84,11 @@ const ROTAS_ADMIN_CLIENTES = new Set<string>([
     "AdministradorClienteFisicaEditar",
     "AdministradorEmpresas",
     "AdministradorEmpresaEditar",
+    "AdministradorVinculacoes",
     "AdministradorUsuarios"
 ]);
 const ROTAS_ADMIN_CONTA = new Set<string>(["AdministradorPerfil", "AdministradorChaves"]);
-const ROTAS_CLIENTE_CONTA = new Set<string>(["ClientePerfil", "ClienteChaves"]);
+const ROTAS_CLIENTE_CONTA = new Set<string>(["ClientePerfil", "ClienteChaves", "ClienteEmpresas"]);
 
 function nomeRotaAtual(): string | null {
     const n = route.name;
@@ -319,6 +322,13 @@ async function sair() {
                                 >
                                     Chaves
                                 </RouterLink>
+                                <RouterLink
+                                    :to="{ name: 'ClienteEmpresas' }"
+                                    class="navsafe__submenu-link"
+                                    @click="closeMenu"
+                                >
+                                    Empresas
+                                </RouterLink>
                             </div>
                         </li>
                         <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
@@ -377,11 +387,30 @@ async function sair() {
                                 @click="toggleAdminSubmenu('clientes')"
                             >
                                 Clientes
+                                <span
+                                    v-if="vinculosPendentes.temPendentes"
+                                    class="navsafe__badge-count"
+                                >
+                                    {{ vinculosPendentes.totalPendentes }}
+                                </span>
                                 <RiArrowDownSLine class="navsafe__submenu-icon" />
                             </button>
                             <div class="navsafe__submenu">
                                 <RouterLink to="/admin/clientes/pessoa-fisica" class="navsafe__submenu-link" @click="closeMenu">Pessoa física</RouterLink>
                                 <RouterLink to="/admin/empresas" class="navsafe__submenu-link" @click="closeMenu">Pessoa jurídica</RouterLink>
+                                <RouterLink
+                                    :to="{ name: 'AdministradorVinculacoes' }"
+                                    class="navsafe__submenu-link navsafe__submenu-link--destaque"
+                                    @click="closeMenu"
+                                >
+                                    Vinculações
+                                    <span
+                                        v-if="vinculosPendentes.temPendentes"
+                                        class="navsafe__badge-count navsafe__badge-count--inline"
+                                    >
+                                        {{ vinculosPendentes.totalPendentes }}
+                                    </span>
+                                </RouterLink>
                                 <RouterLink :to="{ name: 'AdministradorUsuarios' }" class="navsafe__submenu-link" @click="closeMenu">Administradores</RouterLink>
                             </div>
                         </li>
@@ -690,6 +719,41 @@ async function sair() {
 .navsafe-modal__btn--danger {
     background: linear-gradient(90deg, #f26b6b 0%, #d33f49 100%);
     color: #fff;
+}
+
+.navsafe__badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.35rem;
+    margin-left: 0.35rem;
+    border-radius: 999px;
+    background: #ff9800;
+    color: #1a1200;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    animation: navsafe-badge-pulse 1.6s ease-in-out infinite;
+}
+
+.navsafe__badge-count--inline {
+    margin-left: 0.5rem;
+}
+
+.navsafe__submenu-link--destaque {
+    font-weight: 700;
+}
+
+@keyframes navsafe-badge-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.45);
+    }
+    50% {
+        box-shadow: 0 0 0 5px rgba(255, 152, 0, 0);
+    }
 }
 
 @media (min-width: 1200px) {

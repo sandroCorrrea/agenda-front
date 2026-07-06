@@ -3,6 +3,7 @@ import type { PessoaContatoUpdateDTO } from "@/application/dto/Pessoa/PessoaCont
 import type { PessoaAdministradorDTO } from "@/application/dto/Pessoa/PessoaAdministradorDTO";
 import type { PessoaListagemResponseDTO } from "@/application/dto/Pessoa/PessoaListagemResponseDTO";
 import type { PessoaPerfilDTO } from "@/application/dto/Pessoa/PessoaPerfilDTO";
+import type { CertificadoDigitalPostResponseDTO } from "@/application/dto/EmpresaVinculo/CertificadoDigitalPostResponseDTO";
 import type { Pessoa } from "../entities/Pessoa";
 
 export interface IPessoaRepository {
@@ -21,4 +22,9 @@ export interface IPessoaRepository {
         usuarioId: number,
         status: "ativo" | "inativo" | "bloqueado"
     ): Promise<void>;
+    enviarCertificadoDigital(
+        pessoaId: number,
+        certificado: File,
+        senhaCertificado: string
+    ): Promise<CertificadoDigitalPostResponseDTO>;
 }

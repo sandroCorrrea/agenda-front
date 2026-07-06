@@ -9,6 +9,8 @@ export class PessoaPerfilDTO {
         public dataNascimento: Date,
         public email: string,
         public celular: string,
-        public usuario: UsuarioPerfilDTO | null
+        public usuario: UsuarioPerfilDTO | null,
+        public temCertificado: boolean = false,
+        public certificadoEnviadoEm: string | null = null
     ) {}
 }

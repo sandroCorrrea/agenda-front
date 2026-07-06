@@ -64,6 +64,9 @@ const apelidoMatriz = computed(() => matrizStore.matriz?.apelido || nomeEmpresa.
             <RouterLink :to="{ name: 'AdministradorEmpresas' }" class="adm-foot__link">
               Clientes (PJ)
             </RouterLink>
+            <RouterLink :to="{ name: 'AdministradorVinculacoes' }" class="adm-foot__link">
+              Vinculações
+            </RouterLink>
             <RouterLink :to="{ name: 'AdministradorUsuarios' }" class="adm-foot__link">
               Administradores
             </RouterLink>

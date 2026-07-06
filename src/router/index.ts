@@ -180,6 +180,13 @@ const router = createRouter({
           name: 'ClienteChaves',
           component: () =>
             import('@/presentation/pages/Pessoa/PageClienteChaves.vue')
+        },
+        {
+          path: 'empresas',
+          name: 'ClienteEmpresas',
+          component: () =>
+            import('@/presentation/pages/Pessoa/PageClienteEmpresas.vue'),
+          meta: { tituloCliente: 'Empresas' }
         }
       ]
     },
@@ -385,6 +392,17 @@ const router = createRouter({
         requerAutenticacao: true,
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
         tituloCliente: 'Editar empresa'
+      }
+    },
+    {
+      path: '/admin/vinculacoes',
+      name: 'AdministradorVinculacoes',
+      component: () =>
+        import('@/presentation/pages/Pessoa/PageAreaVinculacoesAdmin.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Vinculações'
       }
     }
   ],

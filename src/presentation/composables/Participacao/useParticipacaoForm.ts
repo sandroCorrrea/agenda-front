@@ -22,7 +22,7 @@ export type ParticipacaoFormState = {
     problema: string;
     solucao: string;
     beneficios: string;
-    publico_beneficiado: string;
+    publico_beneficiado: string[];
     prioridade: string;
     abrangencia: string;
     deseja_info_audiencia: boolean;
@@ -47,7 +47,7 @@ function formInicial(): ParticipacaoFormState {
         problema: "",
         solucao: "",
         beneficios: "",
-        publico_beneficiado: "",
+        publico_beneficiado: [],
         prioridade: "",
         abrangencia: "",
         deseja_info_audiencia: false,
@@ -62,7 +62,10 @@ function extrairErrosCampo(errors: Record<string, string[]> | undefined): Record
     const out: Record<string, string> = {};
     if (!errors) return out;
     for (const [campo, msgs] of Object.entries(errors)) {
-        if (msgs?.[0]) out[campo] = msgs[0];
+        if (!msgs?.[0]) continue;
+        // Laravel pode retornar "publico_beneficiado.0" para arrays
+        const chave = campo.includes(".") ? campo.split(".")[0]! : campo;
+        if (!out[chave]) out[chave] = msgs[0];
     }
     return out;
 }
@@ -151,8 +154,8 @@ export function useParticipacaoForm() {
         );
         exigir(
             "publico_beneficiado",
-            Boolean(form.publico_beneficiado),
-            "Selecione o público beneficiado."
+            form.publico_beneficiado.length > 0,
+            "Selecione ao menos um público beneficiado."
         );
         exigir("prioridade", Boolean(form.prioridade), "Selecione o grau de prioridade.");
         exigir("abrangencia", Boolean(form.abrangencia), "Selecione a abrangência.");
@@ -196,7 +199,7 @@ export function useParticipacaoForm() {
                 form.problema.trim(),
                 form.solucao.trim(),
                 form.beneficios.trim(),
-                form.publico_beneficiado,
+                [...form.publico_beneficiado],
                 form.prioridade,
                 form.abrangencia,
                 true,

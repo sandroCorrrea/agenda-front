@@ -50,6 +50,20 @@ export function labelDeOpcao(
     return opcoes?.find((o) => o.value === value)?.label ?? value;
 }
 
+/** Labels para um ou mais values (público beneficiado múltiplo). */
+export function labelsDeOpcoes(
+    opcoes: ParticipacaoValueLabelDTO[] | undefined,
+    values: string | string[] | null | undefined
+): string {
+    const lista = Array.isArray(values)
+        ? values
+        : values
+          ? [values]
+          : [];
+    if (lista.length === 0) return "—";
+    return lista.map((v) => labelDeOpcao(opcoes, v)).join(", ");
+}
+
 export function labelFuncao(
     opcoes: ParticipacaoOpcoesResponseDTO | null,
     id: number | null | undefined

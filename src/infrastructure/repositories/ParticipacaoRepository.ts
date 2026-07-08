@@ -134,7 +134,7 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             localidadeDescricao: this.nullableString(raw.localidadeDescricao),
             prioridade: String(raw.prioridade ?? ""),
             tipoDemanda: String(raw.tipoDemanda ?? ""),
-            publicoBeneficiado: String(raw.publicoBeneficiado ?? ""),
+            publicoBeneficiado: this.mapPublicoBeneficiado(raw.publicoBeneficiado),
             problemaResumo: problema ? this.resumirTexto(problema) : null,
             solucaoResumo: solucao ? this.resumirTexto(solucao) : null,
             funcao: funcaoRaw ? this.mapFuncao(funcaoRaw) : null,
@@ -167,7 +167,7 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             problema: String(raw.problema ?? ""),
             solucao: String(raw.solucao ?? ""),
             beneficios: String(raw.beneficios ?? ""),
-            publicoBeneficiado: String(raw.publicoBeneficiado ?? ""),
+            publicoBeneficiado: this.mapPublicoBeneficiado(raw.publicoBeneficiado),
             prioridade: String(raw.prioridade ?? ""),
             abrangencia: String(raw.abrangencia ?? ""),
             desejaInfoAudiencia: Boolean(raw.desejaInfoAudiencia),
@@ -211,6 +211,25 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             usuarioAnaliseId:
                 raw.usuarioAnaliseId == null ? null : Number(raw.usuarioAnaliseId)
         };
+    }
+
+    private mapPublicoBeneficiado(value: unknown): string[] {
+        if (Array.isArray(value)) {
+            return value
+                .map((item) => String(item ?? "").trim())
+                .filter((item) => item.length > 0);
+        }
+        if (typeof value === "string" && value.trim()) {
+            // Compat: string única antiga ou CSV legado
+            if (value.includes(",")) {
+                return value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+            }
+            return [value.trim()];
+        }
+        return [];
     }
 
     private nullableString(value: unknown): string | null {

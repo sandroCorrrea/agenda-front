@@ -12,7 +12,7 @@ export interface ParticipacaoConsultaPublicaItemDTO {
     localidadeDescricao: string | null;
     prioridade: string;
     tipoDemanda: string;
-    publicoBeneficiado: string;
+    publicoBeneficiado: string[];
     problemaResumo: string | null;
     solucaoResumo: string | null;
     funcao: {

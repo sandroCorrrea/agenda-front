@@ -13,7 +13,8 @@ export interface ParticipacaoPostResponseDTO {
     problema: string;
     solucao: string;
     beneficios: string;
-    publicoBeneficiado: string;
+    /** Sempre array; backend antigo pode ainda devolver string (normalizado no repository). */
+    publicoBeneficiado: string[];
     prioridade: string;
     abrangencia: string;
     desejaInfoAudiencia: boolean;

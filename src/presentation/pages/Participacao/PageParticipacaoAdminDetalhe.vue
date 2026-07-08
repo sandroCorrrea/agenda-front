@@ -10,8 +10,9 @@ import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import ParticipacaoStatusBadge from "@/presentation/components/Participacao/ParticipacaoStatusBadge.vue";
 import { useParticipacaoAdmin } from "@/presentation/composables/Participacao/useParticipacaoAdmin";
 import {
-    CATEGORIA_ECONOMICA_OPCOES,
     labelDeOpcao,
+    labelsDeOpcoes,
+    CATEGORIA_ECONOMICA_OPCOES,
     NATUREZA_DESPESA_OPCOES,
     STATUS_ANALISE_OPCOES
 } from "@/shared/utils/participacaoLabels";
@@ -162,7 +163,7 @@ onMounted(async () => {
                                 <p class="part-k">Público</p>
                                 <p class="part-v">
                                     {{
-                                        labelDeOpcao(
+                                        labelsDeOpcoes(
                                             opcoes?.publicoBeneficiado,
                                             detalhe.publicoBeneficiado
                                         )

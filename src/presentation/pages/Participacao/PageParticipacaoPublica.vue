@@ -139,8 +139,8 @@ function validarPassoAtual(): boolean {
     if (passo.value === 2) {
         setErr(
             "publico_beneficiado",
-            Boolean(form.publico_beneficiado),
-            "Selecione o público beneficiado."
+            form.publico_beneficiado.length > 0,
+            "Selecione ao menos um público beneficiado."
         );
         setErr("prioridade", Boolean(form.prioridade), "Selecione o grau de prioridade.");
         setErr("abrangencia", Boolean(form.abrangencia), "Selecione a abrangência.");
@@ -655,9 +655,12 @@ watch(
                                     <span class="part-pub__label-like">
                                         Público beneficiado <span aria-hidden="true">*</span>
                                     </span>
+                                    <p class="part-pub__hint part-pub__hint--inline">
+                                        Você pode marcar mais de uma opção.
+                                    </p>
                                     <div
                                         class="part-pub__chips"
-                                        role="radiogroup"
+                                        role="group"
                                         aria-label="Público beneficiado"
                                     >
                                         <label
@@ -666,12 +669,12 @@ watch(
                                             class="part-pub__chip"
                                             :class="{
                                                 'part-pub__chip--on':
-                                                    form.publico_beneficiado === o.value
+                                                    form.publico_beneficiado.includes(o.value)
                                             }"
                                         >
                                             <input
                                                 v-model="form.publico_beneficiado"
-                                                type="radio"
+                                                type="checkbox"
                                                 :value="o.value"
                                                 name="publico"
                                             />
@@ -1257,6 +1260,11 @@ watch(
     color: var(--part-mute);
     font-size: 0.88rem;
     line-height: 1.45;
+}
+
+.part-pub__hint--inline {
+    margin: 0 0 0.65rem;
+    font-size: 0.8rem;
 }
 
 .part-pub__grid-fields {

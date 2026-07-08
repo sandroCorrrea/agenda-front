@@ -8,7 +8,8 @@ export class ParticipacaoPostRequestDTO {
         public problema: string,
         public solucao: string,
         public beneficios: string,
-        public publico_beneficiado: string,
+        /** Um ou mais values do enum (ex.: ["criancas", "idosos"]). */
+        public publico_beneficiado: string[],
         public prioridade: string,
         public abrangencia: string,
         public autoriza_lgpd: boolean,

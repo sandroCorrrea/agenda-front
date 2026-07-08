@@ -70,7 +70,7 @@ function extrairErrosCampo(errors: Record<string, string[]> | undefined): Record
     return out;
 }
 
-export function useParticipacaoForm() {
+export function useParticipacaoForm(getMunicipioToken: () => string) {
     const repo = inject<IParticipacaoRepository | null>("IParticipacaoRepository", null);
     if (!repo) throw new Error("IParticipacaoRepository not found");
 
@@ -190,7 +190,14 @@ export function useParticipacaoForm() {
         enviando.value = true;
         limparErros();
         try {
+            const token = getMunicipioToken().trim();
+            if (!token) {
+                erroGeral.value = "Link do município inválido. Utilize o endereço fornecido pela prefeitura.";
+                return null;
+            }
+
             const dto = new ParticipacaoPostRequestDTO(
+                token,
                 form.bairro_comunidade.trim(),
                 form.faixa_etaria,
                 form.localidade_atendida,

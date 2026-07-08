@@ -22,6 +22,8 @@ export interface ErroResponseDTO {
         'usuario.senha_confirmation'?: string[];
         'usuario.tipo_usuario'?: string[];
         'usuario.perfil_administrador'?: string[];
+        municipio_token?: string[];
+        ibge?: string[];
         senha_atual?: string[];
         nova_senha?: string[];
         nova_senha_confirmation?: string[];

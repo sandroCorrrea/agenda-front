@@ -5,6 +5,7 @@ export interface ParticipacaoPostResponseDTO {
     id: number;
     instrumento: string;
     exercicio: number;
+    ibge: string | null;
     bairroComunidade: string;
     faixaEtaria: string;
     localidadeAtendida: string;

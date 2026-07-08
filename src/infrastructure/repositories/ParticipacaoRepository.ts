@@ -7,6 +7,8 @@ import type { ParticipacaoFuncaoDTO } from "@/application/dto/Participacao/Parti
 import type { ParticipacaoListagemQueryDTO } from "@/application/dto/Participacao/ParticipacaoListagemQueryDTO";
 import { ParticipacaoListagemResponseDTO } from "@/application/dto/Participacao/ParticipacaoListagemResponseDTO";
 import type { ParticipacaoOpcoesResponseDTO } from "@/application/dto/Participacao/ParticipacaoOpcoesResponseDTO";
+import type { ParticipacaoFormularioLinkDTO } from "@/application/dto/Participacao/ParticipacaoFormularioLinkDTO";
+import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
 import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
@@ -22,6 +24,35 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             { skipAuth: true }
         );
         return this.mapOpcoes(resp.data);
+    }
+
+    async obterMunicipio(municipioToken: string): Promise<ParticipacaoMunicipioDTO> {
+        const resp = await this.api.get<Record<string, unknown>>(
+            `/participacao/municipio/${encodeURIComponent(municipioToken)}`,
+            { skipAuth: true }
+        );
+        return {
+            ibge: String(resp.data.ibge ?? ""),
+            localidade: String(resp.data.localidade ?? ""),
+            uf: String(resp.data.uf ?? "")
+        };
+    }
+
+    async obterLinkFormulario(): Promise<ParticipacaoFormularioLinkDTO> {
+        const resp = await this.api.get<Record<string, unknown>>(
+            "/participacao/link-formulario"
+        );
+        return {
+            linkFormulario: String(
+                resp.data.linkFormulario ?? resp.data.link_formulario ?? ""
+            ),
+            municipioToken: String(
+                resp.data.municipioToken ?? resp.data.municipio_token ?? ""
+            ),
+            ibge: String(resp.data.ibge ?? ""),
+            localidade: String(resp.data.localidade ?? ""),
+            uf: String(resp.data.uf ?? "")
+        };
     }
 
     async criar(dto: ParticipacaoPostRequestDTO): Promise<ParticipacaoPostResponseDTO> {
@@ -128,6 +159,7 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             id: Number(raw.id),
             instrumento: String(raw.instrumento ?? ""),
             exercicio: Number(raw.exercicio ?? 0),
+            ibge: this.nullableString(raw.ibge),
             status: String(raw.status ?? "pendente"),
             bairroComunidade: String(raw.bairroComunidade ?? ""),
             localidadeAtendida: String(raw.localidadeAtendida ?? ""),
@@ -159,6 +191,7 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             id: Number(raw.id),
             instrumento: String(raw.instrumento ?? ""),
             exercicio: Number(raw.exercicio ?? 0),
+            ibge: this.nullableString(raw.ibge),
             bairroComunidade: String(raw.bairroComunidade ?? ""),
             faixaEtaria: String(raw.faixaEtaria ?? ""),
             localidadeAtendida: String(raw.localidadeAtendida ?? ""),

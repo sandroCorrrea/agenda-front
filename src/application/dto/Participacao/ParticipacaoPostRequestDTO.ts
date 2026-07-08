@@ -1,5 +1,6 @@
 export class ParticipacaoPostRequestDTO {
     constructor(
+        public municipio_token: string,
         public bairro_comunidade: string,
         public faixa_etaria: string,
         public localidade_atendida: string,

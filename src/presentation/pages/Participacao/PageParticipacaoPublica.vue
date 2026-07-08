@@ -9,16 +9,34 @@ import {
     RiGovernmentLine,
     RiInformationLine,
     RiLoader4Line,
+    RiMapPin2Line,
     RiShieldCheckLine,
     RiSpeakLine
 } from "@remixicon/vue";
+import { ObterMunicipioParticipacaoUseCase } from "@/application/use-cases/Participacao/ObterMunicipioParticipacaoUseCase";
+import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
+import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
 import { useParticipacaoForm } from "@/presentation/composables/Participacao/useParticipacaoForm";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { phoneMask } from "@/shared/utils/masks";
 import { exercicioPadraoParticipacao } from "@/shared/utils/participacaoLabels";
 import logo from "@/presentation/assets/img/logo.jpeg";
+import axios from "axios";
+import { inject } from "vue";
+
+const props = defineProps<{
+    municipioToken: string;
+}>();
 
 const matriz = useMatrizStore();
+const repo = inject<IParticipacaoRepository | null>("IParticipacaoRepository", null);
+if (!repo) throw new Error("IParticipacaoRepository not found");
+
+const obterMunicipioCaso = new ObterMunicipioParticipacaoUseCase(repo);
+const municipio = ref<ParticipacaoMunicipioDTO | null>(null);
+const erroMunicipio = ref<string | null>(null);
+const carregandoMunicipio = ref(true);
+
 const {
     form,
     opcoes,
@@ -30,7 +48,7 @@ const {
     carregarOpcoes,
     enviar,
     resetarFormulario
-} = useParticipacaoForm();
+} = useParticipacaoForm(() => props.municipioToken);
 
 const passo = ref(0);
 const introAberta = ref(true);
@@ -48,6 +66,15 @@ const exercicio = computed(() => form.exercicio || exercicioPadraoParticipacao()
 
 const nomeMarca = computed(
     () => matriz.matriz?.apelido?.trim() || "Agenda Contabilidade"
+);
+
+const tituloMunicipio = computed(() => {
+    if (!municipio.value) return null;
+    return `${municipio.value.localidade}/${municipio.value.uf}`;
+});
+
+const formularioDisponivel = computed(
+    () => Boolean(municipio.value) && !erroMunicipio.value && !carregandoMunicipio.value
 );
 
 const progressoPct = computed(() => ((passo.value + 1) / totalPassos) * 100);
@@ -218,10 +245,22 @@ function novaProposta() {
 }
 
 onMounted(async () => {
+    carregandoMunicipio.value = true;
+    erroMunicipio.value = null;
     try {
+        municipio.value = await obterMunicipioCaso.execute(props.municipioToken);
         await carregarOpcoes();
-    } catch {
-        /* erro já em erroGeral */
+    } catch (e: unknown) {
+        municipio.value = null;
+        if (axios.isAxiosError(e)) {
+            const data = e.response?.data as { message?: string } | undefined;
+            erroMunicipio.value =
+                data?.message ?? "Link do formulário inválido ou expirado.";
+        } else {
+            erroMunicipio.value = "Link do formulário inválido ou expirado.";
+        }
+    } finally {
+        carregandoMunicipio.value = false;
     }
 });
 
@@ -249,15 +288,51 @@ watch(
                 <div>
                     <p class="part-pub__brand-name">{{ nomeMarca }}</p>
                     <p class="part-pub__brand-tag">
-                        <RiShieldCheckLine /> Participação popular · LOA {{ exercicio }}
+                        <RiShieldCheckLine />
+                        <template v-if="tituloMunicipio">
+                            Participação popular — {{ tituloMunicipio }} · LOA {{ exercicio }}
+                        </template>
+                        <template v-else>
+                            Participação popular · LOA {{ exercicio }}
+                        </template>
                     </p>
                 </div>
             </div>
         </header>
 
         <div ref="stepsRef" class="part-pub__shell">
+            <section
+                v-if="carregandoMunicipio"
+                class="part-pub__loading-municipio"
+                aria-live="polite"
+            >
+                <RiLoader4Line class="part-pub__spin" />
+                <p>Validando link do município...</p>
+            </section>
+
+            <section
+                v-else-if="erroMunicipio"
+                class="part-pub__link-erro"
+                aria-live="polite"
+            >
+                <RiMapPin2Line class="part-pub__link-erro-icon" />
+                <h1>Link indisponível</h1>
+                <p>{{ erroMunicipio }}</p>
+                <p class="part-pub__link-erro-hint">
+                    Solicite à prefeitura o endereço correto do formulário de participação
+                    popular do seu município.
+                </p>
+                <RouterLink
+                    :to="{ name: 'ParticipacaoConsulta' }"
+                    class="part-pub__btn part-pub__btn--primary"
+                >
+                    <RiFileSearchLine />
+                    Acompanhar protocolo existente
+                </RouterLink>
+            </section>
+
             <!-- Sucesso -->
-            <section v-if="resultado" class="part-pub__success" aria-live="polite">
+            <section v-else-if="resultado" class="part-pub__success" aria-live="polite">
                 <RiCheckboxCircleFill class="part-pub__success-icon" />
                 <h1 class="part-pub__success-title">Proposta registrada</h1>
                 <p class="part-pub__success-protocolo">
@@ -272,7 +347,7 @@ watch(
                 <div class="part-pub__success-actions">
                     <RouterLink
                         :to="{
-                            name: 'ParticipacaoPopularConsulta',
+                            name: 'ParticipacaoConsulta',
                             query: { protocolo: String(resultado.id) }
                         }"
                         class="part-pub__btn part-pub__btn--primary"
@@ -291,8 +366,8 @@ watch(
 
                 <p class="part-pub__success-link-hint">
                     Você também pode consultar depois em
-                    <RouterLink :to="{ name: 'ParticipacaoPopularConsulta' }">
-                        /participacao-popular/acompanhar
+                    <RouterLink :to="{ name: 'ParticipacaoConsulta' }">
+                        /participacao/consulta
                     </RouterLink>
                     com o protocolo{{ resultado.email ? " ou o e-mail informado" : "" }}.
                 </p>
@@ -306,13 +381,25 @@ watch(
                         Art. 48 da LRF · Transparência fiscal
                     </div>
                     <h1 class="part-pub__title">
-                        Formule sua proposta para a
-                        <span>LOA {{ exercicio }}</span>
+                        <template v-if="tituloMunicipio">
+                            Participação popular — {{ tituloMunicipio }}
+                        </template>
+                        <template v-else>
+                            Formule sua proposta para a
+                            <span>LOA {{ exercicio }}</span>
+                        </template>
                     </h1>
                     <p class="part-pub__lead">
-                        Este formulário complementa as audiências públicas e permite que
-                        você indique prioridades, sugira melhorias e proponha ações para o
-                        orçamento municipal.
+                        <template v-if="tituloMunicipio">
+                            Você está enviando uma proposta para o orçamento de
+                            <strong>{{ tituloMunicipio }}</strong>. Suas respostas serão
+                            vinculadas a este município.
+                        </template>
+                        <template v-else>
+                            Este formulário complementa as audiências públicas e permite que
+                            você indique prioridades, sugira melhorias e proponha ações para o
+                            orçamento municipal.
+                        </template>
                     </p>
 
                     <div class="part-pub__intro-actions">
@@ -326,7 +413,7 @@ watch(
                             {{ introAberta ? "Ocultar contexto" : "Por que este formulário?" }}
                         </button>
                         <RouterLink
-                            :to="{ name: 'ParticipacaoPopularConsulta' }"
+                            :to="{ name: 'ParticipacaoConsulta' }"
                             class="part-pub__info-toggle part-pub__info-toggle--link"
                         >
                             <RiFileSearchLine />
@@ -1527,6 +1614,51 @@ watch(
     text-align: center;
     padding: 1.5rem 0.5rem 0.75rem;
     animation: part-in 0.4s ease;
+}
+
+.part-pub__loading-municipio,
+.part-pub__link-erro {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    animation: part-in 0.35s ease;
+}
+
+.part-pub__loading-municipio p,
+.part-pub__link-erro p {
+    margin: 0.5rem 0 0;
+    color: var(--part-mute);
+}
+
+.part-pub__spin {
+    font-size: 2rem;
+    color: var(--part-accent);
+    animation: part-pub-spin 0.9s linear infinite;
+}
+
+@keyframes part-pub-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.part-pub__link-erro-icon {
+    font-size: 2.5rem;
+    color: #c45c2a;
+    margin-bottom: 0.5rem;
+}
+
+.part-pub__link-erro h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--part-ink);
+}
+
+.part-pub__link-erro-hint {
+    max-width: 36ch;
+    margin: 0.75rem auto 1.25rem !important;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .part-pub__success-icon {

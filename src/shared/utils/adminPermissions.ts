@@ -10,6 +10,7 @@ export const PERFIL_ADMINISTRADOR_LABELS: Record<PerfilAdministrador, string> = 
 export const ROTAS_ADMIN_PREFEITURA = new Set<string>([
     "AdministradorParticipacao",
     "AdministradorParticipacaoDetalhe",
+    "AdministradorParticipacaoLink",
     "AdministradorPerfil"
 ]);
 

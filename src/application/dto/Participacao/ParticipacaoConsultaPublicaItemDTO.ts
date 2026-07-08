@@ -6,6 +6,7 @@ export interface ParticipacaoConsultaPublicaItemDTO {
     id: number;
     instrumento: string;
     exercicio: number;
+    ibge: string | null;
     status: string;
     bairroComunidade: string;
     localidadeAtendida: string;

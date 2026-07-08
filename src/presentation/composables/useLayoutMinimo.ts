@@ -13,9 +13,11 @@ export function useLayoutMinimo() {
         () =>
             route.meta.layoutMinimo === true ||
             route.name === "ProtocoloAssinar" ||
+            route.name === "ParticipacaoFormulario" ||
+            route.name === "ParticipacaoConsulta" ||
             route.name === "ParticipacaoPopular" ||
-            route.name === "ParticipacaoPopularConsulta" ||
             route.path.startsWith("/protocolo/assinar/") ||
-            route.path.startsWith("/participacao-popular")
+            route.path.startsWith("/participacao-popular") ||
+            route.path.startsWith("/participacao/")
     );
 }

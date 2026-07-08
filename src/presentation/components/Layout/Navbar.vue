@@ -7,6 +7,7 @@ import {
     RiDashboardLine,
     RiLockLine,
     RiLogoutBoxRLine,
+    RiLinkM,
     RiMenuLine,
     RiSpeakLine,
     RiUserLine
@@ -345,6 +346,15 @@ async function sair() {
                     </template>
 
                     <template v-else-if="isAdminPrefeitura">
+                        <li>
+                            <RouterLink
+                                :to="{ name: 'AdministradorParticipacaoLink' }"
+                                class="navsafe__link"
+                                @click="closeMenu"
+                            >
+                                <RiLinkM /> Link do formulário
+                            </RouterLink>
+                        </li>
                         <li>
                             <RouterLink
                                 :to="{ name: 'AdministradorParticipacao' }"

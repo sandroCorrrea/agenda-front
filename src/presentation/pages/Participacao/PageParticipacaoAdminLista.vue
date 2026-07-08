@@ -5,16 +5,23 @@ import {
     RiArrowLeftSLine,
     RiArrowRightSLine,
     RiEyeLine,
+    RiLinkM,
     RiSearchLine,
     RiSpeakLine
 } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
+import ParticipacaoFormularioLinkCard from "@/presentation/components/Participacao/ParticipacaoFormularioLinkCard.vue";
 import ParticipacaoStatusBadge from "@/presentation/components/Participacao/ParticipacaoStatusBadge.vue";
 import { useParticipacaoAdmin } from "@/presentation/composables/Participacao/useParticipacaoAdmin";
+import { useAuthStore } from "@/presentation/store/useAuthStore";
 import {
     labelDeOpcao,
     STATUS_PARTICIPACAO_LABELS
 } from "@/shared/utils/participacaoLabels";
+
+const auth = useAuthStore();
+const ehPrefeitura = computed(() => auth.ehPrefeitura);
+const ehContabilidade = computed(() => auth.ehContabilidade);
 
 const {
     opcoes,
@@ -38,7 +45,8 @@ const temFiltrosAtivos = computed(() =>
             filtros.status ||
             filtros.prioridade ||
             filtros.localidade_atendida ||
-            filtros.participacao_funcao_id
+            filtros.participacao_funcao_id ||
+            filtros.ibge.trim()
     )
 );
 
@@ -74,10 +82,27 @@ onMounted(async () => {
         <div class="container">
             <AdminPageHero
                 title="Participação popular"
-                subtitle="Contribuições cidadãs recebidas pelo formulário público de elaboração orçamentária (LOA/LDO/PPA). Análise técnica disponível no detalhe de cada protocolo."
+                :subtitle="
+                    ehPrefeitura
+                        ? 'Contribuições do seu município recebidas pelo link exclusivo do formulário público.'
+                        : 'Contribuições cidadãs recebidas pelo formulário público de elaboração orçamentária (LOA/LDO/PPA). Análise técnica disponível no detalhe de cada protocolo.'
+                "
             >
                 <template #icon><RiSpeakLine /></template>
+                <template v-if="ehPrefeitura" #actions>
+                    <RouterLink
+                        :to="{ name: 'AdministradorParticipacaoLink' }"
+                        class="btn"
+                    >
+                        <RiLinkM class="me-1" />
+                        Link do formulário
+                    </RouterLink>
+                </template>
             </AdminPageHero>
+
+            <div v-if="ehPrefeitura" class="mb-4">
+                <ParticipacaoFormularioLinkCard compacto />
+            </div>
 
             <div v-if="erro" class="admin-alert admin-alert--erro mb-3">{{ erro }}</div>
 
@@ -181,6 +206,20 @@ onMounted(async () => {
                             <small class="part-filter-hint">Função pública (Portaria MOG 42/1999)</small>
                         </div>
 
+                        <div v-if="ehContabilidade" class="col-6 col-lg-3">
+                            <label class="form-label" for="f-ibge">IBGE (município)</label>
+                            <input
+                                id="f-ibge"
+                                v-model="filtros.ibge"
+                                type="text"
+                                maxlength="7"
+                                inputmode="numeric"
+                                class="form-control"
+                                placeholder="3550308"
+                            />
+                            <small class="part-filter-hint">7 dígitos — filtro opcional</small>
+                        </div>
+
                         <div class="col-12 col-lg-4">
                             <label class="form-label part-filter-actions-label" aria-hidden="true">&nbsp;</label>
                             <div class="part-filters__acoes">
@@ -224,6 +263,7 @@ onMounted(async () => {
                             <thead>
                                 <tr>
                                     <th>Protocolo</th>
+                                    <th v-if="ehContabilidade">IBGE</th>
                                     <th>Localidade</th>
                                     <th>Área</th>
                                     <th>Prioridade</th>
@@ -238,6 +278,10 @@ onMounted(async () => {
                                         <div class="text-muted small">
                                             {{ item.instrumento }} {{ item.exercicio }}
                                         </div>
+                                    </td>
+                                    <td v-if="ehContabilidade">
+                                        <code v-if="item.ibge" class="part-ibge">{{ item.ibge }}</code>
+                                        <span v-else class="text-muted">—</span>
                                     </td>
                                     <td>
                                         {{ item.bairroComunidade }}
@@ -407,6 +451,14 @@ onMounted(async () => {
     letter-spacing: 0.03em;
     color: #5a6b7d;
     white-space: nowrap;
+}
+
+.part-ibge {
+    font-size: 0.78rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 6px;
+    background: #eef4fb;
+    color: #2b4068;
 }
 
 .part-actions-head,

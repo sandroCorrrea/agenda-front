@@ -74,10 +74,25 @@ const router = createRouter({
       }
     },
     {
+      path: '/participacao/consulta',
+      name: 'ParticipacaoConsulta',
+      component: () =>
+        import('@/presentation/pages/Participacao/PageParticipacaoConsulta.vue'),
+      meta: {
+        publico: true,
+        layoutMinimo: true,
+        tituloPagina: 'Acompanhar participação popular'
+      }
+    },
+    {
+      path: '/participacao-popular/acompanhar',
+      redirect: { name: 'ParticipacaoConsulta' }
+    },
+    {
       path: '/participacao-popular',
       name: 'ParticipacaoPopular',
       component: () =>
-        import('@/presentation/pages/Participacao/PageParticipacaoPublica.vue'),
+        import('@/presentation/pages/Participacao/PageParticipacaoSemMunicipio.vue'),
       meta: {
         publico: true,
         layoutMinimo: true,
@@ -85,14 +100,15 @@ const router = createRouter({
       }
     },
     {
-      path: '/participacao-popular/acompanhar',
-      name: 'ParticipacaoPopularConsulta',
+      path: '/participacao/:municipioToken',
+      name: 'ParticipacaoFormulario',
       component: () =>
-        import('@/presentation/pages/Participacao/PageParticipacaoConsulta.vue'),
+        import('@/presentation/pages/Participacao/PageParticipacaoPublica.vue'),
+      props: true,
       meta: {
         publico: true,
         layoutMinimo: true,
-        tituloPagina: 'Acompanhar participação popular'
+        tituloPagina: 'Participação popular'
       }
     },
     {
@@ -445,6 +461,18 @@ const router = createRouter({
       }
     },
     {
+      path: '/admin/participacao-popular/link',
+      name: 'AdministradorParticipacaoLink',
+      component: () =>
+        import('@/presentation/pages/Participacao/PageParticipacaoAdminLink.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        requerPrefeitura: true,
+        tituloCliente: 'Link do formulário'
+      }
+    },
+    {
       path: '/admin/participacao-popular/:id',
       name: 'AdministradorParticipacaoDetalhe',
       component: () =>
@@ -490,6 +518,16 @@ router.beforeEach((to, _from, next) => {
     } else {
       next({ name: 'AreaCliente' })
     }
+    return
+  }
+
+  if (
+    auth.estaAutenticado &&
+    auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR &&
+    to.meta.requerPrefeitura === true &&
+    !isPrefeitura(auth.usuario)
+  ) {
+    next({ name: 'AdministradorParticipacao' })
     return
   }
 

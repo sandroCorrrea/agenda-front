@@ -7,4 +7,5 @@ export interface ParticipacaoListagemQueryDTO {
     prioridade?: string;
     localidade_atendida?: string;
     participacao_funcao_id?: number;
+    ibge?: string;
 }

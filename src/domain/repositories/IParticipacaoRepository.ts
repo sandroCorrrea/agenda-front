@@ -5,10 +5,14 @@ import type { ParticipacaoListagemQueryDTO } from "@/application/dto/Participaca
 import type { ParticipacaoListagemResponseDTO } from "@/application/dto/Participacao/ParticipacaoListagemResponseDTO";
 import type { ParticipacaoOpcoesResponseDTO } from "@/application/dto/Participacao/ParticipacaoOpcoesResponseDTO";
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
+import type { ParticipacaoFormularioLinkDTO } from "@/application/dto/Participacao/ParticipacaoFormularioLinkDTO";
+import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
 
 export interface IParticipacaoRepository {
     getOpcoes(): Promise<ParticipacaoOpcoesResponseDTO>;
+    obterMunicipio(municipioToken: string): Promise<ParticipacaoMunicipioDTO>;
+    obterLinkFormulario(): Promise<ParticipacaoFormularioLinkDTO>;
     criar(dto: ParticipacaoPostRequestDTO): Promise<ParticipacaoPostResponseDTO>;
     consultarPublico(
         query: ParticipacaoConsultaPublicaQueryDTO

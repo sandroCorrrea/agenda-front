@@ -149,11 +149,8 @@ watch(modo, () => {
                     </p>
                 </div>
             </div>
-            <RouterLink
-                :to="{ name: 'ParticipacaoPopular' }"
-                class="part-track__back"
-            >
-                <RiArrowLeftLine /> Nova proposta
+            <RouterLink to="/" class="part-track__back">
+                <RiArrowLeftLine /> Página inicial
             </RouterLink>
         </header>
 

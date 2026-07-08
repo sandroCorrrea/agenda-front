@@ -20,6 +20,7 @@ export type ParticipacaoFiltrosState = {
     prioridade: string;
     localidade_atendida: string;
     participacao_funcao_id: string;
+    ibge: string;
 };
 
 export type ParticipacaoAnaliseFormState = {
@@ -43,7 +44,8 @@ function filtrosIniciais(): ParticipacaoFiltrosState {
         status: "",
         prioridade: "",
         localidade_atendida: "",
-        participacao_funcao_id: ""
+        participacao_funcao_id: "",
+        ibge: ""
     };
 }
 
@@ -139,6 +141,9 @@ export function useParticipacaoAdmin() {
         }
         if (filtros.participacao_funcao_id) {
             q.participacao_funcao_id = Number(filtros.participacao_funcao_id);
+        }
+        if (filtros.ibge.trim()) {
+            q.ibge = filtros.ibge.trim();
         }
         return q;
     }

@@ -86,6 +86,9 @@ onMounted(async () => {
                                 <h2 class="admin-subtitle mb-1">Proposta do cidadão</h2>
                                 <p class="text-muted mb-0 small">
                                     {{ detalhe.instrumento }} {{ detalhe.exercicio }}
+                                    <template v-if="detalhe.ibge">
+                                        · IBGE {{ detalhe.ibge }}
+                                    </template>
                                     ·
                                     {{
                                         labelDeOpcao(
@@ -99,6 +102,10 @@ onMounted(async () => {
                         </div>
 
                         <div class="row g-3 part-detail-grid">
+                            <div v-if="detalhe.ibge" class="col-md-4">
+                                <p class="part-k">Código IBGE</p>
+                                <p class="part-v"><code>{{ detalhe.ibge }}</code></p>
+                            </div>
                             <div class="col-md-6">
                                 <p class="part-k">Participante</p>
                                 <p class="part-v">{{ detalhe.nome || "Não informado" }}</p>

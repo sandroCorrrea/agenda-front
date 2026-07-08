@@ -68,6 +68,28 @@ const router = createRouter({
       }
     },
     {
+      path: '/participacao-popular',
+      name: 'ParticipacaoPopular',
+      component: () =>
+        import('@/presentation/pages/Participacao/PageParticipacaoPublica.vue'),
+      meta: {
+        publico: true,
+        layoutMinimo: true,
+        tituloPagina: 'Participação popular'
+      }
+    },
+    {
+      path: '/participacao-popular/acompanhar',
+      name: 'ParticipacaoPopularConsulta',
+      component: () =>
+        import('@/presentation/pages/Participacao/PageParticipacaoConsulta.vue'),
+      meta: {
+        publico: true,
+        layoutMinimo: true,
+        tituloPagina: 'Acompanhar participação popular'
+      }
+    },
+    {
       path: '/aviso',
       name: 'Aviso',
       component: () => import('@/presentation/pages/Aviso/PageHomeAviso.vue')
@@ -403,6 +425,28 @@ const router = createRouter({
         requerAutenticacao: true,
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
         tituloCliente: 'Vinculações'
+      }
+    },
+    {
+      path: '/admin/participacao-popular',
+      name: 'AdministradorParticipacao',
+      component: () =>
+        import('@/presentation/pages/Participacao/PageParticipacaoAdminLista.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Participação popular'
+      }
+    },
+    {
+      path: '/admin/participacao-popular/:id',
+      name: 'AdministradorParticipacaoDetalhe',
+      component: () =>
+        import('@/presentation/pages/Participacao/PageParticipacaoAdminDetalhe.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Detalhe da participação'
       }
     }
   ],

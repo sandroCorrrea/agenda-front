@@ -18,7 +18,8 @@ import {
   RiSparklingLine,
   RiUser3Line,
   RiUserSettingsLine,
-  RiLinkM
+  RiLinkM,
+  RiSpeakLine
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 
@@ -63,6 +64,12 @@ const atalhos: Atalho[] = [
     descricao: "Entregas, PDF com QR e assinatura pelo destinatário.",
     rota: "AdministradorProtocolos",
     accent: "teal"
+  },
+  {
+    nome: "Participação popular",
+    descricao: "Propostas cidadãs da LOA/LDO/PPA e análise técnica.",
+    rota: "AdministradorParticipacao",
+    accent: "cyan"
   },
   {
     nome: "Avisos",
@@ -129,6 +136,7 @@ const atalhos: Atalho[] = [
 const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorServicos: RiBriefcase4Line,
   AdministradorProtocolos: RiFileList3Line,
+  AdministradorParticipacao: RiSpeakLine,
   AdministradorAvisos: RiNotification3Line,
   AdministradorHomeCarrossel: RiImage2Line,
   BlogCategorias: RiFolderLine,

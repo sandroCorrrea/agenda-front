@@ -20,6 +20,7 @@ import { AuthRepository } from "@/infrastructure/repositories/AuthRepository";
 import { EnderecoRepository } from "@/infrastructure/repositories/EnderecoRepository";
 import { ProtocoloRepository } from "@/infrastructure/repositories/ProtocoloRepository";
 import { HomeCarrosselImagemRepository } from "@/infrastructure/repositories/HomeCarrosselImagemRepository";
+import { ParticipacaoRepository } from "@/infrastructure/repositories/ParticipacaoRepository";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 
 const app = createApp(App);
@@ -44,6 +45,7 @@ const autenticacao = new AuthRepository(api);
 const enderecoRepository = new EnderecoRepository(api);
 const protocoloRepository = new ProtocoloRepository(api);
 const homeCarrosselImagemRepository = new HomeCarrosselImagemRepository(api);
+const participacaoRepository = new ParticipacaoRepository(api);
 
 app.provide('IPessoaRepository', pessoaRespository);
 app.provide('IUsuarioRepository', usuarioRepository);
@@ -59,6 +61,7 @@ app.provide('IAuthRepository', autenticacao);
 app.provide('IEnderecoRepository', enderecoRepository);
 app.provide('IProtocoloRepository', protocoloRepository);
 app.provide('IHomeCarrosselImagemRepository', homeCarrosselImagemRepository);
+app.provide('IParticipacaoRepository', participacaoRepository);
 
 const pinia = createPinia();
 app.use(pinia);

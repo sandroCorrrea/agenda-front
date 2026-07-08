@@ -2,7 +2,8 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 /**
- * Telas standalone (ex.: assinatura de protocolo via QR no celular).
+ * Telas standalone (ex.: assinatura de protocolo via QR no celular,
+ * formulário público de participação popular).
  * Não exibem navbar nem footer do site.
  */
 export function useLayoutMinimo() {
@@ -12,6 +13,9 @@ export function useLayoutMinimo() {
         () =>
             route.meta.layoutMinimo === true ||
             route.name === "ProtocoloAssinar" ||
-            route.path.startsWith("/protocolo/assinar/")
+            route.name === "ParticipacaoPopular" ||
+            route.name === "ParticipacaoPopularConsulta" ||
+            route.path.startsWith("/protocolo/assinar/") ||
+            route.path.startsWith("/participacao-popular")
     );
 }

@@ -4,17 +4,23 @@ import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { RiShieldUserLine } from "@remixicon/vue";
 import { cpfMask, onlyNumbers, phoneMask } from "@/shared/utils/masks";
 import { useAdministradores } from "@/presentation/composables/Pessoa/useAdministradores";
+import { PerfilAdministrador } from "@/domain/types/PerfilAdministrador";
+import { labelPerfilAdministrador } from "@/shared/utils/adminPermissions";
 
 const {
     lista,
+    perfis,
     carregandoLista,
     criando,
     erro,
     sucesso,
     atualizandoStatusId,
+    atualizandoPerfilId,
+    carregarPerfis,
     carregar,
     criar,
-    atualizarStatus
+    atualizarStatus,
+    atualizarPerfil
 } = useAdministradores();
 
 const form = reactive({
@@ -24,7 +30,8 @@ const form = reactive({
     email: "",
     celular: "",
     senha: "",
-    senha_confirmation: ""
+    senha_confirmation: "",
+    perfil_administrador: PerfilAdministrador.CONTABILIDADE as PerfilAdministrador
 });
 const mostrarSenha = ref(false);
 const mostrarConfirmacaoSenha = ref(false);
@@ -35,7 +42,8 @@ const erros = reactive({
     email: "",
     celular: "",
     senha: "",
-    senha_confirmation: ""
+    senha_confirmation: "",
+    perfil_administrador: ""
 });
 
 function handleCpf(e: Event) {
@@ -75,6 +83,9 @@ function validarFormulario(): boolean {
         : form.senha_confirmation !== form.senha
             ? "As senhas devem ser iguais"
             : "";
+    erros.perfil_administrador = form.perfil_administrador
+        ? ""
+        : "Selecione o perfil do administrador";
 
     return (
         !erros.nome &&
@@ -83,7 +94,8 @@ function validarFormulario(): boolean {
         !erros.email &&
         !erros.celular &&
         !erros.senha &&
-        !erros.senha_confirmation
+        !erros.senha_confirmation &&
+        !erros.perfil_administrador
     );
 }
 
@@ -98,7 +110,8 @@ async function aoCriarAdministrador(e: Event) {
             email: form.email.trim(),
             celular: onlyNumbers(form.celular),
             senha: form.senha,
-            senha_confirmation: form.senha_confirmation
+            senha_confirmation: form.senha_confirmation,
+            perfil_administrador: form.perfil_administrador
         });
         form.nome = "";
         form.cpf = "";
@@ -107,6 +120,7 @@ async function aoCriarAdministrador(e: Event) {
         form.celular = "";
         form.senha = "";
         form.senha_confirmation = "";
+        form.perfil_administrador = PerfilAdministrador.CONTABILIDADE;
     } catch {
         return;
     }
@@ -133,8 +147,19 @@ async function aoAlterarStatus(
     }
 }
 
+async function aoAlterarPerfil(usuarioId: number, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const perfil = select.value as PerfilAdministrador;
+    try {
+        await atualizarPerfil(usuarioId, perfil);
+    } catch {
+        return;
+    }
+}
+
 onMounted(async () => {
     try {
+        await carregarPerfis();
         await carregar();
     } catch {
         return;
@@ -213,6 +238,24 @@ onMounted(async () => {
                             />
                             <div class="invalid-feedback">{{ erros.celular }}</div>
                         </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Perfil do administrador</label>
+                            <select
+                                v-model="form.perfil_administrador"
+                                class="form-select"
+                                :class="{ 'is-invalid': erros.perfil_administrador }"
+                                required
+                            >
+                                <option
+                                    v-for="opcao in perfis"
+                                    :key="opcao.value"
+                                    :value="opcao.value"
+                                >
+                                    {{ opcao.label }}
+                                </option>
+                            </select>
+                            <div class="invalid-feedback">{{ erros.perfil_administrador }}</div>
+                        </div>
                         <div class="col-12 col-md-3">
                             <label class="form-label">Senha</label>
                             <div class="password-wrapper">
@@ -279,6 +322,7 @@ onMounted(async () => {
                                     <th>CPF</th>
                                     <th>Celular</th>
                                     <th>Nascimento</th>
+                                    <th>Perfil</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -289,6 +333,28 @@ onMounted(async () => {
                                     <td>{{ cpfMask(item.cpf) }}</td>
                                     <td>{{ phoneMask(item.celular) }}</td>
                                     <td>{{ formatarData(item.dataNascimento) }}</td>
+                                    <td>
+                                        <select
+                                            class="form-select form-select-sm"
+                                            :value="item.usuario.perfilAdministrador ?? ''"
+                                            :disabled="atualizandoPerfilId === item.usuario.id"
+                                            @change="aoAlterarPerfil(item.usuario.id, $event)"
+                                        >
+                                            <option
+                                                v-for="opcao in perfis"
+                                                :key="opcao.value"
+                                                :value="opcao.value"
+                                            >
+                                                {{ opcao.label }}
+                                            </option>
+                                        </select>
+                                        <small
+                                            v-if="!item.usuario.perfilAdministrador"
+                                            class="text-muted d-block mt-1"
+                                        >
+                                            {{ labelPerfilAdministrador(item.usuario.perfilAdministrador) }}
+                                        </small>
+                                    </td>
                                     <td>
                                         <select
                                             class="form-select form-select-sm"
@@ -303,7 +369,7 @@ onMounted(async () => {
                                     </td>
                                 </tr>
                                 <tr v-if="lista.length === 0">
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         Nenhum administrador encontrado.
                                     </td>
                                 </tr>

@@ -42,26 +42,72 @@ export const STATUS_ANALISE_OPCOES: ParticipacaoValueLabelDTO[] = [
     { value: "nao_atendida", label: "Não atendida" }
 ];
 
+/** Fallback local (caso /opcoes ainda não tenha carregado). */
+export const PUBLICO_BENEFICIADO_LABELS: Record<string, string> = {
+    criancas: "Crianças",
+    adolescentes: "Adolescentes",
+    jovens: "Jovens",
+    mulheres: "Mulheres",
+    idosos: "Idosos",
+    agricultores: "Agricultores",
+    pessoas_com_deficiencia: "Pessoas com deficiência",
+    populacao_geral: "População em geral",
+    outro: "Outro"
+};
+
+/** Normaliza string | array | CSV legado em lista de values. */
+export function normalizarPublicoBeneficiado(
+    values: string | string[] | null | undefined
+): string[] {
+    if (values == null) return [];
+    const bruto = Array.isArray(values) ? values : [values];
+    const out: string[] = [];
+    for (const item of bruto) {
+        const texto = String(item ?? "").trim();
+        if (!texto) continue;
+        if (texto.includes(",")) {
+            for (const parte of texto.split(",")) {
+                const v = parte.trim();
+                if (v && !out.includes(v)) out.push(v);
+            }
+        } else if (!out.includes(texto)) {
+            out.push(texto);
+        }
+    }
+    return out;
+}
+
 export function labelDeOpcao(
     opcoes: ParticipacaoValueLabelDTO[] | undefined,
     value: string | null | undefined
 ): string {
     if (!value) return "—";
-    return opcoes?.find((o) => o.value === value)?.label ?? value;
+    return (
+        opcoes?.find((o) => o.value === value)?.label ??
+        PUBLICO_BENEFICIADO_LABELS[value] ??
+        value
+    );
 }
 
-/** Labels para um ou mais values (público beneficiado múltiplo). */
+export function labelPublicoBeneficiado(
+    value: string,
+    opcoes?: ParticipacaoValueLabelDTO[]
+): string {
+    return (
+        opcoes?.find((o) => o.value === value)?.label ??
+        PUBLICO_BENEFICIADO_LABELS[value] ??
+        value.replace(/_/g, " ")
+    );
+}
+
+/** Labels em texto (ex.: relatórios). Preferir chips na UI. */
 export function labelsDeOpcoes(
     opcoes: ParticipacaoValueLabelDTO[] | undefined,
     values: string | string[] | null | undefined
 ): string {
-    const lista = Array.isArray(values)
-        ? values
-        : values
-          ? [values]
-          : [];
+    const lista = normalizarPublicoBeneficiado(values);
     if (lista.length === 0) return "—";
-    return lista.map((v) => labelDeOpcao(opcoes, v)).join(", ");
+    return lista.map((v) => labelPublicoBeneficiado(v, opcoes)).join(" · ");
 }
 
 export function labelFuncao(

@@ -8,6 +8,7 @@ import {
     RiLockLine,
     RiLogoutBoxRLine,
     RiMenuLine,
+    RiSpeakLine,
     RiUserLine
 } from "@remixicon/vue";
 import logo from "@/presentation/assets/img/logo.svg";
@@ -48,9 +49,16 @@ const isAdmin = computed(
         auth.estaAutenticado &&
         auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR
 );
+const isAdminPrefeitura = computed(() => isAdmin.value && auth.ehPrefeitura);
+const isAdminContabilidade = computed(
+    () => isAdmin.value && auth.ehContabilidade
+);
 
 /** Logo + nome da empresa: admin ao painel; cliente à área de protocolos; demais, home pública. */
 const marcaDestino = computed(() => {
+    if (isAdminPrefeitura.value) {
+        return { name: "AdministradorParticipacao" as const };
+    }
     if (isAdmin.value) return { name: "AdministradorPainel" as const };
     if (isCliente.value) return "/cliente/protocolos";
     return "/";
@@ -69,7 +77,9 @@ const ROTAS_ADMIN_GESTAO = new Set<string>([
     "AdministradorAvisoEditar",
     "AdministradorHomeCarrossel",
     "AdministradorHomeCarrosselCadastro",
-    "AdministradorHomeCarrosselEditar"
+    "AdministradorHomeCarrosselEditar",
+    "AdministradorParticipacao",
+    "AdministradorParticipacaoDetalhe"
 ]);
 const ROTAS_ADMIN_BLOG = new Set<string>([
     "BlogCategorias",
@@ -334,7 +344,29 @@ async function sair() {
                         <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
                     </template>
 
-                    <template v-else-if="isAdmin">
+                    <template v-else-if="isAdminPrefeitura">
+                        <li>
+                            <RouterLink
+                                :to="{ name: 'AdministradorParticipacao' }"
+                                class="navsafe__link"
+                                @click="closeMenu"
+                            >
+                                <RiSpeakLine /> Participação popular
+                            </RouterLink>
+                        </li>
+                        <li>
+                            <RouterLink
+                                to="/admin/perfil"
+                                class="navsafe__link"
+                                @click="closeMenu"
+                            >
+                                <RiUserLine /> Perfil
+                            </RouterLink>
+                        </li>
+                        <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
+                    </template>
+
+                    <template v-else-if="isAdminContabilidade">
                         <li>
                             <RouterLink
                                 :to="{ name: 'AdministradorPainel' }"
@@ -360,6 +392,7 @@ async function sair() {
                                 <RouterLink :to="{ name: 'AdministradorProtocolos' }" class="navsafe__submenu-link" @click="closeMenu">Protocolos</RouterLink>
                                 <RouterLink :to="{ name: 'AdministradorAvisos' }" class="navsafe__submenu-link" @click="closeMenu">Avisos</RouterLink>
                                 <RouterLink :to="{ name: 'AdministradorHomeCarrossel' }" class="navsafe__submenu-link" @click="closeMenu">Carrossel da Home</RouterLink>
+                                <RouterLink :to="{ name: 'AdministradorParticipacao' }" class="navsafe__submenu-link" @click="closeMenu">Participação popular</RouterLink>
                             </div>
                         </li>
 

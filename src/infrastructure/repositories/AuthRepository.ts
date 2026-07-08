@@ -29,7 +29,8 @@ export class AuthRepository implements IAuthRepository {
             new UsuarioAutenticadoDTO(
                 data.usuario.id,
                 data.usuario.pessoa_id,
-                data.usuario.tipo_usuario
+                data.usuario.tipo_usuario,
+                data.usuario.perfil_administrador ?? null
             ),
             data.expires_in
         );

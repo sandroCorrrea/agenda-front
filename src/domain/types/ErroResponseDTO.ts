@@ -21,6 +21,7 @@ export interface ErroResponseDTO {
         'usuario.senha'?: string[];
         'usuario.senha_confirmation'?: string[];
         'usuario.tipo_usuario'?: string[];
+        'usuario.perfil_administrador'?: string[];
         senha_atual?: string[];
         nova_senha?: string[];
         nova_senha_confirmation?: string[];

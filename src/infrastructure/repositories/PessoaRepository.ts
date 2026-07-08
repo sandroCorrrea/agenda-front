@@ -9,6 +9,8 @@ import { PessoaListagemResponseDTO } from "@/application/dto/Pessoa/PessoaListag
 import { PessoaPerfilDTO } from "@/application/dto/Pessoa/PessoaPerfilDTO";
 import type { CertificadoDigitalPostResponseDTO } from "@/application/dto/EmpresaVinculo/CertificadoDigitalPostResponseDTO";
 import { UsuarioPerfilDTO } from "@/application/dto/Usuario/UsuarioPerfilDTO";
+import type { PerfilAdministradorOpcaoDTO } from "@/application/dto/Pessoa/PerfilAdministradorOpcaoDTO";
+import type { PerfilAdministrador } from "@/domain/types/PerfilAdministrador";
 
 type UsuarioApiJson = {
     id: number;
@@ -19,6 +21,8 @@ type UsuarioApiJson = {
     tipo_usuario?: string;
     status?: string;
     img?: string | null;
+    perfilAdministrador?: string | null;
+    perfil_administrador?: string | null;
 };
 
 type PessoaApiJson = {
@@ -150,6 +154,22 @@ export class PessoaRepository implements IPessoaRepository {
         });
     }
 
+    async listarPerfisAdministrador(): Promise<PerfilAdministradorOpcaoDTO[]> {
+        const res = await this.api.get<{ perfis: PerfilAdministradorOpcaoDTO[] }>(
+            "/pessoa/administrador-perfis"
+        );
+        return res.data.perfis ?? [];
+    }
+
+    async atualizarPerfilAdministrador(
+        usuarioId: number,
+        perfil: PerfilAdministrador
+    ): Promise<void> {
+        await this.api.put(`/pessoa/administradores/${usuarioId}/perfil`, {
+            perfil_administrador: perfil
+        });
+    }
+
     async enviarCertificadoDigital(
         pessoaId: number,
         certificado: File,
@@ -176,7 +196,8 @@ export class PessoaRepository implements IPessoaRepository {
             Number(u.pessoaId ?? u.pessoa_id ?? 0),
             String(u.tipoUsuario ?? u.tipo_usuario ?? ""),
             String(u.status ?? ""),
-            u.img ?? null
+            u.img ?? null,
+            u.perfilAdministrador ?? u.perfil_administrador ?? null
         );
     }
 

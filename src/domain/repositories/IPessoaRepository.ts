@@ -4,6 +4,8 @@ import type { PessoaAdministradorDTO } from "@/application/dto/Pessoa/PessoaAdmi
 import type { PessoaListagemResponseDTO } from "@/application/dto/Pessoa/PessoaListagemResponseDTO";
 import type { PessoaPerfilDTO } from "@/application/dto/Pessoa/PessoaPerfilDTO";
 import type { CertificadoDigitalPostResponseDTO } from "@/application/dto/EmpresaVinculo/CertificadoDigitalPostResponseDTO";
+import type { PerfilAdministradorOpcaoDTO } from "@/application/dto/Pessoa/PerfilAdministradorOpcaoDTO";
+import type { PerfilAdministrador } from "@/domain/types/PerfilAdministrador";
 import type { Pessoa } from "../entities/Pessoa";
 
 export interface IPessoaRepository {
@@ -21,6 +23,11 @@ export interface IPessoaRepository {
     atualizarStatusAdministrador(
         usuarioId: number,
         status: "ativo" | "inativo" | "bloqueado"
+    ): Promise<void>;
+    listarPerfisAdministrador(): Promise<PerfilAdministradorOpcaoDTO[]>;
+    atualizarPerfilAdministrador(
+        usuarioId: number,
+        perfil: PerfilAdministrador
     ): Promise<void>;
     enviarCertificadoDigital(
         pessoaId: number,

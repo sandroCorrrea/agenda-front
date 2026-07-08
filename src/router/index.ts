@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/presentation/store/useAuthStore'
 import { TipoUsuario } from '@/domain/types/TipoUsuario'
+import {
+  destinoAdminAposLogin,
+  isPrefeitura,
+  ROTAS_ADMIN_PREFEITURA,
+  sessaoAdminLegadaSemPerfil
+} from '@/shared/utils/adminPermissions'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -454,12 +460,23 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
+
+  if (auth.estaAutenticado && sessaoAdminLegadaSemPerfil(auth.usuario)) {
+    auth.encerrarSessao()
+    next({ name: 'Login', query: { sessionExpired: '1' } })
+    return
+  }
+
   if (
     to.name === 'Aviso' &&
     auth.estaAutenticado &&
     auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR
   ) {
-    next({ name: 'AdministradorAvisos' })
+    if (isPrefeitura(auth.usuario)) {
+      next({ name: 'AdministradorParticipacao' })
+    } else {
+      next({ name: 'AdministradorAvisos' })
+    }
     return
   }
   if (to.meta.requerAutenticacao && !auth.estaAutenticado) {
@@ -469,12 +486,25 @@ router.beforeEach((to, _from, next) => {
   const permitido = to.meta.perfilPermitido as string | undefined
   if (permitido && auth.usuario && auth.usuario.tipo_usuario !== permitido) {
     if (auth.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR) {
-      next({ name: 'AdministradorPainel' })
+      next(destinoAdminAposLogin(auth.usuario))
     } else {
       next({ name: 'AreaCliente' })
     }
     return
   }
+
+  if (
+    auth.estaAutenticado &&
+    auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR &&
+    to.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR
+  ) {
+    const nomeRota = typeof to.name === 'string' ? to.name : ''
+    if (isPrefeitura(auth.usuario) && !ROTAS_ADMIN_PREFEITURA.has(nomeRota)) {
+      next({ name: 'AdministradorParticipacao' })
+      return
+    }
+  }
+
   next()
 })
 

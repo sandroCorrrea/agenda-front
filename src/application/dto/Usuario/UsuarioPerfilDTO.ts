@@ -5,6 +5,7 @@ export class UsuarioPerfilDTO {
         public readonly pessoaId: number,
         public tipoUsuario: string,
         public status: string,
-        public img: string | null
+        public img: string | null,
+        public perfilAdministrador: string | null = null
     ) {}
 }

@@ -8,16 +8,21 @@ import {
   RiGlobalLine,
   RiLock2Line,
   RiNotification3Line,
-  RiShieldCheckLine
+  RiShieldCheckLine,
+  RiSpeakLine,
+  RiUserSettingsLine
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
+import { useAuthStore } from "@/presentation/store/useAuthStore";
 
 const layoutMinimo = useLayoutMinimo();
 const matrizStore = useMatrizStore();
+const auth = useAuthStore();
 const anoAtual = new Date().getFullYear();
 const nomeEmpresa = computed(() => matrizStore.matriz?.nome || "Agenda Assessoria Contábil");
 const apelidoMatriz = computed(() => matrizStore.matriz?.apelido || nomeEmpresa.value);
+const ehPrefeitura = computed(() => auth.ehPrefeitura);
 </script>
 
 <template>
@@ -29,51 +34,70 @@ const apelidoMatriz = computed(() => matrizStore.matriz?.apelido || nomeEmpresa.
           Área administrativa
         </span>
         <p class="adm-foot__strip-text mb-0">
-          Você está no painel restrito de <strong>{{ apelidoMatriz }}</strong>.
-          As ações aqui refletem no site público e nos dados dos clientes.
+          <template v-if="ehPrefeitura">
+            Você está no módulo de <strong>Participação popular</strong> de
+            <strong>{{ apelidoMatriz }}</strong>.
+          </template>
+          <template v-else>
+            Você está no painel restrito de <strong>{{ apelidoMatriz }}</strong>.
+            As ações aqui refletem no site público e nos dados dos clientes.
+          </template>
         </p>
       </div>
     </div>
 
     <div class="adm-foot__conteudo">
-      <div class="adm-foot__grid">
+      <div class="adm-foot__grid" :class="{ 'adm-foot__grid--prefeitura': ehPrefeitura }">
         <section class="adm-foot__bloco">
           <h4>Atalhos do painel</h4>
           <nav class="adm-foot__nav">
-            <RouterLink :to="{ name: 'AdministradorPainel' }" class="adm-foot__link">
-              <RiDashboardLine /> Início do painel
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorServicos' }" class="adm-foot__link">
-              Serviços
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorProtocolos' }" class="adm-foot__link">
-              <RiFileList3Line /> Protocolos
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorAvisos' }" class="adm-foot__link">
-              <RiNotification3Line /> Avisos
-            </RouterLink>
-            <RouterLink :to="{ name: 'BlogCategorias' }" class="adm-foot__link">
-              Blog — categorias
-            </RouterLink>
-            <RouterLink :to="{ name: 'BlogPostagem' }" class="adm-foot__link">
-              Blog — postagens
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorClientesPessoaFisica' }" class="adm-foot__link">
-              Clientes (PF)
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorEmpresas' }" class="adm-foot__link">
-              Clientes (PJ)
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorVinculacoes' }" class="adm-foot__link">
-              Vinculações
-            </RouterLink>
-            <RouterLink :to="{ name: 'AdministradorUsuarios' }" class="adm-foot__link">
-              Administradores
-            </RouterLink>
+            <template v-if="ehPrefeitura">
+              <RouterLink :to="{ name: 'AdministradorParticipacao' }" class="adm-foot__link">
+                <RiSpeakLine /> Participação popular
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorPerfil' }" class="adm-foot__link">
+                <RiUserSettingsLine /> Perfil do usuário
+              </RouterLink>
+            </template>
+            <template v-else>
+              <RouterLink :to="{ name: 'AdministradorPainel' }" class="adm-foot__link">
+                <RiDashboardLine /> Início do painel
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorServicos' }" class="adm-foot__link">
+                Serviços
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorProtocolos' }" class="adm-foot__link">
+                <RiFileList3Line /> Protocolos
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorParticipacao' }" class="adm-foot__link">
+                <RiSpeakLine /> Participação popular
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorAvisos' }" class="adm-foot__link">
+                <RiNotification3Line /> Avisos
+              </RouterLink>
+              <RouterLink :to="{ name: 'BlogCategorias' }" class="adm-foot__link">
+                Blog — categorias
+              </RouterLink>
+              <RouterLink :to="{ name: 'BlogPostagem' }" class="adm-foot__link">
+                Blog — postagens
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorClientesPessoaFisica' }" class="adm-foot__link">
+                Clientes (PF)
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorEmpresas' }" class="adm-foot__link">
+                Clientes (PJ)
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorVinculacoes' }" class="adm-foot__link">
+                Vinculações
+              </RouterLink>
+              <RouterLink :to="{ name: 'AdministradorUsuarios' }" class="adm-foot__link">
+                Administradores
+              </RouterLink>
+            </template>
           </nav>
         </section>
 
-        <section class="adm-foot__bloco">
+        <section v-if="!ehPrefeitura" class="adm-foot__bloco">
           <h4>Conta e segurança</h4>
           <nav class="adm-foot__nav">
             <RouterLink :to="{ name: 'AdministradorPerfil' }" class="adm-foot__link">
@@ -88,7 +112,7 @@ const apelidoMatriz = computed(() => matrizStore.matriz?.apelido || nomeEmpresa.
           </p>
         </section>
 
-        <section class="adm-foot__bloco adm-foot__bloco--site">
+        <section v-if="!ehPrefeitura" class="adm-foot__bloco adm-foot__bloco--site">
           <h4>Site público</h4>
           <p class="adm-foot__hint">
             Visualize como visitantes veem páginas institucionais, serviços e blog.
@@ -174,6 +198,10 @@ const apelidoMatriz = computed(() => matrizStore.matriz?.apelido || nomeEmpresa.
   .adm-foot__grid {
     grid-template-columns: 1.2fr 1fr 0.95fr;
     gap: 1.25rem;
+  }
+
+  .adm-foot__grid--prefeitura {
+    grid-template-columns: minmax(0, 22rem);
   }
 }
 

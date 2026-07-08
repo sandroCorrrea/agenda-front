@@ -214,22 +214,28 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
     }
 
     private mapPublicoBeneficiado(value: unknown): string[] {
+        const out: string[] = [];
+        const push = (texto: string) => {
+            const limpo = texto.trim();
+            if (!limpo) return;
+            if (limpo.includes(",")) {
+                for (const parte of limpo.split(",")) {
+                    const v = parte.trim();
+                    if (v && !out.includes(v)) out.push(v);
+                }
+                return;
+            }
+            if (!out.includes(limpo)) out.push(limpo);
+        };
+
         if (Array.isArray(value)) {
-            return value
-                .map((item) => String(item ?? "").trim())
-                .filter((item) => item.length > 0);
+            for (const item of value) push(String(item ?? ""));
+            return out;
         }
         if (typeof value === "string" && value.trim()) {
-            // Compat: string única antiga ou CSV legado
-            if (value.includes(",")) {
-                return value
-                    .split(",")
-                    .map((item) => item.trim())
-                    .filter(Boolean);
-            }
-            return [value.trim()];
+            push(value);
         }
-        return [];
+        return out;
     }
 
     private nullableString(value: unknown): string | null {

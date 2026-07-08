@@ -5,6 +5,7 @@ import FormLogin from '@/presentation/components/Pessoa/FormLogin.vue';
 import { useLoginUsuario } from '@/presentation/composables/Pessoa/useLoginUsuario';
 import { TipoUsuario } from '@/domain/types/TipoUsuario';
 import { useAuthStore } from '@/presentation/store/useAuthStore';
+import { destinoAdminAposLogin } from '@/shared/utils/adminPermissions';
 
 const route = useRoute();
 const router = useRouter();
@@ -19,7 +20,7 @@ onMounted(() => {
   }
   if (!auth.estaAutenticado || !auth.usuario) return;
   if (auth.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR) {
-    void router.replace({ name: 'AdministradorPainel' });
+    void router.replace(destinoAdminAposLogin(auth.usuario));
   } else {
     void router.replace({ name: 'AreaCliente' });
   }
@@ -39,7 +40,7 @@ async function aoEnviarLogin(payload: { cpf: string; senha: string }) {
       return;
     }
     if (resposta.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR) {
-      await router.push({ name: 'AdministradorPainel' });
+      await router.push(destinoAdminAposLogin(resposta.usuario));
     } else {
       await router.push({ name: 'AreaCliente' });
     }

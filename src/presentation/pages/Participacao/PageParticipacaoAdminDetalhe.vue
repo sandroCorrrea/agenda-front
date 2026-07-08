@@ -7,11 +7,11 @@ import {
     RiSpeakLine
 } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
+import ParticipacaoPublicoChips from "@/presentation/components/Participacao/ParticipacaoPublicoChips.vue";
 import ParticipacaoStatusBadge from "@/presentation/components/Participacao/ParticipacaoStatusBadge.vue";
 import { useParticipacaoAdmin } from "@/presentation/composables/Participacao/useParticipacaoAdmin";
 import {
     labelDeOpcao,
-    labelsDeOpcoes,
     CATEGORIA_ECONOMICA_OPCOES,
     NATUREZA_DESPESA_OPCOES,
     STATUS_ANALISE_OPCOES
@@ -159,16 +159,14 @@ onMounted(async () => {
                                 <p class="part-k">Benefícios</p>
                                 <p class="part-v part-v--block">{{ detalhe.beneficios }}</p>
                             </div>
-                            <div class="col-md-4">
-                                <p class="part-k">Público</p>
-                                <p class="part-v">
-                                    {{
-                                        labelsDeOpcoes(
-                                            opcoes?.publicoBeneficiado,
-                                            detalhe.publicoBeneficiado
-                                        )
-                                    }}
-                                </p>
+                            <div class="col-12 col-md-8">
+                                <p class="part-k">Público beneficiado</p>
+                                <div class="part-v part-v--chips">
+                                    <ParticipacaoPublicoChips
+                                        :values="detalhe.publicoBeneficiado"
+                                        :opcoes="opcoes?.publicoBeneficiado"
+                                    />
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <p class="part-k">Prioridade</p>
@@ -431,6 +429,11 @@ onMounted(async () => {
     margin: 0.2rem 0 0;
     font-weight: 600;
     color: #16254e;
+}
+
+.part-v--chips {
+    margin-top: 0.45rem;
+    font-weight: 400;
 }
 
 .part-v--block {

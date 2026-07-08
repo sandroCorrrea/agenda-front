@@ -1,8 +1,11 @@
+import type { PerfilAdministrador } from "@/domain/types/PerfilAdministrador";
+
 export class UsuarioAutenticadoDTO {
     constructor(
         public id: number,
         public pessoa_id: number,
-        public tipo_usuario: string
+        public tipo_usuario: string,
+        public perfil_administrador?: PerfilAdministrador | null
     ) {}
 }
 
@@ -14,6 +17,7 @@ export type LoginResponse = {
         id: number;
         pessoa_id: number;
         tipo_usuario: string;
+        perfil_administrador?: PerfilAdministrador | null;
     };
     expires_in?: number;
 };

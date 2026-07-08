@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { RouterLink } from "vue-router";
+import { computed, onMounted } from "vue";
+import { RouterLink, useRouter } from "vue-router";
 import {
   RiArrowRightUpLine,
   RiArticleLine,
@@ -22,8 +22,11 @@ import {
   RiSpeakLine
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
+import { useAuthStore } from "@/presentation/store/useAuthStore";
 
 const matriz = useMatrizStore();
+const auth = useAuthStore();
+const router = useRouter();
 
 const saudacao = computed(() => {
   const h = new Date().getHours();
@@ -148,6 +151,23 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorPerfil: RiUserSettingsLine,
   AdministradorChaves: RiKey2Line
 };
+
+const atalhosVisiveis = computed(() => {
+  if (auth.ehPrefeitura) {
+    return atalhos.filter(
+      (item) =>
+        item.rota === "AdministradorParticipacao" ||
+        item.rota === "AdministradorPerfil"
+    );
+  }
+  return atalhos;
+});
+
+onMounted(() => {
+  if (auth.ehPrefeitura) {
+    void router.replace({ name: "AdministradorParticipacao" });
+  }
+});
 </script>
 
 <template>
@@ -185,7 +205,7 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
         </p>
         <div class="row g-3 g-md-4">
           <div
-            v-for="item in atalhos"
+            v-for="item in atalhosVisiveis"
             :key="item.rota"
             class="col-12 col-sm-6 col-xl-4"
           >

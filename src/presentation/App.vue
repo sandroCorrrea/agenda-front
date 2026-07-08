@@ -8,6 +8,7 @@ import AdminVinculosPendentesBanner from './components/Admin/AdminVinculosPenden
 import { useMatrizStore } from './store/useMatrizStore';
 import { useAuthStore } from './store/useAuthStore';
 import { TipoUsuario } from '@/domain/types/TipoUsuario';
+import { canAccessPainelContabilidade } from '@/shared/utils/adminPermissions';
 import type { IMatrizRepository } from '@/domain/repositories/IMatrizRepository';
 import { useLayoutMinimo } from '@/presentation/composables/useLayoutMinimo';
 
@@ -29,12 +30,13 @@ const mostrarFooterAdministrador = computed(() => {
   return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
 });
 
-/** Banner de vinculações pendentes em todas as telas administrativas. */
+/** Banner de vinculações pendentes em telas administrativas da contabilidade. */
 const mostrarBannerVinculosPendentes = computed(() => {
   if (layoutMinimo.value) return false;
   if (!auth.estaAutenticado || auth.usuario?.tipo_usuario !== TipoUsuario.ADMINISTRADOR) {
     return false;
   }
+  if (!canAccessPainelContabilidade(auth.usuario)) return false;
   if (route.path.startsWith('/admin')) return true;
   return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
 });

@@ -283,7 +283,7 @@ const checklistFrontend = [
             </table>
           </div>
           <p class="nota">
-            Prefixo Laravel <code>/api</code>. Rotas protegidas:
+            Prefixo <code>/api</code>. Rotas protegidas:
             <code>Authorization: Bearer {token}</code> +
             <code>Accept: application/json</code>. DELETE sucesso <strong>204</strong> sem corpo.
           </p>

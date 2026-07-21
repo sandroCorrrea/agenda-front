@@ -1,4 +1,7 @@
 import type {
+    ClienteOpcaoVinculoAdminDTO,
+    CriarVinculoAdminRequestDTO,
+    EmpresaOpcaoVinculoAdminDTO,
     EmpresaVinculoDTO,
     EmpresaVinculoListagemResponseDTO,
     EmpresaVinculoPostResponseDTO,
@@ -140,6 +143,68 @@ export class EmpresaVinculoRepository implements IEmpresaVinculoRepository {
         }>("/empresa/vinculo/admin", { params: query });
 
         return this.mapListagem(resp.data, params.page);
+    }
+
+    async listarClientesOpcoesAdmin(): Promise<ClienteOpcaoVinculoAdminDTO[]> {
+        const resp = await this.api.get<{
+            clientes?: Array<{
+                usuario_id: number;
+                pessoa_id: number;
+                nome: string;
+                cpf: string;
+                email: string;
+            }>;
+        }>("/empresa/vinculo/admin/clientes");
+
+        const arr = Array.isArray(resp.data.clientes) ? resp.data.clientes : [];
+        return arr.map((c) => ({
+            usuario_id: Number(c.usuario_id),
+            pessoa_id: Number(c.pessoa_id),
+            nome: String(c.nome ?? ""),
+            cpf: String(c.cpf ?? ""),
+            email: String(c.email ?? "")
+        }));
+    }
+
+    async listarEmpresasOpcoesAdmin(): Promise<EmpresaOpcaoVinculoAdminDTO[]> {
+        const resp = await this.api.get<{
+            empresas?: Array<{
+                id: number;
+                nome: string;
+                apelido?: string | null;
+                cnpj: string;
+            }>;
+        }>("/empresa/vinculo/admin/empresas");
+
+        const arr = Array.isArray(resp.data.empresas) ? resp.data.empresas : [];
+        return arr.map((e) => ({
+            id: Number(e.id),
+            nome: String(e.nome ?? ""),
+            apelido: e.apelido ?? null,
+            cnpj: String(e.cnpj ?? "")
+        }));
+    }
+
+    async criarVinculoAdmin(
+        payload: CriarVinculoAdminRequestDTO
+    ): Promise<EmpresaVinculoPostResponseDTO> {
+        const body: Record<string, number | string> = {
+            usuario_id: payload.usuario_id,
+            empresa_id: payload.empresa_id
+        };
+        if (payload.status) body.status = payload.status;
+
+        const resp = await this.api.post<{
+            message?: string;
+            vinculo: VinculoJson;
+        }>("/empresa/vinculo/admin", body);
+
+        return {
+            message:
+                resp.data.message ??
+                "Vinculação criada com sucesso pelo administrador.",
+            vinculo: this.mapVinculo(resp.data.vinculo)
+        };
     }
 
     async aprovarVinculo(

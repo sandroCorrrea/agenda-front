@@ -1,4 +1,7 @@
 import type {
+    ClienteOpcaoVinculoAdminDTO,
+    CriarVinculoAdminRequestDTO,
+    EmpresaOpcaoVinculoAdminDTO,
     EmpresaVinculoListagemResponseDTO,
     EmpresaVinculoPostResponseDTO,
     EmpresaVinculoStatusUpdateResponseDTO,
@@ -12,6 +15,11 @@ export interface IEmpresaVinculoRepository {
     listarVinculosAdmin(
         params: ListarVinculosAdminParams
     ): Promise<EmpresaVinculoListagemResponseDTO>;
+    listarClientesOpcoesAdmin(): Promise<ClienteOpcaoVinculoAdminDTO[]>;
+    listarEmpresasOpcoesAdmin(): Promise<EmpresaOpcaoVinculoAdminDTO[]>;
+    criarVinculoAdmin(
+        payload: CriarVinculoAdminRequestDTO
+    ): Promise<EmpresaVinculoPostResponseDTO>;
     aprovarVinculo(vinculoId: number): Promise<EmpresaVinculoStatusUpdateResponseDTO>;
     rejeitarVinculo(
         vinculoId: number,

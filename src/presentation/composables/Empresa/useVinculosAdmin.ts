@@ -1,13 +1,21 @@
 import { computed, inject, ref } from "vue";
 import axios from "axios";
-import type { EmpresaVinculoDTO } from "@/application/dto/EmpresaVinculo/EmpresaVinculoResumoDTO";
+import type {
+    ClienteOpcaoVinculoAdminDTO,
+    EmpresaOpcaoVinculoAdminDTO,
+    EmpresaVinculoDTO
+} from "@/application/dto/EmpresaVinculo/EmpresaVinculoResumoDTO";
 import { AprovarVinculoEmpresaUseCase } from "@/application/use-cases/EmpresaVinculo/AprovarVinculoEmpresaUseCase";
+import { CriarVinculoAdminUseCase } from "@/application/use-cases/EmpresaVinculo/CriarVinculoAdminUseCase";
+import { ListarClientesOpcoesVinculoAdminUseCase } from "@/application/use-cases/EmpresaVinculo/ListarClientesOpcoesVinculoAdminUseCase";
+import { ListarEmpresasOpcoesVinculoAdminUseCase } from "@/application/use-cases/EmpresaVinculo/ListarEmpresasOpcoesVinculoAdminUseCase";
 import { ListarVinculosAdminUseCase } from "@/application/use-cases/EmpresaVinculo/ListarVinculosAdminUseCase";
 import { RejeitarVinculoEmpresaUseCase } from "@/application/use-cases/EmpresaVinculo/RejeitarVinculoEmpresaUseCase";
 import type { IEmpresaVinculoRepository } from "@/domain/repositories/IEmpresaVinculoRepository";
 import type { EmpresaVinculoStatus } from "@/domain/types/EmpresaVinculoStatus";
 import type { ErroResponseDTO } from "@/domain/types/ErroResponseDTO";
 import { useVinculosPendentesAdmin } from "@/presentation/composables/Empresa/useVinculosPendentesAdmin";
+import { cnpjMask, cpfMask } from "@/shared/utils/masks";
 
 export type FiltroStatusVinculo = EmpresaVinculoStatus | "";
 
@@ -27,6 +35,24 @@ function extrairMensagem(e: unknown, fallback: string): string {
     return fallback;
 }
 
+function normalizarBusca(texto: string): string {
+    return texto
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+export function labelClienteOpcao(c: ClienteOpcaoVinculoAdminDTO): string {
+    return `${c.nome} — ${cpfMask(c.cpf)} — ${c.email}`;
+}
+
+export function labelEmpresaOpcao(e: EmpresaOpcaoVinculoAdminDTO): string {
+    const cnpj = cnpjMask(e.cnpj);
+    if (e.apelido) return `${e.apelido} (${e.nome}) — ${cnpj}`;
+    return `${e.nome} — ${cnpj}`;
+}
+
 export function useVinculosAdmin() {
     const repo = inject<IEmpresaVinculoRepository>("IEmpresaVinculoRepository");
     if (!repo) throw new Error("IEmpresaVinculoRepository not provided");
@@ -34,6 +60,9 @@ export function useVinculosAdmin() {
     const listarCaso = new ListarVinculosAdminUseCase(repo);
     const aprovarCaso = new AprovarVinculoEmpresaUseCase(repo);
     const rejeitarCaso = new RejeitarVinculoEmpresaUseCase(repo);
+    const criarVinculoCaso = new CriarVinculoAdminUseCase(repo);
+    const listarClientesCaso = new ListarClientesOpcoesVinculoAdminUseCase(repo);
+    const listarEmpresasCaso = new ListarEmpresasOpcoesVinculoAdminUseCase(repo);
     const { atualizarPendentes } = useVinculosPendentesAdmin();
 
     const vinculos = ref<EmpresaVinculoDTO[]>([]);
@@ -50,12 +79,53 @@ export function useVinculosAdmin() {
     const justificativaRejeicao = ref("");
     const erroJustificativa = ref<string | null>(null);
 
+    const formularioCriarVisivel = ref(false);
+    const clientesOpcoes = ref<ClienteOpcaoVinculoAdminDTO[]>([]);
+    const empresasOpcoes = ref<EmpresaOpcaoVinculoAdminDTO[]>([]);
+    const carregandoOpcoes = ref(false);
+    const erroOpcoes = ref<string | null>(null);
+    const filtroCliente = ref("");
+    const filtroEmpresa = ref("");
+    const usuarioIdSelecionado = ref<number | null>(null);
+    const empresaIdSelecionada = ref<number | null>(null);
+    const criandoVinculo = ref(false);
+    const erroCriacao = ref<string | null>(null);
+
     const totalPaginas = computed(() =>
         Math.max(1, Math.ceil(totalRegistros.value / Math.max(porPagina.value, 1)))
     );
 
     const vinculoRejeicao = computed(() =>
         vinculos.value.find((v) => v.id === modalRejeitarId.value) ?? null
+    );
+
+    const clientesFiltrados = computed(() => {
+        const q = normalizarBusca(filtroCliente.value);
+        if (!q) return clientesOpcoes.value;
+        return clientesOpcoes.value.filter((c) => {
+            const hay = normalizarBusca(
+                `${c.nome} ${c.cpf} ${c.email} ${cpfMask(c.cpf)}`
+            );
+            return hay.includes(q);
+        });
+    });
+
+    const empresasFiltradas = computed(() => {
+        const q = normalizarBusca(filtroEmpresa.value);
+        if (!q) return empresasOpcoes.value;
+        return empresasOpcoes.value.filter((e) => {
+            const hay = normalizarBusca(
+                `${e.nome} ${e.apelido ?? ""} ${e.cnpj} ${cnpjMask(e.cnpj)}`
+            );
+            return hay.includes(q);
+        });
+    });
+
+    const podeCriarVinculo = computed(
+        () =>
+            usuarioIdSelecionado.value != null &&
+            empresaIdSelecionada.value != null &&
+            !criandoVinculo.value
     );
 
     async function carregar(page = paginaAtual.value) {
@@ -74,6 +144,26 @@ export function useVinculosAdmin() {
             erro.value = extrairMensagem(e, "Não foi possível carregar as solicitações.");
         } finally {
             carregando.value = false;
+        }
+    }
+
+    async function carregarOpcoes() {
+        carregandoOpcoes.value = true;
+        erroOpcoes.value = null;
+        try {
+            const [clientes, empresas] = await Promise.all([
+                listarClientesCaso.execute(),
+                listarEmpresasCaso.execute()
+            ]);
+            clientesOpcoes.value = clientes;
+            empresasOpcoes.value = empresas;
+        } catch (e: unknown) {
+            erroOpcoes.value = extrairMensagem(
+                e,
+                "Não foi possível carregar as opções de clientes e empresas."
+            );
+        } finally {
+            carregandoOpcoes.value = false;
         }
     }
 
@@ -155,6 +245,88 @@ export function useVinculosAdmin() {
         }
     }
 
+    async function abrirFormularioCriar() {
+        formularioCriarVisivel.value = true;
+        erroCriacao.value = null;
+        if (clientesOpcoes.value.length === 0 || empresasOpcoes.value.length === 0) {
+            await carregarOpcoes();
+        }
+    }
+
+    function fecharFormularioCriar() {
+        formularioCriarVisivel.value = false;
+        limparFormularioCriar();
+    }
+
+    function limparFormularioCriar() {
+        filtroCliente.value = "";
+        filtroEmpresa.value = "";
+        usuarioIdSelecionado.value = null;
+        empresaIdSelecionada.value = null;
+        erroCriacao.value = null;
+    }
+
+    async function criarVinculo() {
+        const usuarioId = usuarioIdSelecionado.value;
+        const empresaId = empresaIdSelecionada.value;
+        if (usuarioId == null || empresaId == null) {
+            erroCriacao.value =
+                "Selecione a pessoa física e a empresa antes de vincular.";
+            return;
+        }
+
+        erro.value = null;
+        sucesso.value = null;
+        erroCriacao.value = null;
+        criandoVinculo.value = true;
+
+        try {
+            const resp = await criarVinculoCaso.execute({
+                usuario_id: usuarioId,
+                empresa_id: empresaId
+            });
+            sucesso.value = resp.message;
+            limparFormularioCriar();
+            formularioCriarVisivel.value = false;
+            filtroStatus.value = "aprovado";
+            await carregar(1);
+            await atualizarPendentes();
+        } catch (e: unknown) {
+            if (axios.isAxiosError(e)) {
+                const status = e.response?.status;
+                if (status === 409) {
+                    erroCriacao.value =
+                        "Já existe vinculação pendente ou aprovada entre este cliente e esta empresa.";
+                } else if (status === 403) {
+                    erroCriacao.value = extrairMensagem(
+                        e,
+                        "Você não tem permissão para criar vinculações (perfil contabilidade)."
+                    );
+                } else if (status === 404) {
+                    erroCriacao.value =
+                        "Cliente ou empresa não encontrados. Atualize as opções e tente novamente.";
+                } else if (status === 422) {
+                    erroCriacao.value = extrairMensagem(
+                        e,
+                        "Dados inválidos para criar a vinculação."
+                    );
+                } else {
+                    erroCriacao.value = extrairMensagem(
+                        e,
+                        "Não foi possível criar a vinculação."
+                    );
+                }
+            } else {
+                erroCriacao.value = extrairMensagem(
+                    e,
+                    "Não foi possível criar a vinculação."
+                );
+            }
+        } finally {
+            criandoVinculo.value = false;
+        }
+    }
+
     return {
         vinculos,
         carregando,
@@ -170,12 +342,31 @@ export function useVinculosAdmin() {
         justificativaRejeicao,
         erroJustificativa,
         vinculoRejeicao,
+        formularioCriarVisivel,
+        clientesOpcoes,
+        empresasOpcoes,
+        clientesFiltrados,
+        empresasFiltradas,
+        carregandoOpcoes,
+        erroOpcoes,
+        filtroCliente,
+        filtroEmpresa,
+        usuarioIdSelecionado,
+        empresaIdSelecionada,
+        criandoVinculo,
+        erroCriacao,
+        podeCriarVinculo,
         carregar,
+        carregarOpcoes,
         aplicarFiltroStatus,
         irParaPagina,
         aprovar,
         abrirModalRejeitar,
         fecharModalRejeitar,
-        confirmarRejeicao
+        confirmarRejeicao,
+        abrirFormularioCriar,
+        fecharFormularioCriar,
+        limparFormularioCriar,
+        criarVinculo
     };
 }

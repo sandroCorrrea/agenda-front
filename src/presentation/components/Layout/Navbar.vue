@@ -443,7 +443,7 @@ async function sair() {
                                 <RouterLink to="/admin/empresas" class="navsafe__submenu-link" @click="closeMenu">Pessoa jurídica</RouterLink>
                                 <RouterLink
                                     :to="{ name: 'AdministradorVinculacoes' }"
-                                    class="navsafe__submenu-link navsafe__submenu-link--destaque"
+                                    class="navsafe__submenu-link"
                                     @click="closeMenu"
                                 >
                                     Vinculações
@@ -783,10 +783,6 @@ async function sair() {
 
 .navsafe__badge-count--inline {
     margin-left: 0.5rem;
-}
-
-.navsafe__submenu-link--destaque {
-    font-weight: 700;
 }
 
 @keyframes navsafe-badge-pulse {

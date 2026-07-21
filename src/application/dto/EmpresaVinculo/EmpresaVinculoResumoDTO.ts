@@ -48,3 +48,28 @@ export type ListarVinculosAdminParams = {
     page: number;
     status?: EmpresaVinculoStatus | "";
 };
+
+/** Item de `GET /empresa/vinculo/admin/empresas` — opção do select de PJ. */
+export type EmpresaOpcaoVinculoAdminDTO = {
+    id: number;
+    nome: string;
+    apelido: string | null;
+    cnpj: string;
+};
+
+/** Item de `GET /empresa/vinculo/admin/clientes` — opção do select de PF. */
+export type ClienteOpcaoVinculoAdminDTO = {
+    usuario_id: number;
+    pessoa_id: number;
+    nome: string;
+    cpf: string;
+    email: string;
+};
+
+/** Payload de `POST /empresa/vinculo/admin` — vínculo criado pelo administrador. */
+export type CriarVinculoAdminRequestDTO = {
+    usuario_id: number;
+    empresa_id: number;
+    /** Se omitido, o backend grava como `aprovado`. */
+    status?: EmpresaVinculoStatus;
+};

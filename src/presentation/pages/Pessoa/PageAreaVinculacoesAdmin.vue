@@ -458,32 +458,27 @@ function aoSelecionarEmpresa(e: Event) {
                             </article>
                         </div>
 
-                        <nav
-                            v-if="totalPaginas > 1"
-                            class="vinc-pag"
-                            aria-label="Paginação"
-                        >
+                        <div v-if="vinculos.length > 0" class="vinc-pag mt-3">
                             <button
                                 type="button"
-                                class="vinc-pag__btn"
+                                class="btn vinc-pag__nav"
                                 :disabled="paginaAtual <= 1 || carregando"
+                                aria-label="Página anterior"
                                 @click="irParaPagina(paginaAtual - 1)"
                             >
                                 <RiArrowLeftSLine />
                             </button>
-                            <span>
-                                Página <strong>{{ paginaAtual }}</strong> de
-                                <strong>{{ totalPaginas }}</strong>
-                            </span>
+                            <span>Página {{ paginaAtual }} de {{ totalPaginas }}</span>
                             <button
                                 type="button"
-                                class="vinc-pag__btn"
+                                class="btn vinc-pag__nav"
                                 :disabled="paginaAtual >= totalPaginas || carregando"
+                                aria-label="Próxima página"
                                 @click="irParaPagina(paginaAtual + 1)"
                             >
                                 <RiArrowRightSLine />
                             </button>
-                        </nav>
+                        </div>
                     </template>
                 </div>
             </section>
@@ -740,29 +735,14 @@ function aoSelecionarEmpresa(e: Event) {
 
 .vinc-pag {
     display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-top: 1.25rem;
-    font-size: 0.88rem;
-    color: #6c7a94;
+    align-items: center;
+    gap: 0.8rem;
 }
 
-.vinc-pag__btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+.vinc-pag__nav {
     border: 1px solid rgba(92, 107, 192, 0.3);
-    background: #fff;
-    color: #5c6bc0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.vinc-pag__btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+    border-radius: 10px;
 }
 
 .vinc-modal {

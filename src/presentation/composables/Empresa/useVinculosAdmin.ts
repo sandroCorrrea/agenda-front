@@ -19,6 +19,8 @@ import { cnpjMask, cpfMask } from "@/shared/utils/masks";
 
 export type FiltroStatusVinculo = EmpresaVinculoStatus | "";
 
+const POR_PAGINA_PADRAO = 10;
+
 function extrairMensagem(e: unknown, fallback: string): string {
     if (axios.isAxiosError(e)) {
         const data = e.response?.data as ErroResponseDTO | undefined;
@@ -72,7 +74,7 @@ export function useVinculosAdmin() {
     const sucesso = ref<string | null>(null);
     const paginaAtual = ref(1);
     const totalRegistros = ref(0);
-    const porPagina = ref(10);
+    const porPagina = ref(POR_PAGINA_PADRAO);
     const filtroStatus = ref<FiltroStatusVinculo>("pendente");
 
     const modalRejeitarId = ref<number | null>(null);
@@ -134,12 +136,13 @@ export function useVinculosAdmin() {
         try {
             const resp = await listarCaso.execute({
                 page,
+                per_page: porPagina.value,
                 status: filtroStatus.value || undefined
             });
             vinculos.value = resp.vinculos;
             totalRegistros.value = resp.total;
             paginaAtual.value = resp.pagina;
-            porPagina.value = resp.por_pagina;
+            porPagina.value = resp.por_pagina || POR_PAGINA_PADRAO;
         } catch (e: unknown) {
             erro.value = extrairMensagem(e, "Não foi possível carregar as solicitações.");
         } finally {
@@ -181,10 +184,14 @@ export function useVinculosAdmin() {
         erro.value = null;
         sucesso.value = null;
         processandoId.value = vinculoId;
+        const paginaAntes = paginaAtual.value;
         try {
             const resp = await aprovarCaso.execute(vinculoId);
             sucesso.value = resp.message;
-            await carregar(paginaAtual.value);
+            await carregar(paginaAntes);
+            if (vinculos.value.length === 0 && paginaAntes > 1) {
+                await carregar(paginaAntes - 1);
+            }
             await atualizarPendentes();
         } catch (e: unknown) {
             erro.value = extrairMensagem(e, "Não foi possível aprovar a vinculação.");
@@ -223,12 +230,16 @@ export function useVinculosAdmin() {
         sucesso.value = null;
         erroJustificativa.value = null;
         processandoId.value = id;
+        const paginaAntes = paginaAtual.value;
 
         try {
             const resp = await rejeitarCaso.execute(id, texto);
             sucesso.value = resp.message;
             fecharModalRejeitar();
-            await carregar(paginaAtual.value);
+            await carregar(paginaAntes);
+            if (vinculos.value.length === 0 && paginaAntes > 1) {
+                await carregar(paginaAntes - 1);
+            }
             await atualizarPendentes();
         } catch (e: unknown) {
             if (axios.isAxiosError(e) && e.response?.status === 422) {

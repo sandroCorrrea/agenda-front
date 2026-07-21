@@ -132,7 +132,11 @@ export class EmpresaVinculoRepository implements IEmpresaVinculoRepository {
     async listarVinculosAdmin(
         params: ListarVinculosAdminParams
     ): Promise<EmpresaVinculoListagemResponseDTO> {
-        const query: Record<string, string | number> = { page: params.page };
+        const perPage = params.per_page ?? 10;
+        const query: Record<string, string | number> = {
+            page: params.page,
+            per_page: perPage
+        };
         if (params.status) query.status = params.status;
 
         const resp = await this.api.get<{
@@ -142,7 +146,11 @@ export class EmpresaVinculoRepository implements IEmpresaVinculoRepository {
             por_pagina?: number;
         }>("/empresa/vinculo/admin", { params: query });
 
-        return this.mapListagem(resp.data, params.page);
+        const mapped = this.mapListagem(resp.data, params.page);
+        return {
+            ...mapped,
+            por_pagina: mapped.por_pagina || perPage
+        };
     }
 
     async listarClientesOpcoesAdmin(): Promise<ClienteOpcaoVinculoAdminDTO[]> {

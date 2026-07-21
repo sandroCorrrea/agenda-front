@@ -46,6 +46,7 @@ export type EmpresaVinculoStatusUpdateResponseDTO = {
 
 export type ListarVinculosAdminParams = {
     page: number;
+    per_page?: number;
     status?: EmpresaVinculoStatus | "";
 };
 

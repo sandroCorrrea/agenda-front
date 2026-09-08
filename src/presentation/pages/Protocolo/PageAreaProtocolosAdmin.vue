@@ -21,6 +21,7 @@ import {
 import type { Protocolo } from "@/domain/entities/Protocolo";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useProtocolosAdmin } from "@/presentation/composables/Protocolo/useProtocolosAdmin";
+import { usePermissaoMenu } from "@/presentation/composables/Menu/usePermissaoMenu";
 import { formatarDataIsoPtBr } from "@/shared/utils/date.util";
 import { cnpjMask, cpfMask } from "@/shared/utils/masks";
 
@@ -52,6 +53,8 @@ const {
   baixandoPdfId,
   baixarPdf
 } = useProtocolosAdmin();
+
+const { podeInserir, podeAtualizar, podeExcluir } = usePermissaoMenu("admin.protocolos");
 
 const criadoMsg = ref(false);
 const modalDescricaoAberto = ref(false);
@@ -174,7 +177,11 @@ function tooltipAssinatura(item: Protocolo) {
       >
         <template #icon><RiShieldCheckLine /></template>
         <template #actions>
-          <RouterLink :to="{ name: 'AdministradorProtocoloCadastro' }" class="btn">
+          <RouterLink
+            v-if="podeInserir"
+            :to="{ name: 'AdministradorProtocoloCadastro' }"
+            class="btn"
+          >
             <RiAddLine class="me-1" /> Novo protocolo
           </RouterLink>
         </template>
@@ -376,6 +383,7 @@ function tooltipAssinatura(item: Protocolo) {
                       </button>
                       <template v-if="!protocoloEntregue(item)">
                         <RouterLink
+                          v-if="podeAtualizar"
                           class="proto-action-btn proto-action-btn--edit"
                           :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
                           title="Editar"
@@ -384,6 +392,7 @@ function tooltipAssinatura(item: Protocolo) {
                           <RiPencilLine />
                         </RouterLink>
                         <button
+                          v-if="podeExcluir"
                           type="button"
                           class="proto-action-btn proto-action-btn--delete"
                           :disabled="excluindoId !== null"
@@ -461,6 +470,7 @@ function tooltipAssinatura(item: Protocolo) {
                   </button>
                   <template v-if="!protocoloEntregue(item)">
                     <RouterLink
+                      v-if="podeAtualizar"
                       class="proto-action-btn proto-action-btn--edit"
                       :to="{ name: 'AdministradorProtocoloEditar', params: { id: item.id } }"
                       title="Editar"
@@ -470,6 +480,7 @@ function tooltipAssinatura(item: Protocolo) {
                       <span class="proto-action-btn__label">Editar</span>
                     </RouterLink>
                     <button
+                      v-if="podeExcluir"
                       type="button"
                       class="proto-action-btn proto-action-btn--delete"
                       :disabled="excluindoId !== null"

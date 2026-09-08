@@ -23,9 +23,12 @@ import {
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { useMenuStore } from "@/presentation/store/useMenuStore";
+import { destinoAposMenu } from "@/shared/utils/adminPermissions";
 
 const matriz = useMatrizStore();
 const auth = useAuthStore();
+const menuStore = useMenuStore();
 const router = useRouter();
 
 const saudacao = computed(() => {
@@ -55,86 +58,25 @@ type Atalho = {
   accent: string;
 };
 
-const atalhos: Atalho[] = [
-  {
-    nome: "Serviços",
-    descricao: "Catálogo, cadastro e edição de serviços oferecidos.",
-    rota: "AdministradorServicos",
-    accent: "violet"
-  },
-  {
-    nome: "Protocolos",
-    descricao: "Entregas, PDF com QR e assinatura pelo destinatário.",
-    rota: "AdministradorProtocolos",
-    accent: "teal"
-  },
-  {
-    nome: "Participação popular",
-    descricao: "Propostas cidadãs da LOA/LDO/PPA e análise técnica.",
-    rota: "AdministradorParticipacao",
-    accent: "cyan"
-  },
-  {
-    nome: "Avisos",
-    descricao: "Comunicados exibidos na área pública do site.",
-    rota: "AdministradorAvisos",
-    accent: "amber"
-  },
-  {
-    nome: "Carrossel da Home",
-    descricao: "Imagens exibidas no carrossel da página inicial.",
-    rota: "AdministradorHomeCarrossel",
-    accent: "teal"
-  },
-  {
-    nome: "Blog — categorias",
-    descricao: "Organize as categorias das postagens.",
-    rota: "BlogCategorias",
-    accent: "indigo"
-  },
-  {
-    nome: "Blog — postagens",
-    descricao: "Crie e edite artigos e conteúdo institucional.",
-    rota: "BlogPostagem",
-    accent: "indigo"
-  },
-  {
-    nome: "Clientes (PF)",
-    descricao: "Pessoas físicas e cadastro de clientes.",
-    rota: "AdministradorClientesPessoaFisica",
-    accent: "slate"
-  },
-  {
-    nome: "Clientes (PJ)",
-    descricao: "Empresas e consulta por CNPJ.",
-    rota: "AdministradorEmpresas",
-    accent: "slate"
-  },
-  {
-    nome: "Vinculações",
-    descricao: "Aprovar ou rejeitar solicitações de clientes com empresas.",
-    rota: "AdministradorVinculacoes",
-    accent: "amber"
-  },
-  {
-    nome: "Administradores",
-    descricao: "Equipe com acesso ao painel e permissões.",
-    rota: "AdministradorUsuarios",
-    accent: "rose"
-  },
-  {
-    nome: "Seu perfil",
-    descricao: "Dados pessoais e preferências da conta.",
-    rota: "AdministradorPerfil",
-    accent: "cyan"
-  },
-  {
-    nome: "Chaves de integração",
-    descricao: "Tokens e integrações técnicas.",
-    rota: "AdministradorChaves",
-    accent: "cyan"
-  }
-];
+const DESC_POR_ROTA: Record<string, string> = {
+  AdministradorServicos: "Catálogo, cadastro e edição de serviços oferecidos.",
+  AdministradorProtocolos: "Entregas, PDF com QR e assinatura pelo destinatário.",
+  AdministradorParticipacao: "Propostas cidadãs da LOA/LDO/PPA e análise técnica.",
+  AdministradorAvisos: "Comunicados exibidos na área pública do site.",
+  AdministradorHomeCarrossel: "Imagens exibidas no carrossel da página inicial.",
+  BlogCategorias: "Organize as categorias das postagens.",
+  BlogPostagem: "Crie e edite artigos e conteúdo institucional.",
+  AdministradorClientesPessoaFisica: "Pessoas físicas e cadastro de clientes.",
+  AdministradorEmpresas: "Empresas e consulta por CNPJ.",
+  AdministradorVinculacoes: "Aprovar ou rejeitar solicitações de clientes com empresas.",
+  AdministradorUsuarios: "Equipe com acesso ao painel e permissões.",
+  AdministradorGrupos: "Grupos de acesso, menus e flags V/I/U/D.",
+  AdministradorPerfil: "Dados pessoais e preferências da conta.",
+  AdministradorChaves: "Tokens e integrações técnicas.",
+  AdministradorParticipacaoLink: "Link exclusivo do formulário de participação."
+};
+
+const ACCENT_CYCLE = ["violet", "teal", "cyan", "amber", "indigo", "slate", "rose"];
 
 const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorServicos: RiBriefcase4Line,
@@ -148,24 +90,32 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorEmpresas: RiBuilding4Line,
   AdministradorVinculacoes: RiLinkM,
   AdministradorUsuarios: RiShieldUserLine,
+  AdministradorGrupos: RiShieldUserLine,
   AdministradorPerfil: RiUserSettingsLine,
-  AdministradorChaves: RiKey2Line
+  AdministradorChaves: RiKey2Line,
+  AdministradorParticipacaoLink: RiLinkM
 };
 
 const atalhosVisiveis = computed(() => {
-  if (auth.ehPrefeitura) {
-    return atalhos.filter(
-      (item) =>
-        item.rota === "AdministradorParticipacao" ||
-        item.rota === "AdministradorPerfil"
-    );
-  }
-  return atalhos;
+  const itens: Atalho[] = menuStore.opcoes
+    .filter(
+      (o) =>
+        o.pode_visualizar &&
+        o.rota_nome !== "AdministradorPainel" &&
+        o.rota_nome !== "AdministradorPerfil"
+    )
+    .map((o, idx) => ({
+      nome: o.label,
+      descricao: DESC_POR_ROTA[o.rota_nome] ?? "Acesse esta funcionalidade do painel.",
+      rota: o.rota_nome,
+      accent: ACCENT_CYCLE[idx % ACCENT_CYCLE.length] as string
+    }));
+  return itens;
 });
 
 onMounted(() => {
-  if (auth.ehPrefeitura) {
-    void router.replace({ name: "AdministradorParticipacao" });
+  if (!menuStore.podeAcessarRota("AdministradorPainel") && !menuStore.ehMaster) {
+    void router.replace(destinoAposMenu(menuStore.destinoSugerido, auth.usuario));
   }
 });
 </script>

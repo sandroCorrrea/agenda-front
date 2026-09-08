@@ -1,8 +1,11 @@
 import { inject, ref } from "vue";
 import type { IAuthRepository } from "@/domain/repositories/IAuthRepository";
+import type { IAuthMenuRepository } from "@/domain/repositories/IAuthMenuRepository";
 import { LoginUsuarioUseCase } from "@/application/use-cases/Auth/LoginUsuarioUseCase";
+import { ObterMenuSessaoUseCase } from "@/application/use-cases/Menu/ObterMenuSessaoUseCase";
 import { LoginPostRequestDTO } from "@/application/dto/Auth/LoginPostRequestDTO";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { useMenuStore } from "@/presentation/store/useMenuStore";
 import axios from "axios";
 import type { ErroResponseDTO } from "@/domain/types/ErroResponseDTO";
 
@@ -10,8 +13,16 @@ export function useLoginUsuario() {
     const repositorio = inject<IAuthRepository | null>("IAuthRepository", null);
     if (!repositorio) throw new Error("IAuthRepository not provided");
 
+    const menuRepo = inject<IAuthMenuRepository | null>(
+        "IAuthMenuRepository",
+        null
+    );
+    if (!menuRepo) throw new Error("IAuthMenuRepository not provided");
+
     const casoUso = new LoginUsuarioUseCase(repositorio);
+    const menuCasoUso = new ObterMenuSessaoUseCase(menuRepo);
     const authStore = useAuthStore();
+    const menuStore = useMenuStore();
 
     const carregando = ref(false);
     const erro = ref<string | null>(null);
@@ -23,7 +34,9 @@ export function useLoginUsuario() {
             const dto = new LoginPostRequestDTO(cpf, senha);
             const resposta = await casoUso.execute(dto);
             authStore.definirSessao(resposta.token, resposta.usuario);
-            return resposta;
+            const menu = await menuCasoUso.execute();
+            menuStore.definirMenu(menu);
+            return { ...resposta, menu };
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
                 const dados = err.response?.data as ErroResponseDTO & {

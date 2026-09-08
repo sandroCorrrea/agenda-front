@@ -21,7 +21,12 @@ import { EnderecoRepository } from "@/infrastructure/repositories/EnderecoReposi
 import { ProtocoloRepository } from "@/infrastructure/repositories/ProtocoloRepository";
 import { HomeCarrosselImagemRepository } from "@/infrastructure/repositories/HomeCarrosselImagemRepository";
 import { ParticipacaoRepository } from "@/infrastructure/repositories/ParticipacaoRepository";
+import { AuthMenuRepository } from "@/infrastructure/repositories/AuthMenuRepository";
+import { MenuRepository } from "@/infrastructure/repositories/MenuRepository";
+import { GrupoRepository } from "@/infrastructure/repositories/GrupoRepository";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { useMenuStore } from "@/presentation/store/useMenuStore";
+import { ObterMenuSessaoUseCase } from "@/application/use-cases/Menu/ObterMenuSessaoUseCase";
 
 const app = createApp(App);
 const api = axios.create({
@@ -42,6 +47,9 @@ const matriz = new MatrizRepository(api);
 const empresaVinculoRepository = new EmpresaVinculoRepository(api);
 const contato = new ContatoRepository(api);
 const autenticacao = new AuthRepository(api);
+const authMenuRepository = new AuthMenuRepository(api);
+const menuRepository = new MenuRepository(api);
+const grupoRepository = new GrupoRepository(api);
 const enderecoRepository = new EnderecoRepository(api);
 const protocoloRepository = new ProtocoloRepository(api);
 const homeCarrosselImagemRepository = new HomeCarrosselImagemRepository(api);
@@ -58,6 +66,9 @@ app.provide('IMatrizRepository', matriz);
 app.provide('IEmpresaVinculoRepository', empresaVinculoRepository);
 app.provide('IContatoRepository', contato);
 app.provide('IAuthRepository', autenticacao);
+app.provide('IAuthMenuRepository', authMenuRepository);
+app.provide('IMenuRepository', menuRepository);
+app.provide('IGrupoRepository', grupoRepository);
 app.provide('IEnderecoRepository', enderecoRepository);
 app.provide('IProtocoloRepository', protocoloRepository);
 app.provide('IHomeCarrosselImagemRepository', homeCarrosselImagemRepository);
@@ -67,6 +78,17 @@ const pinia = createPinia();
 app.use(pinia);
 const sessao = useAuthStore();
 sessao.recuperarSessao();
+
+if (sessao.estaAutenticado) {
+    const menuStore = useMenuStore();
+    const obterMenu = new ObterMenuSessaoUseCase(authMenuRepository);
+    void obterMenu
+        .execute()
+        .then((menu) => menuStore.definirMenu(menu))
+        .catch(() => {
+            /* menu será tentado de novo no guard / login */
+        });
+}
 api.interceptors.request.use((config) => {
     const auth = useAuthStore();
     config.headers = config.headers ?? {};
@@ -114,6 +136,7 @@ api.interceptors.response.use(
 
             const auth = useAuthStore();
             auth.encerrarSessao();
+            useMenuStore().limparMenu();
 
             const rotaAtual = router.currentRoute.value;
             if (rotaAtual.name !== "Login") {

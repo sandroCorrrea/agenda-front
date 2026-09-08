@@ -12,6 +12,7 @@ import {
 } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useAvisosAdmin } from "@/presentation/composables/Aviso/useAvisosAdmin";
+import { usePermissaoMenu } from "@/presentation/composables/Menu/usePermissaoMenu";
 
 const {
     avisos,
@@ -30,6 +31,8 @@ const {
     totalPaginas,
     irParaPagina
 } = useAvisosAdmin();
+
+const { podeInserir, podeAtualizar, podeExcluir } = usePermissaoMenu("admin.avisos");
 
 const route = useRoute();
 const router = useRouter();
@@ -69,7 +72,11 @@ onMounted(async () => {
             >
                 <template #icon><RiChatHistoryLine /></template>
                 <template #actions>
-                    <RouterLink :to="{ name: 'AdministradorAvisoCadastro' }" class="btn">
+                    <RouterLink
+                        v-if="podeInserir"
+                        :to="{ name: 'AdministradorAvisoCadastro' }"
+                        class="btn"
+                    >
                         <RiAddLine class="me-1" />
                         Novo aviso
                     </RouterLink>
@@ -116,6 +123,7 @@ onMounted(async () => {
                                 </p>
                                 <div class="aviso-card__actions">
                                     <RouterLink
+                                        v-if="podeAtualizar"
                                         class="btn aviso-card__btn-edit"
                                         :to="{
                                             name: 'AdministradorAvisoEditar',
@@ -126,6 +134,7 @@ onMounted(async () => {
                                         Editar
                                     </RouterLink>
                                     <button
+                                        v-if="podeExcluir"
                                         type="button"
                                         class="btn aviso-card__btn-delete"
                                         :disabled="excluindoId !== null"
@@ -157,6 +166,7 @@ onMounted(async () => {
                                 </div>
                                 <p class="mb-2 text-muted">Nenhum aviso cadastrado até o momento.</p>
                                 <RouterLink
+                                    v-if="podeInserir"
                                     :to="{ name: 'AdministradorAvisoCadastro' }"
                                     class="btn btn-primary btn-admin"
                                 >

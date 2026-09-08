@@ -30,7 +30,8 @@ export class AuthRepository implements IAuthRepository {
                 data.usuario.id,
                 data.usuario.pessoa_id,
                 data.usuario.tipo_usuario,
-                data.usuario.perfil_administrador ?? null
+                data.usuario.perfil_administrador ?? null,
+                data.usuario.grupo_id ?? null
             ),
             data.expires_in
         );

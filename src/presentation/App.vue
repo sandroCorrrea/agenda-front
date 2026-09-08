@@ -7,8 +7,8 @@ import FooterAdministrador from './components/Layout/FooterAdministrador.vue';
 import AdminVinculosPendentesBanner from './components/Admin/AdminVinculosPendentesBanner.vue';
 import { useMatrizStore } from './store/useMatrizStore';
 import { useAuthStore } from './store/useAuthStore';
+import { useMenuStore } from './store/useMenuStore';
 import { TipoUsuario } from '@/domain/types/TipoUsuario';
-import { canAccessPainelContabilidade } from '@/shared/utils/adminPermissions';
 import type { IMatrizRepository } from '@/domain/repositories/IMatrizRepository';
 import { useLayoutMinimo } from '@/presentation/composables/useLayoutMinimo';
 
@@ -16,6 +16,7 @@ const repo = inject<IMatrizRepository>('IMatrizRepository');
 const matrizStore = useMatrizStore();
 const route = useRoute();
 const auth = useAuthStore();
+const menuStore = useMenuStore();
 const layoutMinimo = useLayoutMinimo();
 
 /** Rodapé do painel em rotas administrativas (/admin e telas com meta de administrador). */
@@ -30,13 +31,13 @@ const mostrarFooterAdministrador = computed(() => {
   return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
 });
 
-/** Banner de vinculações pendentes em telas administrativas da contabilidade. */
+/** Banner de vinculações pendentes quando o usuário pode visualizar admin.vinculacoes. */
 const mostrarBannerVinculosPendentes = computed(() => {
   if (layoutMinimo.value) return false;
   if (!auth.estaAutenticado || auth.usuario?.tipo_usuario !== TipoUsuario.ADMINISTRADOR) {
     return false;
   }
-  if (!canAccessPainelContabilidade(auth.usuario)) return false;
+  if (!menuStore.podeVisualizarCodigo('admin.vinculacoes')) return false;
   if (route.path.startsWith('/admin')) return true;
   return route.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR;
 });

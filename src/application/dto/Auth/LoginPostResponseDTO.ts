@@ -5,7 +5,8 @@ export class UsuarioAutenticadoDTO {
         public id: number,
         public pessoa_id: number,
         public tipo_usuario: string,
-        public perfil_administrador?: PerfilAdministrador | null
+        public perfil_administrador?: PerfilAdministrador | null,
+        public grupo_id?: number | null
     ) {}
 }
 
@@ -18,6 +19,7 @@ export type LoginResponse = {
         pessoa_id: number;
         tipo_usuario: string;
         perfil_administrador?: PerfilAdministrador | null;
+        grupo_id?: number | null;
     };
     expires_in?: number;
 };

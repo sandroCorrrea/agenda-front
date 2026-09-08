@@ -13,6 +13,7 @@ import {
 } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useServicosAdmin } from "@/presentation/composables/Servico/useServicosAdmin";
+import { usePermissaoMenu } from "@/presentation/composables/Menu/usePermissaoMenu";
 
 const router = useRouter();
 const {
@@ -34,6 +35,8 @@ const {
     fecharModalExcluir,
     confirmarExclusao
 } = useServicosAdmin();
+
+const { podeInserir, podeAtualizar, podeExcluir } = usePermissaoMenu("admin.servicos");
 
 const mostrarMsgCriado = ref(false);
 
@@ -64,7 +67,11 @@ function aoBuscar(ev: Event) {
             >
                 <template #icon><RiStackLine /></template>
                 <template #actions>
-                    <RouterLink :to="{ name: 'AdministradorServicoCadastro' }" class="btn">
+                    <RouterLink
+                        v-if="podeInserir"
+                        :to="{ name: 'AdministradorServicoCadastro' }"
+                        class="btn"
+                    >
                         <RiAddLine class="me-1" />
                         Novo serviço
                     </RouterLink>
@@ -127,6 +134,7 @@ function aoBuscar(ev: Event) {
                                     </p>
                                     <div class="svc-card__actions">
                                         <RouterLink
+                                            v-if="podeAtualizar"
                                             class="btn svc-card__btn svc-card__btn--edit"
                                             :to="{ name: 'AdministradorServicoEditar', params: { id: item.id } }"
                                         >
@@ -134,6 +142,7 @@ function aoBuscar(ev: Event) {
                                             Editar
                                         </RouterLink>
                                         <button
+                                            v-if="podeExcluir"
                                             type="button"
                                             class="btn svc-card__btn svc-card__btn--del"
                                             :disabled="excluindoId !== null"
@@ -160,6 +169,7 @@ function aoBuscar(ev: Event) {
                                 <RiStackLine class="svc-admin__empty-icon mb-3" aria-hidden="true" />
                                 <p class="mb-2 text-muted">Nenhum serviço encontrado com os filtros atuais.</p>
                                 <RouterLink
+                                    v-if="podeInserir"
                                     :to="{ name: 'AdministradorServicoCadastro' }"
                                     class="btn svc-admin__btn-nova btn-sm"
                                 >

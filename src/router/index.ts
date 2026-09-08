@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/presentation/store/useAuthStore'
+import { useMenuStore } from '@/presentation/store/useMenuStore'
 import { TipoUsuario } from '@/domain/types/TipoUsuario'
 import {
-  destinoAdminAposLogin,
+  destinoAposMenu,
+  isContabilidade,
   isPrefeitura,
-  ROTAS_ADMIN_PREFEITURA,
   sessaoAdminLegadaSemPerfil
 } from '@/shared/utils/adminPermissions'
 
@@ -450,6 +451,52 @@ const router = createRouter({
       }
     },
     {
+      path: '/admin/grupos',
+      name: 'AdministradorGrupos',
+      component: () =>
+        import('@/presentation/pages/Grupo/PageAreaGruposAdmin.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        requerMaster: true,
+        tituloCliente: 'Grupos de acesso'
+      }
+    },
+    {
+      path: '/admin/grupos/nova',
+      name: 'AdministradorGrupoCadastro',
+      component: () =>
+        import('@/presentation/pages/Grupo/PageCadastroGrupo.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        requerMaster: true,
+        tituloCliente: 'Novo grupo'
+      }
+    },
+    {
+      path: '/admin/grupos/:id/editar',
+      name: 'AdministradorGrupoEditar',
+      component: () =>
+        import('@/presentation/pages/Grupo/PageEditarGrupo.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        requerMaster: true,
+        tituloCliente: 'Editar grupo'
+      }
+    },
+    {
+      path: '/sem-acesso',
+      name: 'SemAcesso',
+      component: () =>
+        import('@/presentation/pages/Pessoa/PageSemAcesso.vue'),
+      meta: {
+        requerAutenticacao: true,
+        tituloCliente: 'Sem permissões'
+      }
+    },
+    {
       path: '/admin/participacao-popular',
       name: 'AdministradorParticipacao',
       component: () =>
@@ -468,7 +515,6 @@ const router = createRouter({
       meta: {
         requerAutenticacao: true,
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
-        requerPrefeitura: true,
         tituloCliente: 'Link do formulário'
       }
     },
@@ -486,8 +532,18 @@ const router = createRouter({
   ],
 })
 
+const ROTAS_SEM_CHECK_MENU = new Set([
+  'SemAcesso',
+  'Login',
+  'Cadastro',
+  'Home',
+  'RecuperarSenha',
+  'RedefinirSenha'
+])
+
 router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
+  const menu = useMenuStore()
 
   if (auth.estaAutenticado && sessaoAdminLegadaSemPerfil(auth.usuario)) {
     auth.encerrarSessao()
@@ -500,47 +556,58 @@ router.beforeEach((to, _from, next) => {
     auth.estaAutenticado &&
     auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR
   ) {
-    if (isPrefeitura(auth.usuario)) {
-      next({ name: 'AdministradorParticipacao' })
-    } else {
+    if (menu.podeAcessarRota('AdministradorAvisos')) {
       next({ name: 'AdministradorAvisos' })
+    } else {
+      next(destinoAposMenu(menu.destinoSugerido, auth.usuario))
     }
     return
   }
+
   if (to.meta.requerAutenticacao && !auth.estaAutenticado) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
     return
   }
+
   const permitido = to.meta.perfilPermitido as string | undefined
   if (permitido && auth.usuario && auth.usuario.tipo_usuario !== permitido) {
     if (auth.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR) {
-      next(destinoAdminAposLogin(auth.usuario))
+      next(destinoAposMenu(menu.destinoSugerido, auth.usuario))
     } else {
       next({ name: 'AreaCliente' })
     }
     return
   }
 
-  if (
-    auth.estaAutenticado &&
-    auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR &&
-    to.meta.requerPrefeitura === true &&
-    !isPrefeitura(auth.usuario)
-  ) {
-    next({ name: 'AdministradorParticipacao' })
+  if (to.meta.requerMaster === true && !isContabilidade(auth.usuario) && !menu.ehMaster) {
+    next(destinoAposMenu(menu.destinoSugerido, auth.usuario))
     return
   }
 
+  const nomeRota = typeof to.name === 'string' ? to.name : ''
+  const precisaMenu =
+    Boolean(to.meta.requerAutenticacao) &&
+    Boolean(permitido) &&
+    !ROTAS_SEM_CHECK_MENU.has(nomeRota)
+
   if (
+    precisaMenu &&
     auth.estaAutenticado &&
-    auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR &&
-    to.meta.perfilPermitido === TipoUsuario.ADMINISTRADOR
+    menu.carregado &&
+    !menu.ehMaster &&
+    nomeRota &&
+    !menu.podeAcessarRota(nomeRota)
   ) {
-    const nomeRota = typeof to.name === 'string' ? to.name : ''
-    if (isPrefeitura(auth.usuario) && !ROTAS_ADMIN_PREFEITURA.has(nomeRota)) {
-      next({ name: 'AdministradorParticipacao' })
+    if (
+      auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR &&
+      isPrefeitura(auth.usuario) &&
+      !menu.temAlgumaOpcao
+    ) {
+      next({ name: 'SemAcesso' })
       return
     }
+    next(destinoAposMenu(menu.destinoSugerido, auth.usuario))
+    return
   }
 
   next()

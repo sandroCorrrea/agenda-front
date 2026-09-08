@@ -12,6 +12,7 @@ import {
 } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useCategoriasAdmin } from "@/presentation/composables/BlogCategoria/useCategoriasAdmin";
+import { usePermissaoMenu } from "@/presentation/composables/Menu/usePermissaoMenu";
 import { ref } from "vue";
 
 const {
@@ -29,6 +30,9 @@ const {
     totalPaginas,
     irParaPagina
 } = useCategoriasAdmin();
+
+const { podeInserir, podeAtualizar, podeExcluir } = usePermissaoMenu("admin.blog_categorias");
+
 const route = useRoute();
 const router = useRouter();
 const mostrarMsgCriado = ref(false);
@@ -60,7 +64,11 @@ onMounted(async () => {
             >
                 <template #icon><RiPriceTag3Line /></template>
                 <template #actions>
-                    <RouterLink :to="{ name: 'BlogCategoriaCadastro' }" class="btn">
+                    <RouterLink
+                        v-if="podeInserir"
+                        :to="{ name: 'BlogCategoriaCadastro' }"
+                        class="btn"
+                    >
                         <RiAddLine class="me-1" />
                         Nova categoria
                     </RouterLink>
@@ -96,6 +104,7 @@ onMounted(async () => {
                                 </p>
                                 <div class="cat-card__actions">
                                     <RouterLink
+                                        v-if="podeAtualizar"
                                         class="btn cat-card__btn"
                                         :to="{ name: 'BlogCategoriaEditar', params: { id: item.id } }"
                                     >
@@ -103,6 +112,7 @@ onMounted(async () => {
                                         Editar
                                     </RouterLink>
                                     <button
+                                        v-if="podeExcluir"
                                         type="button"
                                         class="btn cat-card__btn-delete"
                                         :disabled="excluindoId !== null"
@@ -132,6 +142,7 @@ onMounted(async () => {
                                 </div>
                                 <p class="mb-2 text-muted">Nenhuma categoria cadastrada até o momento.</p>
                                 <RouterLink
+                                    v-if="podeInserir"
                                     :to="{ name: 'BlogCategoriaCadastro' }"
                                     class="btn btn-primary btn-admin"
                                 >

@@ -8,6 +8,7 @@ import {
     isPrefeitura,
     sessaoAdminLegadaSemPerfil
 } from "@/shared/utils/adminPermissions";
+import { useMenuStore } from "@/presentation/store/useMenuStore";
 
 const chaveToken = "agenda_auth_token";
 const chaveUsuario = "agenda_auth_usuario";
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore("auth", () => {
             try {
                 token.value = t;
                 usuario.value = JSON.parse(u) as UsuarioAutenticadoDTO;
+                useMenuStore().recuperarMenuLocal();
             } catch {
                 encerrarSessao();
             }
@@ -57,6 +59,7 @@ export const useAuthStore = defineStore("auth", () => {
         usuario.value = null;
         localStorage.removeItem(chaveToken);
         localStorage.removeItem(chaveUsuario);
+        useMenuStore().limparMenu();
     }
 
     return {

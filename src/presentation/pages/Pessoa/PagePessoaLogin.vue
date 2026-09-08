@@ -3,26 +3,37 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import FormLogin from '@/presentation/components/Pessoa/FormLogin.vue';
 import { useLoginUsuario } from '@/presentation/composables/Pessoa/useLoginUsuario';
-import { TipoUsuario } from '@/domain/types/TipoUsuario';
 import { useAuthStore } from '@/presentation/store/useAuthStore';
-import { destinoAdminAposLogin } from '@/shared/utils/adminPermissions';
+import { useMenuStore } from '@/presentation/store/useMenuStore';
+import { destinoAposMenu } from '@/shared/utils/adminPermissions';
+import { useCarregarMenuSessao } from '@/presentation/composables/Menu/useCarregarMenuSessao';
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const menuStore = useMenuStore();
 const { entrar, carregando, erro } = useLoginUsuario();
+const { carregarMenuSessao } = useCarregarMenuSessao();
 const erroFormulario = ref<string | null>(null);
 const mensagemErro = computed(() => erroFormulario.value || erro.value || null);
 
-onMounted(() => {
+async function redirecionarAutenticado() {
+  const destino = destinoAposMenu(menuStore.destinoSugerido, auth.usuario);
+  await router.replace(destino);
+}
+
+onMounted(async () => {
   if (route.query.sessionExpired === '1') {
     erroFormulario.value = 'Sua sessao expirou. Faca login novamente.';
   }
   if (!auth.estaAutenticado || !auth.usuario) return;
-  if (auth.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR) {
-    void router.replace(destinoAdminAposLogin(auth.usuario));
-  } else {
-    void router.replace({ name: 'AreaCliente' });
+  try {
+    if (!menuStore.carregado) {
+      await carregarMenuSessao();
+    }
+    await redirecionarAutenticado();
+  } catch {
+    await router.replace({ name: 'SemAcesso' });
   }
 });
 
@@ -39,11 +50,8 @@ async function aoEnviarLogin(payload: { cpf: string; senha: string }) {
       await router.push(redirecionar);
       return;
     }
-    if (resposta.usuario.tipo_usuario === TipoUsuario.ADMINISTRADOR) {
-      await router.push(destinoAdminAposLogin(resposta.usuario));
-    } else {
-      await router.push({ name: 'AreaCliente' });
-    }
+    const destino = destinoAposMenu(resposta.menu.destino_sugerido, resposta.usuario);
+    await router.push(destino);
   } catch {
     return;
   }

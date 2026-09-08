@@ -13,6 +13,7 @@ import {
 import { ref } from "vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { usePostagensAdmin } from "@/presentation/composables/BlogPostagem/usePostagensAdmin";
+import { usePermissaoMenu } from "@/presentation/composables/Menu/usePermissaoMenu";
 import { nomeAutorPostagem } from "@/shared/utils/blogPostagemAutor";
 
 const {
@@ -32,6 +33,8 @@ const {
     fecharModalExcluir,
     confirmarExclusao
 } = usePostagensAdmin();
+
+const { podeInserir, podeAtualizar, podeExcluir } = usePermissaoMenu("admin.blog_postagens");
 
 const route = useRoute();
 const router = useRouter();
@@ -74,7 +77,11 @@ onMounted(async () => {
             >
                 <template #icon><RiArticleLine /></template>
                 <template #actions>
-                    <RouterLink :to="{ name: 'BlogPostagemCadastro' }" class="btn">
+                    <RouterLink
+                        v-if="podeInserir"
+                        :to="{ name: 'BlogPostagemCadastro' }"
+                        class="btn"
+                    >
                         <RiAddLine class="me-1" />
                         Nova postagem
                     </RouterLink>
@@ -132,6 +139,7 @@ onMounted(async () => {
                                 </p>
                                 <div class="post-card__actions">
                                     <RouterLink
+                                        v-if="podeAtualizar"
                                         class="btn post-card__btn"
                                         :to="{ name: 'BlogPostagemEditar', params: { id: item.id } }"
                                     >
@@ -139,6 +147,7 @@ onMounted(async () => {
                                         Editar
                                     </RouterLink>
                                     <button
+                                        v-if="podeExcluir"
                                         type="button"
                                         class="btn post-card__btn-delete"
                                         :disabled="excluindoId !== null"
@@ -166,6 +175,7 @@ onMounted(async () => {
                                 </div>
                                 <p class="mb-2 text-muted">Nenhuma postagem cadastrada até o momento.</p>
                                 <RouterLink
+                                    v-if="podeInserir"
                                     :to="{ name: 'BlogPostagemCadastro' }"
                                     class="btn btn-primary btn-admin"
                                 >

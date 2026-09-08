@@ -14,6 +14,7 @@ import {
 } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useHomeCarrosselAdmin } from "@/presentation/composables/HomeCarrosselImagem/useHomeCarrosselAdmin";
+import { usePermissaoMenu } from "@/presentation/composables/Menu/usePermissaoMenu";
 
 const {
     imagens,
@@ -32,6 +33,8 @@ const {
     totalPaginas,
     irParaPagina
 } = useHomeCarrosselAdmin();
+
+const { podeInserir, podeAtualizar, podeExcluir } = usePermissaoMenu("admin.home_carrossel");
 
 const route = useRoute();
 const router = useRouter();
@@ -69,7 +72,11 @@ onMounted(async () => {
             >
                 <template #icon><RiImage2Line /></template>
                 <template #actions>
-                    <RouterLink :to="{ name: 'AdministradorHomeCarrosselCadastro' }" class="btn">
+                    <RouterLink
+                        v-if="podeInserir"
+                        :to="{ name: 'AdministradorHomeCarrosselCadastro' }"
+                        class="btn"
+                    >
                         <RiAddLine class="me-1" />
                         Nova imagem
                     </RouterLink>
@@ -145,6 +152,7 @@ onMounted(async () => {
                                 </p>
                                 <div class="carrossel-card__actions">
                                     <RouterLink
+                                        v-if="podeAtualizar"
                                         class="btn carrossel-card__btn-edit"
                                         :to="{
                                             name: 'AdministradorHomeCarrosselEditar',
@@ -155,6 +163,7 @@ onMounted(async () => {
                                         Editar
                                     </RouterLink>
                                     <button
+                                        v-if="podeExcluir"
                                         type="button"
                                         class="btn carrossel-card__btn-delete"
                                         :disabled="excluindoId !== null"
@@ -182,6 +191,7 @@ onMounted(async () => {
                                     Nenhuma imagem cadastrada no carrossel da Home.
                                 </p>
                                 <RouterLink
+                                    v-if="podeInserir"
                                     :to="{ name: 'AdministradorHomeCarrosselCadastro' }"
                                     class="btn btn-primary btn-admin"
                                 >

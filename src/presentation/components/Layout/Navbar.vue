@@ -4,25 +4,26 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
     RiArrowDownSLine,
     RiCloseLine,
-    RiDashboardLine,
     RiLockLine,
     RiLogoutBoxRLine,
-    RiLinkM,
     RiMenuLine,
-    RiSpeakLine,
     RiUserLine
 } from "@remixicon/vue";
 import logo from "@/presentation/assets/img/logo.svg";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
+import { useMenuStore } from "@/presentation/store/useMenuStore";
 import { TipoUsuario } from "@/domain/types/TipoUsuario";
 import { useLogoutUsuario } from "@/presentation/composables/Pessoa/useLogoutUsuario";
 import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
 import { useVinculosPendentesStore } from "@/presentation/store/useVinculosPendentesStore";
+import type { MenuModuloSessaoDTO } from "@/application/dto/Menu/MenuSessaoDTO";
+import { destinoAposMenu } from "@/shared/utils/adminPermissions";
 
 const layoutMinimo = useLayoutMinimo();
 const matriz = useMatrizStore();
 const auth = useAuthStore();
+const menuStore = useMenuStore();
 const vinculosPendentes = useVinculosPendentesStore();
 const router = useRouter();
 const route = useRoute();
@@ -30,102 +31,55 @@ const { sair: chamarLogoutApi } = useLogoutUsuario();
 
 const menuAberto = ref(false);
 const saindo = ref(false);
-const adminSubmenuAberto = ref<"" | "gestao" | "blog" | "clientes" | "conta">(
-    ""
-);
-/** Submenu do portal do cliente (Perfil / Chaves / Empresas), mesmo padrao do admin Conta. */
-const clienteSubmenuAberto = ref<"" | "conta">("");
+const submenuAberto = ref("");
 const apisMenuAberto = ref(false);
-/** Submenu visitante: Login e Cadastro em um único item. */
 const acessoVisitanteAberto = ref(false);
-/** Submenu público: Aviso e Blog sob “Conteúdo”. */
 const conteudoMenuAberto = ref(false);
 const modalConfirmarSaidaAberto = ref(false);
 
-const isCliente = computed(
-    () => auth.estaAutenticado && auth.usuario?.tipo_usuario === TipoUsuario.CLIENTE
-);
-const isAdmin = computed(
-    () =>
-        auth.estaAutenticado &&
-        auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR
-);
-const isAdminPrefeitura = computed(() => isAdmin.value && auth.ehPrefeitura);
-const isAdminContabilidade = computed(
-    () => isAdmin.value && auth.ehContabilidade
+const estaAutenticado = computed(() => auth.estaAutenticado);
+
+const modulosAutenticados = computed(() =>
+    [...menuStore.modulos]
+        .filter((m) => (m.opcoes ?? []).some((o) => o.pode_visualizar))
+        .sort((a, b) => a.ordem - b.ordem)
+        .map((m) => ({
+            ...m,
+            opcoes: [...(m.opcoes ?? [])]
+                .filter((o) => o.pode_visualizar)
+                .sort((a, b) => a.ordem - b.ordem)
+        }))
 );
 
-/** Logo + nome da empresa: admin ao painel; cliente à área de protocolos; demais, home pública. */
 const marcaDestino = computed(() => {
-    if (isAdminPrefeitura.value) {
-        return { name: "AdministradorParticipacao" as const };
-    }
-    if (isAdmin.value) return { name: "AdministradorPainel" as const };
-    if (isCliente.value) return "/cliente/protocolos";
-    return "/";
+    if (!auth.estaAutenticado) return "/";
+    return destinoAposMenu(menuStore.destinoSugerido, auth.usuario);
 });
-
-/** Rotas filhas por grupo — os toggles são <button>, então não recebem router-link-active. */
-const ROTAS_ADMIN_GESTAO = new Set<string>([
-    "AdministradorServicos",
-    "AdministradorServicoCadastro",
-    "AdministradorServicoEditar",
-    "AdministradorProtocolos",
-    "AdministradorProtocoloCadastro",
-    "AdministradorProtocoloEditar",
-    "AdministradorAvisos",
-    "AdministradorAvisoCadastro",
-    "AdministradorAvisoEditar",
-    "AdministradorHomeCarrossel",
-    "AdministradorHomeCarrosselCadastro",
-    "AdministradorHomeCarrosselEditar",
-    "AdministradorParticipacao",
-    "AdministradorParticipacaoDetalhe"
-]);
-const ROTAS_ADMIN_BLOG = new Set<string>([
-    "BlogCategorias",
-    "BlogCategoriaCadastro",
-    "BlogCategoriaEditar",
-    "BlogPostagem",
-    "BlogPostagemCadastro",
-    "BlogPostagemEditar"
-]);
-const ROTAS_ADMIN_CLIENTES = new Set<string>([
-    "AdministradorClientesPessoaFisica",
-    "AdministradorClienteFisicaEditar",
-    "AdministradorEmpresas",
-    "AdministradorEmpresaEditar",
-    "AdministradorVinculacoes",
-    "AdministradorUsuarios"
-]);
-const ROTAS_ADMIN_CONTA = new Set<string>(["AdministradorPerfil", "AdministradorChaves"]);
-const ROTAS_CLIENTE_CONTA = new Set<string>(["ClientePerfil", "ClienteChaves", "ClienteEmpresas"]);
 
 function nomeRotaAtual(): string | null {
     const n = route.name;
     return typeof n === "string" ? n : null;
 }
 
-const adminGestaoAtivo = computed(() => {
+function moduloTemRotaAtiva(modulo: MenuModuloSessaoDTO): boolean {
     const n = nomeRotaAtual();
-    return n != null && ROTAS_ADMIN_GESTAO.has(n);
-});
-const adminBlogAtivo = computed(() => {
-    const n = nomeRotaAtual();
-    return n != null && ROTAS_ADMIN_BLOG.has(n);
-});
-const adminClientesAtivo = computed(() => {
-    const n = nomeRotaAtual();
-    return n != null && ROTAS_ADMIN_CLIENTES.has(n);
-});
-const adminContaAtivo = computed(() => {
-    const n = nomeRotaAtual();
-    return n != null && ROTAS_ADMIN_CONTA.has(n);
-});
-const clienteContaAtivo = computed(() => {
-    const n = nomeRotaAtual();
-    return n != null && ROTAS_CLIENTE_CONTA.has(n);
-});
+    if (!n) return false;
+    return modulo.opcoes.some(
+        (op) =>
+            op.rota_nome === n ||
+            op.rota_nome_cadastro === n ||
+            op.rota_nome_editar === n
+    );
+}
+
+function opcaoMostraBadgeVinculos(codigo: string): boolean {
+    return codigo === "admin.vinculacoes";
+}
+
+function moduloMostraBadgeVinculos(modulo: MenuModuloSessaoDTO): boolean {
+    return modulo.opcoes.some((o) => o.codigo === "admin.vinculacoes");
+}
+
 const apisDocumentacaoAtiva = computed(
     () => route.name === "BpeDocumentacao" || route.name === "ProtocoloDocumentacao"
 );
@@ -143,8 +97,7 @@ function toggleMenu() {
 
 function closeMenu() {
     menuAberto.value = false;
-    adminSubmenuAberto.value = "";
-    clienteSubmenuAberto.value = "";
+    submenuAberto.value = "";
     apisMenuAberto.value = false;
     acessoVisitanteAberto.value = false;
     conteudoMenuAberto.value = false;
@@ -162,14 +115,8 @@ function toggleConteudoMenu() {
     conteudoMenuAberto.value = !conteudoMenuAberto.value;
 }
 
-function toggleAdminSubmenu(chave: "gestao" | "blog" | "clientes" | "conta") {
-    adminSubmenuAberto.value =
-        adminSubmenuAberto.value === chave ? "" : chave;
-}
-
-function toggleClienteSubmenu(chave: "conta") {
-    clienteSubmenuAberto.value =
-        clienteSubmenuAberto.value === chave ? "" : chave;
+function toggleSubmenu(codigo: string) {
+    submenuAberto.value = submenuAberto.value === codigo ? "" : codigo;
 }
 
 function abrirModalSaida() {
@@ -230,7 +177,7 @@ async function sair() {
 
             <div class="navsafe__menu" :class="{ 'navsafe__menu--open': menuAberto }">
                 <ul class="navsafe__list">
-                    <template v-if="!auth.estaAutenticado">
+                    <template v-if="!estaAutenticado">
                         <li><RouterLink to="/" class="navsafe__link" @click="closeMenu">Home</RouterLink></li>
                         <li><RouterLink to="/servico" class="navsafe__link" @click="closeMenu">Serviços</RouterLink></li>
                         <li><RouterLink to="/contato" class="navsafe__link" @click="closeMenu">Contato</RouterLink></li>
@@ -303,178 +250,86 @@ async function sair() {
                         </li>
                     </template>
 
-                    <template v-else-if="isCliente">
-                        <li><RouterLink to="/cliente/protocolos" class="navsafe__link" @click="closeMenu">Protocolos</RouterLink></li>
-                        <li
-                            class="navsafe__item-submenu"
-                            :class="{ 'navsafe__item-submenu--open': clienteSubmenuAberto === 'conta' }"
-                        >
-                            <button
-                                type="button"
-                                class="navsafe__link navsafe__submenu-toggle"
-                                :class="{ 'navsafe__submenu-toggle--active': clienteContaAtivo }"
-                                @click="toggleClienteSubmenu('conta')"
+                    <template v-else>
+                        <template v-for="modulo in modulosAutenticados" :key="modulo.codigo">
+                            <template v-if="!modulo.label">
+                                <li v-for="opcao in modulo.opcoes" :key="opcao.codigo">
+                                    <RouterLink
+                                        :to="{ name: opcao.rota_nome }"
+                                        class="navsafe__link"
+                                        @click="closeMenu"
+                                    >
+                                        {{ opcao.label }}
+                                        <span
+                                            v-if="opcaoMostraBadgeVinculos(opcao.codigo) && vinculosPendentes.temPendentes"
+                                            class="navsafe__badge-count"
+                                        >
+                                            {{ vinculosPendentes.totalPendentes }}
+                                        </span>
+                                    </RouterLink>
+                                </li>
+                            </template>
+                            <li
+                                v-else
+                                class="navsafe__item-submenu"
+                                :class="{ 'navsafe__item-submenu--open': submenuAberto === modulo.codigo }"
                             >
-                                Conta
-                                <RiArrowDownSLine class="navsafe__submenu-icon" />
-                            </button>
-                            <div class="navsafe__submenu">
-                                <RouterLink
-                                    :to="{ name: 'ClientePerfil' }"
-                                    class="navsafe__submenu-link"
-                                    @click="closeMenu"
+                                <button
+                                    type="button"
+                                    class="navsafe__link navsafe__submenu-toggle"
+                                    :class="{ 'navsafe__submenu-toggle--active': moduloTemRotaAtiva(modulo) }"
+                                    @click="toggleSubmenu(modulo.codigo)"
                                 >
-                                    Perfil
-                                </RouterLink>
-                                <RouterLink
-                                    :to="{ name: 'ClienteChaves' }"
-                                    class="navsafe__submenu-link"
-                                    @click="closeMenu"
-                                >
-                                    Chaves
-                                </RouterLink>
-                                <RouterLink
-                                    :to="{ name: 'ClienteEmpresas' }"
-                                    class="navsafe__submenu-link"
-                                    @click="closeMenu"
-                                >
-                                    Empresas
-                                </RouterLink>
-                            </div>
-                        </li>
-                        <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
-                    </template>
-
-                    <template v-else-if="isAdminPrefeitura">
-                        <li>
-                            <RouterLink
-                                :to="{ name: 'AdministradorParticipacaoLink' }"
-                                class="navsafe__link"
-                                @click="closeMenu"
-                            >
-                                <RiLinkM /> Link do formulário
-                            </RouterLink>
-                        </li>
-                        <li>
-                            <RouterLink
-                                :to="{ name: 'AdministradorParticipacao' }"
-                                class="navsafe__link"
-                                @click="closeMenu"
-                            >
-                                <RiSpeakLine /> Participação popular
-                            </RouterLink>
-                        </li>
-                        <li>
-                            <RouterLink
-                                to="/admin/perfil"
-                                class="navsafe__link"
-                                @click="closeMenu"
-                            >
-                                <RiUserLine /> Perfil
-                            </RouterLink>
-                        </li>
-                        <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
-                    </template>
-
-                    <template v-else-if="isAdminContabilidade">
-                        <li>
-                            <RouterLink
-                                :to="{ name: 'AdministradorPainel' }"
-                                class="navsafe__link"
-                                @click="closeMenu"
-                            >
-                                <RiDashboardLine /> Painel
-                            </RouterLink>
-                        </li>
-
-                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'gestao' }">
-                            <button
-                                type="button"
-                                class="navsafe__link navsafe__submenu-toggle"
-                                :class="{ 'navsafe__submenu-toggle--active': adminGestaoAtivo }"
-                                @click="toggleAdminSubmenu('gestao')"
-                            >
-                                Gestão
-                                <RiArrowDownSLine class="navsafe__submenu-icon" />
-                            </button>
-                            <div class="navsafe__submenu">
-                                <RouterLink :to="{ name: 'AdministradorServicos' }" class="navsafe__submenu-link" @click="closeMenu">Serviços</RouterLink>
-                                <RouterLink :to="{ name: 'AdministradorProtocolos' }" class="navsafe__submenu-link" @click="closeMenu">Protocolos</RouterLink>
-                                <RouterLink :to="{ name: 'AdministradorAvisos' }" class="navsafe__submenu-link" @click="closeMenu">Avisos</RouterLink>
-                                <RouterLink :to="{ name: 'AdministradorHomeCarrossel' }" class="navsafe__submenu-link" @click="closeMenu">Carrossel da Home</RouterLink>
-                                <RouterLink :to="{ name: 'AdministradorParticipacao' }" class="navsafe__submenu-link" @click="closeMenu">Participação popular</RouterLink>
-                            </div>
-                        </li>
-
-                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'blog' }">
-                            <button
-                                type="button"
-                                class="navsafe__link navsafe__submenu-toggle"
-                                :class="{ 'navsafe__submenu-toggle--active': adminBlogAtivo }"
-                                @click="toggleAdminSubmenu('blog')"
-                            >
-                                Blog
-                                <RiArrowDownSLine class="navsafe__submenu-icon" />
-                            </button>
-                            <div class="navsafe__submenu">
-                                <RouterLink :to="{ name: 'BlogCategorias' }" class="navsafe__submenu-link" @click="closeMenu">Categorias</RouterLink>
-                                <RouterLink :to="{ name: 'BlogPostagem' }" class="navsafe__submenu-link" @click="closeMenu">Postagens</RouterLink>
-                            </div>
-                        </li>
-
-                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'clientes' }">
-                            <button
-                                type="button"
-                                class="navsafe__link navsafe__submenu-toggle"
-                                :class="{ 'navsafe__submenu-toggle--active': adminClientesAtivo }"
-                                @click="toggleAdminSubmenu('clientes')"
-                            >
-                                Clientes
-                                <span
-                                    v-if="vinculosPendentes.temPendentes"
-                                    class="navsafe__badge-count"
-                                >
-                                    {{ vinculosPendentes.totalPendentes }}
-                                </span>
-                                <RiArrowDownSLine class="navsafe__submenu-icon" />
-                            </button>
-                            <div class="navsafe__submenu">
-                                <RouterLink to="/admin/clientes/pessoa-fisica" class="navsafe__submenu-link" @click="closeMenu">Pessoa física</RouterLink>
-                                <RouterLink to="/admin/empresas" class="navsafe__submenu-link" @click="closeMenu">Pessoa jurídica</RouterLink>
-                                <RouterLink
-                                    :to="{ name: 'AdministradorVinculacoes' }"
-                                    class="navsafe__submenu-link"
-                                    @click="closeMenu"
-                                >
-                                    Vinculações
+                                    {{ modulo.label }}
                                     <span
-                                        v-if="vinculosPendentes.temPendentes"
-                                        class="navsafe__badge-count navsafe__badge-count--inline"
+                                        v-if="moduloMostraBadgeVinculos(modulo) && vinculosPendentes.temPendentes"
+                                        class="navsafe__badge-count"
                                     >
                                         {{ vinculosPendentes.totalPendentes }}
                                     </span>
-                                </RouterLink>
-                                <RouterLink :to="{ name: 'AdministradorUsuarios' }" class="navsafe__submenu-link" @click="closeMenu">Administradores</RouterLink>
-                            </div>
+                                    <RiArrowDownSLine class="navsafe__submenu-icon" />
+                                </button>
+                                <div class="navsafe__submenu">
+                                    <RouterLink
+                                        v-for="opcao in modulo.opcoes"
+                                        :key="opcao.codigo"
+                                        :to="{ name: opcao.rota_nome }"
+                                        class="navsafe__submenu-link"
+                                        @click="closeMenu"
+                                    >
+                                        {{ opcao.label }}
+                                        <span
+                                            v-if="opcaoMostraBadgeVinculos(opcao.codigo) && vinculosPendentes.temPendentes"
+                                            class="navsafe__badge-count navsafe__badge-count--inline"
+                                        >
+                                            {{ vinculosPendentes.totalPendentes }}
+                                        </span>
+                                    </RouterLink>
+                                </div>
+                            </li>
+                        </template>
+
+                        <li v-if="auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR && !menuStore.temAlgumaOpcao && menuStore.carregado">
+                            <RouterLink
+                                :to="{ name: 'SemAcesso' }"
+                                class="navsafe__link"
+                                @click="closeMenu"
+                            >
+                                Sem permissões
+                            </RouterLink>
                         </li>
 
-                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': adminSubmenuAberto === 'conta' }">
+                        <li>
                             <button
                                 type="button"
-                                class="navsafe__link navsafe__submenu-toggle"
-                                :class="{ 'navsafe__submenu-toggle--active': adminContaAtivo }"
-                                @click="toggleAdminSubmenu('conta')"
+                                class="navsafe__link navsafe__btn-danger"
+                                :disabled="saindo"
+                                @click="abrirModalSaida"
                             >
-                                Conta
-                                <RiArrowDownSLine class="navsafe__submenu-icon" />
+                                <RiLogoutBoxRLine />
+                                {{ saindo ? "Saindo..." : "Sair" }}
                             </button>
-                            <div class="navsafe__submenu">
-                                <RouterLink to="/admin/perfil" class="navsafe__submenu-link" @click="closeMenu">Perfil</RouterLink>
-                                <RouterLink to="/admin/chaves" class="navsafe__submenu-link" @click="closeMenu">Chaves</RouterLink>
-                            </div>
                         </li>
-
-                        <li><button type="button" class="navsafe__link navsafe__btn-danger" :disabled="saindo" @click="abrirModalSaida"><RiLogoutBoxRLine /> {{ saindo ? "Saindo..." : "Sair" }}</button></li>
                     </template>
                 </ul>
             </div>
@@ -500,6 +355,8 @@ async function sair() {
 </template>
 
 <style scoped>
+/* Estilos originais do projeto: mobile-first (drawer) + desktop >=1200px.
+   Submenus abrem só por clique (--open), sem :hover — evita sumir ao mover o cursor. */
 .navsafe {
     position: fixed;
     top: 0;
@@ -540,24 +397,6 @@ async function sair() {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.navsafe__desktop-highlight {
-    display: none;
-}
-
-.navsafe__highlight-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    border-radius: 999px;
-    padding: 0.35rem 0.75rem;
-    text-decoration: none;
-    color: #d7e5ff;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    font-size: 0.82rem;
-    font-weight: 700;
 }
 
 .navsafe__toggle {
@@ -640,12 +479,6 @@ async function sair() {
 
 .navsafe__link:hover {
     background: rgba(255, 255, 255, 0.1);
-}
-
-.navsafe__link--cta,
-.navsafe__link--role {
-    background: rgba(77, 141, 255, 0.16);
-    border: 1px solid rgba(150, 186, 255, 0.25);
 }
 
 .navsafe__link.router-link-active {
@@ -800,10 +633,6 @@ async function sair() {
         gap: 1.1rem;
     }
 
-    .navsafe__desktop-highlight {
-        display: block;
-    }
-
     .navsafe__toggle {
         display: none;
     }
@@ -873,11 +702,6 @@ async function sair() {
     .navsafe__title {
         max-width: 165px;
         font-size: 0.9rem;
-    }
-
-    .navsafe__highlight-link {
-        font-size: 0.78rem;
-        padding: 0.28rem 0.62rem;
     }
 }
 </style>

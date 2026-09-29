@@ -15,6 +15,7 @@ import {
 } from "@/domain/entities/Protocolo";
 import type { ProtocoloPayloadDTO } from "@/application/dto/Protocolo/ProtocoloPayloadDTO";
 import { ProtocoloListagemResponseDTO } from "@/application/dto/Protocolo/ProtocoloListagemResponseDTO";
+import { nomeArquivoDoContentDisposition } from "@/shared/utils/contentDispositionFilename";
 
 type ProtocoloApi = {
     id: number;
@@ -113,7 +114,7 @@ export class ProtocoloRepository implements IProtocoloRepository {
     async listDestinatarioEmpresas(): Promise<EmpresaOption[]> {
         const resp = await this.api.get("/protocolo/destinatarios/empresas");
         const items = resp.data?.empresas ?? [];
-        return items.map((item: any) => ({
+        return items.map((item: { id?: unknown; nome?: unknown }) => ({
             id: Number(item.id),
             nome: String(item.nome ?? `Empresa #${item.id}`)
         }));
@@ -122,7 +123,7 @@ export class ProtocoloRepository implements IProtocoloRepository {
     async listDestinatarioClientes(): Promise<ClienteOption[]> {
         const resp = await this.api.get("/protocolo/destinatarios/clientes");
         const items = resp.data?.clientes ?? [];
-        return items.map((item: any) => ({
+        return items.map((item: { usuarioId?: unknown; pessoaId?: unknown; nome?: unknown }) => ({
             usuarioId: Number(item.usuarioId),
             pessoaId: Number(item.pessoaId),
             nome: String(item.nome ?? `Usuário #${item.usuarioId}`)
@@ -150,21 +151,6 @@ export class ProtocoloRepository implements IProtocoloRepository {
     }
 
     async downloadPdf(id: number): Promise<{ blob: Blob; filename: string }> {
-        const parseNomeArquivo = (cd: string | undefined, fallback: string): string => {
-            if (!cd) return fallback;
-            const m =
-                /filename\*=UTF-8''([^;\n]+)|filename="([^"]+)"|filename=([^;\s]+)/i.exec(
-                    cd
-                );
-            const raw = m?.[1] ?? m?.[2] ?? m?.[3];
-            if (!raw) return fallback;
-            try {
-                return decodeURIComponent(raw.replace(/"/g, "").trim());
-            } catch {
-                return raw.replace(/"/g, "").trim();
-            }
-        };
-
         try {
             const resp = await this.api.get(`/protocolo/${id}/pdf`, {
                 responseType: "blob",
@@ -175,7 +161,7 @@ export class ProtocoloRepository implements IProtocoloRepository {
             const blob = resp.data as Blob;
             const ct = String(resp.headers["content-type"] ?? "");
             if (ct.includes("application/pdf")) {
-                const filename = parseNomeArquivo(
+                const filename = nomeArquivoDoContentDisposition(
                     resp.headers["content-disposition"] as string | undefined,
                     `protocolo_${id}.pdf`
                 );

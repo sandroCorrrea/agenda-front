@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { RouterLink } from "vue-router";
 import {
     RiArrowLeftSLine,
     RiArrowRightSLine,
     RiEyeLine,
+    RiFilePdfLine,
     RiLinkM,
     RiSearchLine,
     RiSpeakLine
@@ -13,6 +14,7 @@ import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import ParticipacaoFormularioLinkCard from "@/presentation/components/Participacao/ParticipacaoFormularioLinkCard.vue";
 import ParticipacaoStatusBadge from "@/presentation/components/Participacao/ParticipacaoStatusBadge.vue";
 import { useParticipacaoAdmin } from "@/presentation/composables/Participacao/useParticipacaoAdmin";
+import { useParticipacaoRelatorio } from "@/presentation/composables/Participacao/useParticipacaoRelatorio";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 import {
     labelDeOpcao,
@@ -39,6 +41,47 @@ const {
     irParaPagina,
     limparFiltros
 } = useParticipacaoAdmin();
+
+const {
+    gerandoRelatorio,
+    erroRelatorio,
+    sucessoRelatorio,
+    municipiosRelatorio,
+    gerarRelatorio
+} = useParticipacaoRelatorio();
+
+const podeGerarRelatorio = computed(
+    () => ehPrefeitura.value || ehContabilidade.value
+);
+
+watch(
+    () => filtros.ibge,
+    (ibge) => {
+        const codigo = String(ibge ?? "").trim();
+        if (!codigo || municipiosRelatorio.value.length > 0) return;
+        if (!municipios.value.some((municipio) => municipio.value === codigo)) return;
+        municipiosRelatorio.value = [codigo];
+    }
+);
+
+function selecionarTodosMunicipiosRelatorio() {
+    municipiosRelatorio.value = municipios.value.map((municipio) => municipio.value);
+}
+
+function limparMunicipiosRelatorio() {
+    municipiosRelatorio.value = [];
+}
+
+function aoGerarRelatorio() {
+    if (ehPrefeitura.value) {
+        void gerarRelatorio(true);
+        return;
+    }
+    void gerarRelatorio(
+        false,
+        municipios.value.map((municipio) => municipio.value)
+    );
+}
 
 const temFiltrosAtivos = computed(() =>
     Boolean(
@@ -94,14 +137,50 @@ onMounted(async () => {
                 "
             >
                 <template #icon><RiSpeakLine /></template>
-                <template v-if="ehPrefeitura" #actions>
-                    <RouterLink
-                        :to="{ name: 'AdministradorParticipacaoLink' }"
-                        class="btn"
-                    >
-                        <RiLinkM class="me-1" />
-                        Link do formulário
-                    </RouterLink>
+                <template v-if="podeGerarRelatorio" #actions>
+                    <div class="part-hero-actions">
+                        <div class="part-hero-actions__botoes">
+                            <button
+                                type="button"
+                                class="btn"
+                                :disabled="
+                                    gerandoRelatorio ||
+                                    (ehContabilidade && municipiosRelatorio.length === 0)
+                                "
+                                :aria-busy="gerandoRelatorio"
+                                @click="aoGerarRelatorio"
+                            >
+                                <span
+                                    v-if="gerandoRelatorio"
+                                    class="spinner-border spinner-border-sm me-1"
+                                    aria-hidden="true"
+                                />
+                                <RiFilePdfLine v-else class="me-1" />
+                                {{
+                                    gerandoRelatorio
+                                        ? "Gerando relatório..."
+                                        : "Gerar relatório PDF"
+                                }}
+                            </button>
+                            <RouterLink
+                                v-if="ehPrefeitura"
+                                :to="{ name: 'AdministradorParticipacaoLink' }"
+                                class="btn"
+                            >
+                                <RiLinkM class="me-1" />
+                                Link do formulário
+                            </RouterLink>
+                        </div>
+                        <p v-if="ehPrefeitura" class="part-relatorio-hint mb-0">
+                            O relatório considera apenas o seu município.
+                        </p>
+                        <p
+                            v-else-if="municipiosRelatorio.length === 0"
+                            class="part-relatorio-hint mb-0"
+                        >
+                            Selecione ao menos um município
+                        </p>
+                    </div>
                 </template>
             </AdminPageHero>
 
@@ -110,6 +189,12 @@ onMounted(async () => {
             </div>
 
             <div v-if="erro" class="admin-alert admin-alert--erro mb-3">{{ erro }}</div>
+            <div v-if="erroRelatorio" class="admin-alert admin-alert--erro mb-3">
+                {{ erroRelatorio }}
+            </div>
+            <div v-if="sucessoRelatorio" class="admin-alert admin-alert--ok mb-3">
+                {{ sucessoRelatorio }}
+            </div>
 
             <section class="card border-0 shadow-sm part-filters mb-4">
                 <div class="card-body p-3 p-md-4">
@@ -244,6 +329,67 @@ onMounted(async () => {
                                     <RiSearchLine class="me-1" />
                                     Filtrar
                                 </button>
+                            </div>
+                        </div>
+
+                        <div v-if="ehContabilidade" class="col-12">
+                            <div class="part-relatorio-munis">
+                                <div class="part-relatorio-munis__head">
+                                    <span class="part-relatorio-munis__titulo">
+                                        Municípios do relatório
+                                    </span>
+                                    <span class="part-relatorio-munis__resumo">
+                                        {{ municipiosRelatorio.length }} município(s) selecionado(s)
+                                    </span>
+                                </div>
+                                <div class="part-relatorio-munis__acoes">
+                                    <button
+                                        type="button"
+                                        class="btn part-relatorio-munis__acao"
+                                        :disabled="municipios.length === 0"
+                                        @click="selecionarTodosMunicipiosRelatorio"
+                                    >
+                                        Selecionar todos
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn part-relatorio-munis__acao"
+                                        :disabled="municipiosRelatorio.length === 0"
+                                        @click="limparMunicipiosRelatorio"
+                                    >
+                                        Limpar
+                                    </button>
+                                </div>
+                                <div
+                                    class="part-relatorio-munis__lista"
+                                    role="group"
+                                    aria-label="Municípios do relatório"
+                                >
+                                    <p
+                                        v-if="municipios.length === 0"
+                                        class="part-relatorio-munis__vazio mb-0"
+                                    >
+                                        Nenhum município disponível.
+                                    </p>
+                                    <label
+                                        v-for="municipio in municipios"
+                                        :key="`rel-${municipio.value}`"
+                                        class="part-relatorio-munis__item"
+                                    >
+                                        <input
+                                            v-model="municipiosRelatorio"
+                                            type="checkbox"
+                                            :value="municipio.value"
+                                        />
+                                        <span>{{ municipio.label }}</span>
+                                    </label>
+                                </div>
+                                <small
+                                    v-if="municipiosRelatorio.length === 0"
+                                    class="part-filter-hint"
+                                >
+                                    Selecione ao menos um município
+                                </small>
                             </div>
                         </div>
                     </form>
@@ -540,6 +686,112 @@ onMounted(async () => {
     background: #fff3f3;
     border: 1px solid #f1b4b4;
     color: #9e2b2b;
+}
+
+.admin-alert--ok {
+    background: #eefaf3;
+    border: 1px solid #b7e3c7;
+    color: #1d6d3f;
+}
+
+.part-hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+}
+
+.part-hero-actions__botoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.part-relatorio-hint {
+    margin: 0;
+    max-width: 18rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.part-hero-actions :deep(.btn:disabled) {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.part-relatorio-munis {
+    border: 1px solid #e4eaf3;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 0.85rem 0.95rem;
+}
+
+.part-relatorio-munis__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.4rem 0.75rem;
+    margin-bottom: 0.55rem;
+}
+
+.part-relatorio-munis__titulo {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #16254e;
+}
+
+.part-relatorio-munis__resumo {
+    font-size: 0.78rem;
+    color: #5a6b7d;
+}
+
+.part-relatorio-munis__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.65rem;
+}
+
+.part-relatorio-munis__acao {
+    border: 1px solid rgba(92, 107, 192, 0.28);
+    background: #fff;
+    color: #3f5284;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+}
+
+.part-relatorio-munis__acao:hover:not(:disabled) {
+    background: #f4f7ff;
+}
+
+.part-relatorio-munis__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.35rem 0.75rem;
+    max-height: 220px;
+    overflow: auto;
+}
+
+.part-relatorio-munis__item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: 0.88rem;
+    color: #24365c;
+    cursor: pointer;
+}
+
+.part-relatorio-munis__vazio {
+    grid-column: 1 / -1;
+    color: #6b7d9c;
+    font-size: 0.85rem;
 }
 
 @media (max-width: 991.98px) {

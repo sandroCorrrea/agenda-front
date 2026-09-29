@@ -92,7 +92,16 @@ if (sessao.estaAutenticado) {
 api.interceptors.request.use((config) => {
     const auth = useAuthStore();
     config.headers = config.headers ?? {};
-    config.headers.Accept = "application/json";
+    const acceptBruto =
+        typeof config.headers.get === "function"
+            ? config.headers.get("Accept")
+            : config.headers.Accept;
+    const acceptAtual = Array.isArray(acceptBruto)
+        ? acceptBruto.join(",")
+        : String(acceptBruto ?? "");
+    if (!acceptAtual.toLowerCase().includes("application/pdf")) {
+        config.headers.Accept = "application/json";
+    }
     if (!config.skipAuth && auth.token) {
         config.headers.Authorization = `Bearer ${auth.token}`;
     }

@@ -13,9 +13,14 @@ import type { ParticipacaoPrazoDTO } from "@/application/dto/Participacao/Partic
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
 import type { ParticipacaoMunicipioOpcaoDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioOpcaoDTO";
+import type { ParticipacaoRelatorioPdfDTO } from "@/application/dto/Participacao/ParticipacaoRelatorioPdfDTO";
+import type { ParticipacaoRelatorioRequestDTO } from "@/application/dto/Participacao/ParticipacaoRelatorioRequestDTO";
 import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
 import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
+import { ParticipacaoRelatorioErro } from "@/shared/errors/ParticipacaoRelatorioErro";
+import { nomeArquivoDoContentDisposition } from "@/shared/utils/contentDispositionFilename";
 import type { AxiosInstance } from "axios";
+import axios from "axios";
 
 export class ParticipacaoRepository implements IParticipacaoRepository {
     constructor(private api: AxiosInstance) {}
@@ -126,6 +131,107 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             this.limparPayload(dto)
         );
         return this.mapParticipacao(resp.data);
+    }
+
+    async gerarRelatorioPdf(
+        dto: ParticipacaoRelatorioRequestDTO
+    ): Promise<ParticipacaoRelatorioPdfDTO> {
+        const payload =
+            dto.municipios && dto.municipios.length > 0 ? { municipios: dto.municipios } : {};
+
+        try {
+            const resp = await this.api.post("/participacao/relatorio", payload, {
+                responseType: "blob",
+                headers: { Accept: "application/pdf, application/json" }
+            });
+
+            const blob = resp.data as Blob;
+            const contentType = String(resp.headers["content-type"] ?? "");
+            if (!contentType.includes("application/pdf")) {
+                throw new Error(
+                    await this.mensagemDeBlob(blob, "Não foi possível gerar o relatório.")
+                );
+            }
+
+            return {
+                blob,
+                filename: nomeArquivoDoContentDisposition(
+                    resp.headers["content-disposition"] as string | undefined,
+                    "relatorio-participacao-popular.pdf"
+                )
+            };
+        } catch (e: unknown) {
+            if (axios.isAxiosError(e) && e.response?.data instanceof Blob) {
+                throw new ParticipacaoRelatorioErro(
+                    e.response.status,
+                    await this.mensagemDeBlob(
+                        e.response.data,
+                        this.mensagemPadraoPorStatus(e.response.status)
+                    ),
+                    await this.errosDeBlob(e.response.data)
+                );
+            }
+            if (axios.isAxiosError(e)) {
+                const status = e.response?.status ?? 0;
+                throw new ParticipacaoRelatorioErro(status, this.mensagemPadraoPorStatus(status));
+            }
+            throw e;
+        }
+    }
+
+    private async mensagemDeBlob(blob: Blob, fallback: string): Promise<string> {
+        try {
+            const parsed = JSON.parse(await blob.text()) as {
+                message?: string;
+                errors?: Record<string, unknown>;
+            };
+            const errors = parsed.errors;
+            if (errors && typeof errors === "object") {
+                for (const value of Object.values(errors)) {
+                    if (!Array.isArray(value)) continue;
+                    const primeira = value.find(
+                        (item) => typeof item === "string" && item.trim()
+                    );
+                    if (typeof primeira === "string") return primeira;
+                }
+            }
+            if (typeof parsed.message === "string" && parsed.message.trim()) {
+                return parsed.message;
+            }
+            return fallback;
+        } catch {
+            return fallback;
+        }
+    }
+
+    private async errosDeBlob(blob: Blob): Promise<Record<string, string[]> | undefined> {
+        try {
+            const parsed = JSON.parse(await blob.text()) as { errors?: unknown };
+            if (!parsed.errors || typeof parsed.errors !== "object" || Array.isArray(parsed.errors)) {
+                return undefined;
+            }
+            const out: Record<string, string[]> = {};
+            for (const [key, value] of Object.entries(parsed.errors as Record<string, unknown>)) {
+                if (!Array.isArray(value)) continue;
+                const mensagens = value
+                    .filter((item) => typeof item === "string" && item.trim())
+                    .map((item) => String(item));
+                if (mensagens.length > 0) out[key] = mensagens;
+            }
+            return Object.keys(out).length > 0 ? out : undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    private mensagemPadraoPorStatus(status: number): string {
+        if (status === 401) return "Sessão expirada. Faça login novamente.";
+        if (status === 403) return "Você não tem permissão para gerar este relatório.";
+        if (status === 422) return "Verifique os municípios selecionados.";
+        if (status === 429) {
+            return "Muitas solicitações. Aguarde um minuto e tente novamente.";
+        }
+        return "Não foi possível gerar o relatório.";
     }
 
     private limparPayload<T extends object>(dto: T): Record<string, unknown> {

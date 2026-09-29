@@ -5,6 +5,8 @@ import type { ParticipacaoListagemQueryDTO } from "@/application/dto/Participaca
 import type { ParticipacaoListagemResponseDTO } from "@/application/dto/Participacao/ParticipacaoListagemResponseDTO";
 import type { ParticipacaoOpcoesResponseDTO } from "@/application/dto/Participacao/ParticipacaoOpcoesResponseDTO";
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
+import type { ParticipacaoRelatorioPdfDTO } from "@/application/dto/Participacao/ParticipacaoRelatorioPdfDTO";
+import type { ParticipacaoRelatorioRequestDTO } from "@/application/dto/Participacao/ParticipacaoRelatorioRequestDTO";
 import type { ParticipacaoFormularioLinkDTO } from "@/application/dto/Participacao/ParticipacaoFormularioLinkDTO";
 import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
@@ -25,4 +27,5 @@ export interface IParticipacaoRepository {
         id: number,
         dto: ParticipacaoAnaliseRequestDTO
     ): Promise<ParticipacaoPostResponseDTO>;
+    gerarRelatorioPdf(dto: ParticipacaoRelatorioRequestDTO): Promise<ParticipacaoRelatorioPdfDTO>;
 }

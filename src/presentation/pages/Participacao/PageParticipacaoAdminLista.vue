@@ -264,6 +264,7 @@ onMounted(async () => {
                                 <tr>
                                     <th>Protocolo</th>
                                     <th v-if="ehContabilidade">IBGE</th>
+                                    <th>Cidade</th>
                                     <th>Localidade</th>
                                     <th>Área</th>
                                     <th>Prioridade</th>
@@ -281,6 +282,10 @@ onMounted(async () => {
                                     </td>
                                     <td v-if="ehContabilidade">
                                         <code v-if="item.ibge" class="part-ibge">{{ item.ibge }}</code>
+                                        <span v-else class="text-muted">—</span>
+                                    </td>
+                                    <td>
+                                        <span v-if="item.localidade">{{ item.localidade }}</span>
                                         <span v-else class="text-muted">—</span>
                                     </td>
                                     <td>

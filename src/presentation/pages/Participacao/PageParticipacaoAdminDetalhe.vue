@@ -106,6 +106,10 @@ onMounted(async () => {
                                 <p class="part-k">Código IBGE</p>
                                 <p class="part-v"><code>{{ detalhe.ibge }}</code></p>
                             </div>
+                            <div v-if="detalhe.ibge" class="col-md-4">
+                                <p class="part-k">Cidade</p>
+                                <p class="part-v">{{ detalhe.localidade || "Não informada" }}</p>
+                            </div>
                             <div class="col-md-6">
                                 <p class="part-k">Participante</p>
                                 <p class="part-v">{{ detalhe.nome || "Não informado" }}</p>

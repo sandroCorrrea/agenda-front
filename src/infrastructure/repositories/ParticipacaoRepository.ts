@@ -192,6 +192,7 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             instrumento: String(raw.instrumento ?? ""),
             exercicio: Number(raw.exercicio ?? 0),
             ibge: this.nullableString(raw.ibge),
+            localidade: this.nullableString(raw.localidade),
             bairroComunidade: String(raw.bairroComunidade ?? ""),
             faixaEtaria: String(raw.faixaEtaria ?? ""),
             localidadeAtendida: String(raw.localidadeAtendida ?? ""),

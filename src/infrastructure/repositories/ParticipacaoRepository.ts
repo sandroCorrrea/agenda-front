@@ -11,12 +11,24 @@ import type { ParticipacaoFormularioLinkDTO } from "@/application/dto/Participac
 import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
+import type { ParticipacaoMunicipioOpcaoDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioOpcaoDTO";
 import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
 import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
 import type { AxiosInstance } from "axios";
 
 export class ParticipacaoRepository implements IParticipacaoRepository {
     constructor(private api: AxiosInstance) {}
+
+    async listarMunicipios(): Promise<ParticipacaoValueLabelDTO[]> {
+        const resp = await this.api.get<{ municipios?: ParticipacaoMunicipioOpcaoDTO[] }>(
+            "/participacao/municipios"
+        );
+
+        return (resp.data.municipios ?? []).map((item) => ({
+            value: String(item.ibge ?? ""),
+            label: String(item.localidade ?? "")
+        }));
+    }
 
     async getOpcoes(): Promise<ParticipacaoOpcoesResponseDTO> {
         const resp = await this.api.get<ParticipacaoOpcoesResponseDTO>(

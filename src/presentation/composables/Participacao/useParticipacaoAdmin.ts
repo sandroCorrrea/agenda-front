@@ -2,9 +2,11 @@ import { DetalheParticipacaoUseCase } from "@/application/use-cases/Participacao
 import { ListarParticipacaoUseCase } from "@/application/use-cases/Participacao/ListarParticipacaoUseCase";
 import { SalvarAnaliseParticipacaoUseCase } from "@/application/use-cases/Participacao/SalvarAnaliseParticipacaoUseCase";
 import { GetParticipacaoOpcoesUseCase } from "@/application/use-cases/Participacao/GetParticipacaoOpcoesUseCase";
+import { ListarMunicipiosParticipacaoUseCase } from "@/application/use-cases/Participacao/ListarMunicipiosParticipacaoUseCase";
 import { ParticipacaoAnaliseRequestDTO } from "@/application/dto/Participacao/ParticipacaoAnaliseRequestDTO";
 import type { ParticipacaoListagemQueryDTO } from "@/application/dto/Participacao/ParticipacaoListagemQueryDTO";
 import type { ParticipacaoOpcoesResponseDTO } from "@/application/dto/Participacao/ParticipacaoOpcoesResponseDTO";
+import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
 import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
 import { exercicioPadraoParticipacao } from "@/shared/utils/participacaoLabels";
@@ -98,8 +100,10 @@ export function useParticipacaoAdmin() {
     const detalheCaso = new DetalheParticipacaoUseCase(repo);
     const analiseCaso = new SalvarAnaliseParticipacaoUseCase(repo);
     const opcoesCaso = new GetParticipacaoOpcoesUseCase(repo);
+    const municipiosCaso = new ListarMunicipiosParticipacaoUseCase(repo);
 
     const opcoes = ref<ParticipacaoOpcoesResponseDTO | null>(null);
+    const municipios = ref<ParticipacaoValueLabelDTO[]>([]);
     const itens = ref<ParticipacaoPostResponseDTO[]>([]);
     const detalhe = ref<ParticipacaoPostResponseDTO | null>(null);
     const filtros = reactive<ParticipacaoFiltrosState>(filtrosIniciais());
@@ -124,6 +128,14 @@ export function useParticipacaoAdmin() {
             opcoes.value = await opcoesCaso.execute();
         } catch {
             /* opções são auxiliares na listagem */
+        }
+    }
+
+    async function carregarMunicipios() {
+        try {
+            municipios.value = await municipiosCaso.execute();
+        } catch {
+            municipios.value = [];
         }
     }
 
@@ -228,6 +240,7 @@ export function useParticipacaoAdmin() {
 
     return {
         opcoes,
+        municipios,
         itens,
         detalhe,
         filtros,
@@ -242,6 +255,7 @@ export function useParticipacaoAdmin() {
         totalRegistros,
         totalPaginas,
         carregarOpcoes,
+        carregarMunicipios,
         carregarLista,
         carregarDetalhe,
         salvarAnalise,

@@ -25,6 +25,7 @@ const ehContabilidade = computed(() => auth.ehContabilidade);
 
 const {
     opcoes,
+    municipios,
     itens,
     filtros,
     carregandoLista,
@@ -33,6 +34,7 @@ const {
     totalRegistros,
     totalPaginas,
     carregarOpcoes,
+    carregarMunicipios,
     carregarLista,
     irParaPagina,
     limparFiltros
@@ -69,6 +71,9 @@ async function aoLimparFiltros() {
 
 onMounted(async () => {
     await carregarOpcoes();
+    if (ehContabilidade.value) {
+        await carregarMunicipios();
+    }
     try {
         await carregarLista(1);
     } catch {
@@ -207,17 +212,17 @@ onMounted(async () => {
                         </div>
 
                         <div v-if="ehContabilidade" class="col-6 col-lg-3">
-                            <label class="form-label" for="f-ibge">IBGE (município)</label>
-                            <input
-                                id="f-ibge"
-                                v-model="filtros.ibge"
-                                type="text"
-                                maxlength="7"
-                                inputmode="numeric"
-                                class="form-control"
-                                placeholder="3550308"
-                            />
-                            <small class="part-filter-hint">7 dígitos — filtro opcional</small>
+                            <label class="form-label" for="f-ibge">Município</label>
+                            <select id="f-ibge" v-model="filtros.ibge" class="form-select">
+                                <option value="">Selecione um município</option>
+                                <option
+                                    v-for="municipio in municipios"
+                                    :key="municipio.value"
+                                    :value="municipio.value"
+                                >
+                                    {{ municipio.label }}
+                                </option>
+                            </select>
                         </div>
 
                         <div class="col-12 col-lg-4">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import {
     RiArrowLeftSLine,
@@ -16,13 +16,16 @@ import {
 import { ObterMunicipioParticipacaoUseCase } from "@/application/use-cases/Participacao/ObterMunicipioParticipacaoUseCase";
 import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
 import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
+import ParticipacaoPrazoEncerrado from "@/presentation/components/Participacao/ParticipacaoPrazoEncerrado.vue";
 import { useParticipacaoForm } from "@/presentation/composables/Participacao/useParticipacaoForm";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { phoneMask } from "@/shared/utils/masks";
-import { exercicioPadraoParticipacao } from "@/shared/utils/participacaoLabels";
+import {
+    exercicioPadraoParticipacao,
+    mensagemPrazoEncerrado
+} from "@/shared/utils/participacaoLabels";
 import logo from "@/presentation/assets/img/logo.jpeg";
 import axios from "axios";
-import { inject } from "vue";
 
 const props = defineProps<{
     municipioToken: string;
@@ -45,10 +48,15 @@ const {
     erroGeral,
     errosCampo,
     resultado,
+    recusadoPorPrazo,
+    mensagemPrazoServidor,
     carregarOpcoes,
     enviar,
     resetarFormulario
-} = useParticipacaoForm(() => props.municipioToken);
+} = useParticipacaoForm(
+    () => props.municipioToken,
+    () => municipio.value?.permiteNovaParticipacao !== false
+);
 
 const passo = ref(0);
 const introAberta = ref(true);
@@ -73,8 +81,20 @@ const tituloMunicipio = computed(() => {
     return `${municipio.value.localidade}/${municipio.value.uf}`;
 });
 
-const formularioDisponivel = computed(
-    () => Boolean(municipio.value) && !erroMunicipio.value && !carregandoMunicipio.value
+const permiteNovaParticipacao = computed(
+    () =>
+        municipio.value?.permiteNovaParticipacao === true && !recusadoPorPrazo.value
+);
+
+const formularioEncerrado = computed(
+    () =>
+        recusadoPorPrazo.value ||
+        municipio.value?.formularioEncerrado === true ||
+        municipio.value?.permiteNovaParticipacao === false
+);
+
+const mensagemEncerrado = computed(() =>
+    mensagemPrazoEncerrado(municipio.value?.mensagem ?? mensagemPrazoServidor.value)
 );
 
 const progressoPct = computed(() => ((passo.value + 1) / totalPassos) * 100);
@@ -224,16 +244,17 @@ function aoDigitarTelefone(ev: Event) {
 }
 
 async function onSubmit() {
+    if (!permiteNovaParticipacao.value) return;
     if (!validarPassoAtual()) return;
     const criado = await enviar();
-    if (criado) {
+    if (criado || recusadoPorPrazo.value) {
         scrollTopoForm();
-    } else {
-        for (let i = 0; i < camposPorPasso.length; i++) {
-            if (temErroNoPasso(i)) {
-                passo.value = i;
-                break;
-            }
+        return;
+    }
+    for (let i = 0; i < camposPorPasso.length; i++) {
+        if (temErroNoPasso(i)) {
+            passo.value = i;
+            break;
         }
     }
 }
@@ -244,12 +265,16 @@ function novaProposta() {
     introAberta.value = false;
 }
 
-onMounted(async () => {
+async function carregarMunicipio() {
     carregandoMunicipio.value = true;
     erroMunicipio.value = null;
+    recusadoPorPrazo.value = false;
+    mensagemPrazoServidor.value = null;
     try {
         municipio.value = await obterMunicipioCaso.execute(props.municipioToken);
-        await carregarOpcoes();
+        if (municipio.value.permiteNovaParticipacao) {
+            await carregarOpcoes();
+        }
     } catch (e: unknown) {
         municipio.value = null;
         if (axios.isAxiosError(e)) {
@@ -262,7 +287,15 @@ onMounted(async () => {
     } finally {
         carregandoMunicipio.value = false;
     }
-});
+}
+
+watch(
+    () => props.municipioToken,
+    () => {
+        void carregarMunicipio();
+    },
+    { immediate: true }
+);
 
 watch(
     () => form.deseja_info_audiencia,
@@ -356,6 +389,7 @@ watch(
                         Acompanhar meu protocolo
                     </RouterLink>
                     <button
+                        v-if="permiteNovaParticipacao"
                         type="button"
                         class="part-pub__btn part-pub__btn--ghost"
                         @click="novaProposta"
@@ -372,6 +406,14 @@ watch(
                     com o protocolo{{ resultado.email ? " ou o e-mail informado" : "" }}.
                 </p>
             </section>
+
+            <ParticipacaoPrazoEncerrado
+                v-else-if="formularioEncerrado"
+                :localidade="municipio?.localidade"
+                :uf="municipio?.uf"
+                :mensagem="mensagemEncerrado"
+                :exercicio="exercicio"
+            />
 
             <template v-else>
                 <!-- Intro -->
@@ -473,7 +515,12 @@ watch(
                         {{ erroGeral }}
                     </div>
 
-                    <form class="part-pub__form" novalidate @submit.prevent="onSubmit">
+                    <form
+                        v-if="permiteNovaParticipacao"
+                        class="part-pub__form"
+                        novalidate
+                        @submit.prevent="onSubmit"
+                    >
                         <!-- Passo 1 -->
                         <fieldset v-show="passo === 0" class="part-pub__fieldset">
                             <legend class="part-pub__legend">
@@ -945,7 +992,7 @@ watch(
                                 v-else
                                 type="submit"
                                 class="part-pub__btn part-pub__btn--primary"
-                                :disabled="enviando"
+                                :disabled="enviando || !permiteNovaParticipacao"
                                 :aria-busy="enviando"
                             >
                                 <RiLoader4Line v-if="enviando" class="part-pub__spin" />

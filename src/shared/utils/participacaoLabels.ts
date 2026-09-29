@@ -123,3 +123,23 @@ export function labelFuncao(
 export function exercicioPadraoParticipacao(): number {
     return new Date().getFullYear() + 1;
 }
+
+export const MENSAGEM_PRAZO_ENCERRADO_FALLBACK =
+    "O prazo para envio de novas propostas de participação popular neste município encerrou. Você ainda pode consultar o status das pesquisas já enviadas.";
+
+export function mensagemPrazoEncerrado(mensagem: string | null | undefined): string {
+    const texto = mensagem?.trim();
+    return texto ? texto : MENSAGEM_PRAZO_ENCERRADO_FALLBACK;
+}
+
+/** Detecta 422 de prazo encerrado sem tratar validação de campo como bloqueio. */
+export function isMensagemPrazoEncerrado(message: string | null | undefined): boolean {
+    if (!message) return false;
+    const texto = message.toLowerCase();
+    return (
+        texto.includes("pesquisas já enviadas") ||
+        texto.includes("pesquisas ja enviadas") ||
+        ((texto.includes("prazo") || texto.includes("novas propostas")) &&
+            (texto.includes("encerr") || texto.includes("expirou")))
+    );
+}

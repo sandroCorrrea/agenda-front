@@ -9,6 +9,7 @@ import { ParticipacaoListagemResponseDTO } from "@/application/dto/Participacao/
 import type { ParticipacaoOpcoesResponseDTO } from "@/application/dto/Participacao/ParticipacaoOpcoesResponseDTO";
 import type { ParticipacaoFormularioLinkDTO } from "@/application/dto/Participacao/ParticipacaoFormularioLinkDTO";
 import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
+import type { ParticipacaoPrazoDTO } from "@/application/dto/Participacao/ParticipacaoPrazoDTO";
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
 import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
@@ -34,7 +35,8 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
         return {
             ibge: String(resp.data.ibge ?? ""),
             localidade: String(resp.data.localidade ?? ""),
-            uf: String(resp.data.uf ?? "")
+            uf: String(resp.data.uf ?? ""),
+            ...this.mapPrazo(resp.data)
         };
     }
 
@@ -51,7 +53,8 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             ),
             ibge: String(resp.data.ibge ?? ""),
             localidade: String(resp.data.localidade ?? ""),
-            uf: String(resp.data.uf ?? "")
+            uf: String(resp.data.uf ?? ""),
+            ...this.mapPrazo(resp.data)
         };
     }
 
@@ -274,5 +277,37 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
     private nullableString(value: unknown): string | null {
         if (value == null || value === "") return null;
         return String(value);
+    }
+
+    private mapPrazo(raw: Record<string, unknown>): ParticipacaoPrazoDTO {
+        const formularioEncerrado = this.toBoolean(
+            raw.formularioEncerrado ?? raw.formulario_encerrado,
+            false
+        );
+        const permiteNovaParticipacao = this.toBoolean(
+            raw.permiteNovaParticipacao ?? raw.permite_nova_participacao,
+            !formularioEncerrado
+        );
+        const permiteConsulta = this.toBoolean(
+            raw.permiteConsulta ?? raw.permite_consulta,
+            true
+        );
+
+        return {
+            formularioEncerrado,
+            permiteNovaParticipacao,
+            permiteConsulta,
+            mensagem: this.nullableString(raw.mensagem)
+        };
+    }
+
+    private toBoolean(value: unknown, fallback: boolean): boolean {
+        if (value === true || value === 1 || value === "1" || value === "true") {
+            return true;
+        }
+        if (value === false || value === 0 || value === "0" || value === "false") {
+            return false;
+        }
+        return fallback;
     }
 }

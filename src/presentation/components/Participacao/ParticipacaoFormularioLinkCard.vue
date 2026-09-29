@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
+import { RouterLink } from "vue-router";
 import {
+    RiAlertLine,
     RiCheckboxCircleLine,
     RiExternalLinkLine,
     RiFileCopyLine,
+    RiFileSearchLine,
+    RiHourglassLine,
     RiLinkM,
     RiMapPin2Line,
     RiQrCodeLine,
     RiShareForwardLine
 } from "@remixicon/vue";
 import { useParticipacaoFormularioLink } from "@/presentation/composables/Participacao/useParticipacaoFormularioLink";
+import { mensagemPrazoEncerrado } from "@/shared/utils/participacaoLabels";
 
 const props = withDefaults(
     defineProps<{
@@ -29,6 +34,16 @@ const tituloMunicipio = computed(() => {
     if (!dados.value) return "";
     return `${dados.value.localidade}/${dados.value.uf}`;
 });
+
+const formularioEncerrado = computed(
+    () =>
+        dados.value?.formularioEncerrado === true ||
+        dados.value?.permiteNovaParticipacao === false
+);
+
+const mensagemEncerrado = computed(() =>
+    mensagemPrazoEncerrado(dados.value?.mensagem)
+);
 
 onMounted(async () => {
     if (!props.autoCarregar) return;
@@ -84,6 +99,22 @@ defineExpose({ carregar, dados, erro, carregando });
         </div>
 
         <div v-else-if="dados" class="part-link__body">
+            <div
+                v-if="formularioEncerrado"
+                class="part-link__prazo"
+                role="status"
+            >
+                <RiHourglassLine class="part-link__prazo-icon" />
+                <div>
+                    <strong>Prazo de novas respostas encerrado</strong>
+                    <p>{{ mensagemEncerrado }}</p>
+                    <p class="part-link__prazo-hint">
+                        O endereço abaixo continua válido para consulta histórica.
+                        Novas propostas não serão mais aceitas.
+                    </p>
+                </div>
+            </div>
+
             <div class="part-link__municipio">
                 <div class="part-link__municipio-icon" aria-hidden="true">
                     <RiMapPin2Line />
@@ -91,7 +122,16 @@ defineExpose({ carregar, dados, erro, carregando });
                 <div>
                     <p class="part-link__municipio-label">Município vinculado</p>
                     <p class="part-link__municipio-nome">{{ tituloMunicipio }}</p>
-                    <span class="part-link__ibge">IBGE {{ dados.ibge }}</span>
+                    <div class="part-link__pills">
+                        <span class="part-link__ibge">IBGE {{ dados.ibge }}</span>
+                        <span
+                            v-if="formularioEncerrado"
+                            class="part-link__prazo-pill"
+                        >
+                            <RiAlertLine />
+                            Prazo encerrado
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -126,8 +166,16 @@ defineExpose({ carregar, dados, erro, carregando });
                     class="part-link__btn part-link__btn--primary"
                 >
                     <RiExternalLinkLine />
-                    Abrir formulário
+                    {{ formularioEncerrado ? "Abrir página pública" : "Abrir formulário" }}
                 </a>
+                <RouterLink
+                    v-if="formularioEncerrado"
+                    :to="{ name: 'ParticipacaoConsulta' }"
+                    class="part-link__btn part-link__btn--ghost"
+                >
+                    <RiFileSearchLine />
+                    Consulta pública
+                </RouterLink>
                 <button
                     type="button"
                     class="part-link__btn part-link__btn--ghost"
@@ -139,8 +187,15 @@ defineExpose({ carregar, dados, erro, carregando });
             </div>
 
             <p class="part-link__footnote">
-                Envie este link para cidadãos, conselhos e audiências públicas.
-                Não altere o endereço — o trecho final identifica o município de forma segura.
+                <template v-if="formularioEncerrado">
+                    Conserve este link para orientar a população na consulta de protocolos
+                    já enviados. Não altere o endereço — o trecho final identifica o
+                    município de forma segura.
+                </template>
+                <template v-else>
+                    Envie este link para cidadãos, conselhos e audiências públicas.
+                    Não altere o endereço — o trecho final identifica o município de forma segura.
+                </template>
             </p>
         </div>
     </section>
@@ -316,6 +371,13 @@ defineExpose({ carregar, dados, erro, carregando });
     color: #fff;
 }
 
+.part-link__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+
 .part-link__ibge {
     display: inline-flex;
     padding: 0.15rem 0.55rem;
@@ -325,6 +387,70 @@ defineExpose({ carregar, dados, erro, carregando });
     color: #b8f0eb;
     background: rgba(45, 160, 168, 0.2);
     border: 1px solid rgba(126, 232, 224, 0.25);
+}
+
+.part-link__prazo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: 0.4rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #ffe08a;
+    background: rgba(255, 193, 7, 0.14);
+    border: 1px solid rgba(255, 193, 7, 0.35);
+}
+
+.part-link__prazo-pill :deep(svg) {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.part-link__prazo {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.12), rgba(180, 83, 9, 0.16));
+    border: 1px solid rgba(255, 193, 7, 0.32);
+}
+
+.part-link__prazo-icon {
+    font-size: 1.55rem;
+    color: #ffc857;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.part-link__prazo strong {
+    display: block;
+    color: #ffe08a;
+    margin-bottom: 0.3rem;
+    font-size: 0.95rem;
+}
+
+.part-link__prazo p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: rgba(255, 240, 200, 0.94);
+}
+
+.part-link__prazo-hint {
+    margin-top: 0.45rem !important;
+    font-size: 0.8rem !important;
+    color: rgba(255, 240, 200, 0.78) !important;
+}
+
+.part-link--compacto .part-link__prazo {
+    padding: 0.75rem 0.85rem;
+}
+
+.part-link--compacto .part-link__prazo p {
+    font-size: 0.82rem;
 }
 
 .part-link__field-label {
@@ -346,6 +472,20 @@ defineExpose({ carregar, dados, erro, carregando });
 @media (max-width: 575px) {
     .part-link__field {
         grid-template-columns: 1fr;
+    }
+
+    .part-link__prazo {
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .part-link__acoes {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .part-link__btn {
+        width: 100%;
     }
 }
 
@@ -401,6 +541,10 @@ defineExpose({ carregar, dados, erro, carregando });
     color: #e8f2ff;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+a.part-link__btn--ghost:hover {
+    color: #fff;
 }
 
 .part-link__btn--copy {

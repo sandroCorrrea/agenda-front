@@ -4,7 +4,10 @@ import { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/Parti
 import type { ParticipacaoOpcoesResponseDTO } from "@/application/dto/Participacao/ParticipacaoOpcoesResponseDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
 import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
-import { exercicioPadraoParticipacao } from "@/shared/utils/participacaoLabels";
+import {
+    exercicioPadraoParticipacao,
+    isMensagemPrazoEncerrado
+} from "@/shared/utils/participacaoLabels";
 import axios from "axios";
 import { inject, reactive, ref } from "vue";
 
@@ -70,7 +73,10 @@ function extrairErrosCampo(errors: Record<string, string[]> | undefined): Record
     return out;
 }
 
-export function useParticipacaoForm(getMunicipioToken: () => string) {
+export function useParticipacaoForm(
+    getMunicipioToken: () => string,
+    getPermiteNovaParticipacao?: () => boolean
+) {
     const repo = inject<IParticipacaoRepository | null>("IParticipacaoRepository", null);
     if (!repo) throw new Error("IParticipacaoRepository not found");
 
@@ -83,6 +89,8 @@ export function useParticipacaoForm(getMunicipioToken: () => string) {
     const erroGeral = ref<string | null>(null);
     const errosCampo = reactive<Record<string, string>>({});
     const resultado = ref<ParticipacaoPostResponseDTO | null>(null);
+    const recusadoPorPrazo = ref(false);
+    const mensagemPrazoServidor = ref<string | null>(null);
     const form = reactive<ParticipacaoFormState>(formInicial());
 
     function limparErros() {
@@ -95,7 +103,18 @@ export function useParticipacaoForm(getMunicipioToken: () => string) {
     function resetarFormulario() {
         Object.assign(form, formInicial());
         resultado.value = null;
+        recusadoPorPrazo.value = false;
+        mensagemPrazoServidor.value = null;
         limparErros();
+    }
+
+    function marcarPrazoEncerrado(mensagem?: string | null) {
+        recusadoPorPrazo.value = true;
+        mensagemPrazoServidor.value = mensagem?.trim() || null;
+        erroGeral.value = null;
+        for (const key of Object.keys(errosCampo)) {
+            delete errosCampo[key];
+        }
     }
 
     async function carregarOpcoes() {
@@ -182,6 +201,11 @@ export function useParticipacaoForm(getMunicipioToken: () => string) {
     }
 
     async function enviar(): Promise<ParticipacaoPostResponseDTO | null> {
+        if (getPermiteNovaParticipacao && !getPermiteNovaParticipacao()) {
+            marcarPrazoEncerrado(mensagemPrazoServidor.value);
+            return null;
+        }
+
         if (!validarCliente()) {
             erroGeral.value = "Revise os campos destacados antes de enviar.";
             return null;
@@ -231,7 +255,9 @@ export function useParticipacaoForm(getMunicipioToken: () => string) {
                     | { message?: string; errors?: Record<string, string[]> }
                     | undefined;
 
-                if (status === 429) {
+                if (status === 422 && isMensagemPrazoEncerrado(data?.message)) {
+                    marcarPrazoEncerrado(data?.message);
+                } else if (status === 429) {
                     erroGeral.value =
                         "Muitas tentativas em pouco tempo. Aguarde um minuto e tente novamente.";
                 } else {
@@ -257,6 +283,8 @@ export function useParticipacaoForm(getMunicipioToken: () => string) {
         erroGeral,
         errosCampo,
         resultado,
+        recusadoPorPrazo,
+        mensagemPrazoServidor,
         carregarOpcoes,
         enviar,
         resetarFormulario,

@@ -6,6 +6,8 @@ export interface ParticipacaoPostResponseDTO {
     instrumento: string;
     exercicio: number;
     ibge: string | null;
+    /** Nome da cidade em endereco.localidade, resolvido pelo back-end a partir do IBGE. */
+    localidade: string | null;
     bairroComunidade: string;
     faixaEtaria: string;
     localidadeAtendida: string;

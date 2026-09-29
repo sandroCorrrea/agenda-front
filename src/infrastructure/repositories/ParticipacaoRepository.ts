@@ -12,12 +12,24 @@ import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/Pa
 import type { ParticipacaoPrazoDTO } from "@/application/dto/Participacao/ParticipacaoPrazoDTO";
 import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/ParticipacaoPostRequestDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
+import type { ParticipacaoMunicipioOpcaoDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioOpcaoDTO";
 import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
 import type { IParticipacaoRepository } from "@/domain/repositories/IParticipacaoRepository";
 import type { AxiosInstance } from "axios";
 
 export class ParticipacaoRepository implements IParticipacaoRepository {
     constructor(private api: AxiosInstance) {}
+
+    async listarMunicipios(): Promise<ParticipacaoValueLabelDTO[]> {
+        const resp = await this.api.get<{ municipios?: ParticipacaoMunicipioOpcaoDTO[] }>(
+            "/participacao/municipios"
+        );
+
+        return (resp.data.municipios ?? []).map((item) => ({
+            value: String(item.ibge ?? ""),
+            label: String(item.localidade ?? "")
+        }));
+    }
 
     async getOpcoes(): Promise<ParticipacaoOpcoesResponseDTO> {
         const resp = await this.api.get<ParticipacaoOpcoesResponseDTO>(
@@ -195,6 +207,7 @@ export class ParticipacaoRepository implements IParticipacaoRepository {
             instrumento: String(raw.instrumento ?? ""),
             exercicio: Number(raw.exercicio ?? 0),
             ibge: this.nullableString(raw.ibge),
+            localidade: this.nullableString(raw.localidade),
             bairroComunidade: String(raw.bairroComunidade ?? ""),
             faixaEtaria: String(raw.faixaEtaria ?? ""),
             localidadeAtendida: String(raw.localidadeAtendida ?? ""),

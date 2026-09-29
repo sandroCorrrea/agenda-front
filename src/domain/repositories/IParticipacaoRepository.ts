@@ -8,9 +8,11 @@ import type { ParticipacaoPostRequestDTO } from "@/application/dto/Participacao/
 import type { ParticipacaoFormularioLinkDTO } from "@/application/dto/Participacao/ParticipacaoFormularioLinkDTO";
 import type { ParticipacaoMunicipioDTO } from "@/application/dto/Participacao/ParticipacaoMunicipioDTO";
 import type { ParticipacaoPostResponseDTO } from "@/application/dto/Participacao/ParticipacaoPostResponseDTO";
+import type { ParticipacaoValueLabelDTO } from "@/application/dto/Participacao/ParticipacaoValueLabelDTO";
 
 export interface IParticipacaoRepository {
     getOpcoes(): Promise<ParticipacaoOpcoesResponseDTO>;
+    listarMunicipios(): Promise<ParticipacaoValueLabelDTO[]>;
     obterMunicipio(municipioToken: string): Promise<ParticipacaoMunicipioDTO>;
     obterLinkFormulario(): Promise<ParticipacaoFormularioLinkDTO>;
     criar(dto: ParticipacaoPostRequestDTO): Promise<ParticipacaoPostResponseDTO>;

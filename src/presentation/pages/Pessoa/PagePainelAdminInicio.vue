@@ -19,12 +19,18 @@ import {
   RiUser3Line,
   RiUserSettingsLine,
   RiLinkM,
-  RiSpeakLine
+  RiSpeakLine,
+  RiBarChartBoxLine,
+  RiBookmark3Line,
+  RiGovernmentLine,
+  RiSurveyLine,
+  RiUserStarLine
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 import { useMenuStore } from "@/presentation/store/useMenuStore";
 import { destinoAposMenu } from "@/shared/utils/adminPermissions";
+import { destinoOpcaoMenu } from "@/shared/utils/menuDestino";
 
 const matriz = useMatrizStore();
 const auth = useAuthStore();
@@ -73,7 +79,13 @@ const DESC_POR_ROTA: Record<string, string> = {
   AdministradorGrupos: "Grupos de acesso, menus e flags V/I/U/D.",
   AdministradorPerfil: "Dados pessoais e preferências da conta.",
   AdministradorChaves: "Tokens e integrações técnicas.",
-  AdministradorParticipacaoLink: "Link exclusivo do formulário de participação."
+  AdministradorParticipacaoLink: "Link exclusivo do formulário de participação.",
+  AdministradorPoliticaEleicoes: "Pleitos, CSV oficial e fila de candidatos.",
+  AdministradorPoliticaCargos: "Cargos usados nas perguntas de voto.",
+  AdministradorPoliticaPartidos: "Siglas e números dos partidos.",
+  AdministradorPoliticaCandidatos: "Candidatos vinculados à eleição e ao município.",
+  AdministradorPoliticaPesquisas: "Questionários de intenção de voto.",
+  AdministradorPoliticaResultados: "Coleta das pesquisas, sem previsão eleitoral."
 };
 
 const ACCENT_CYCLE = ["violet", "teal", "cyan", "amber", "indigo", "slate", "rose"];
@@ -93,7 +105,13 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorGrupos: RiShieldUserLine,
   AdministradorPerfil: RiUserSettingsLine,
   AdministradorChaves: RiKey2Line,
-  AdministradorParticipacaoLink: RiLinkM
+  AdministradorParticipacaoLink: RiLinkM,
+  AdministradorPoliticaEleicoes: RiGovernmentLine,
+  AdministradorPoliticaCargos: RiBriefcase4Line,
+  AdministradorPoliticaPartidos: RiBookmark3Line,
+  AdministradorPoliticaCandidatos: RiUserStarLine,
+  AdministradorPoliticaPesquisas: RiSurveyLine,
+  AdministradorPoliticaResultados: RiBarChartBoxLine
 };
 
 const atalhosVisiveis = computed(() => {
@@ -160,7 +178,7 @@ onMounted(() => {
             class="col-12 col-sm-6 col-xl-4"
           >
             <RouterLink
-              :to="{ name: item.rota }"
+              :to="destinoOpcaoMenu({ rota_nome: item.rota })"
               class="dash-card"
               :class="`dash-card--${item.accent}`"
             >

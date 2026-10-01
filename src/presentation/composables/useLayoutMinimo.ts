@@ -16,8 +16,10 @@ export function useLayoutMinimo() {
             route.name === "ParticipacaoFormulario" ||
             route.name === "ParticipacaoConsulta" ||
             route.name === "ParticipacaoPopular" ||
+            route.name === "PoliticaPesquisa" ||
             route.path.startsWith("/protocolo/assinar/") ||
             route.path.startsWith("/participacao-popular") ||
-            route.path.startsWith("/participacao/")
+            route.path.startsWith("/participacao/") ||
+            route.path.startsWith("/politica/")
     );
 }

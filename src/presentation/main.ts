@@ -21,6 +21,7 @@ import { EnderecoRepository } from "@/infrastructure/repositories/EnderecoReposi
 import { ProtocoloRepository } from "@/infrastructure/repositories/ProtocoloRepository";
 import { HomeCarrosselImagemRepository } from "@/infrastructure/repositories/HomeCarrosselImagemRepository";
 import { ParticipacaoRepository } from "@/infrastructure/repositories/ParticipacaoRepository";
+import { PoliticaRepository } from "@/infrastructure/repositories/PoliticaRepository";
 import { AuthMenuRepository } from "@/infrastructure/repositories/AuthMenuRepository";
 import { MenuRepository } from "@/infrastructure/repositories/MenuRepository";
 import { GrupoRepository } from "@/infrastructure/repositories/GrupoRepository";
@@ -54,6 +55,7 @@ const enderecoRepository = new EnderecoRepository(api);
 const protocoloRepository = new ProtocoloRepository(api);
 const homeCarrosselImagemRepository = new HomeCarrosselImagemRepository(api);
 const participacaoRepository = new ParticipacaoRepository(api);
+const politicaRepository = new PoliticaRepository(api);
 
 app.provide('IPessoaRepository', pessoaRespository);
 app.provide('IUsuarioRepository', usuarioRepository);
@@ -73,6 +75,7 @@ app.provide('IEnderecoRepository', enderecoRepository);
 app.provide('IProtocoloRepository', protocoloRepository);
 app.provide('IHomeCarrosselImagemRepository', homeCarrosselImagemRepository);
 app.provide('IParticipacaoRepository', participacaoRepository);
+app.provide('IPoliticaRepository', politicaRepository);
 
 const pinia = createPinia();
 app.use(pinia);

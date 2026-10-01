@@ -19,6 +19,7 @@ import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
 import { useVinculosPendentesStore } from "@/presentation/store/useVinculosPendentesStore";
 import type { MenuModuloSessaoDTO } from "@/application/dto/Menu/MenuSessaoDTO";
 import { destinoAposMenu } from "@/shared/utils/adminPermissions";
+import { destinoOpcaoMenu, opcaoMenuAtiva } from "@/shared/utils/menuDestino";
 
 const layoutMinimo = useLayoutMinimo();
 const matriz = useMatrizStore();
@@ -255,8 +256,11 @@ async function sair() {
                             <template v-if="!modulo.label">
                                 <li v-for="opcao in modulo.opcoes" :key="opcao.codigo">
                                     <RouterLink
-                                        :to="{ name: opcao.rota_nome }"
+                                        :to="destinoOpcaoMenu(opcao)"
                                         class="navsafe__link"
+                                        active-class=""
+                                        exact-active-class=""
+                                        :class="{ 'router-link-active': opcaoMenuAtiva(opcao, nomeRotaAtual(), route.query.ver === 'resultados') }"
                                         @click="closeMenu"
                                     >
                                         {{ opcao.label }}
@@ -293,8 +297,11 @@ async function sair() {
                                     <RouterLink
                                         v-for="opcao in modulo.opcoes"
                                         :key="opcao.codigo"
-                                        :to="{ name: opcao.rota_nome }"
+                                        :to="destinoOpcaoMenu(opcao)"
                                         class="navsafe__submenu-link"
+                                        active-class=""
+                                        exact-active-class=""
+                                        :class="{ 'router-link-active': opcaoMenuAtiva(opcao, nomeRotaAtual(), route.query.ver === 'resultados') }"
                                         @click="closeMenu"
                                     >
                                         {{ opcao.label }}
@@ -528,7 +535,8 @@ async function sair() {
 }
 
 .navsafe__submenu-link:hover,
-.navsafe__submenu-link.router-link-active {
+.navsafe__submenu-link.router-link-active,
+.navsafe__submenu-link.navsafe__submenu-link--active {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
 }

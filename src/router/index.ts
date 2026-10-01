@@ -101,6 +101,17 @@ const router = createRouter({
       }
     },
     {
+      path: '/politica/:token',
+      name: 'PoliticaPesquisa',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaPesquisaPublica.vue'),
+      props: true,
+      meta: {
+        publico: true,
+        layoutMinimo: true,
+        tituloPagina: 'Pesquisa de intenção de voto'
+      }
+    },
+    {
       path: '/participacao/:municipioToken',
       name: 'ParticipacaoFormulario',
       component: () =>
@@ -494,6 +505,126 @@ const router = createRouter({
       meta: {
         requerAutenticacao: true,
         tituloCliente: 'Sem permissões'
+      }
+    },
+    {
+      path: '/admin/politica/eleicoes',
+      name: 'AdministradorPoliticaEleicoes',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaEleicoes.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Eleições'
+      }
+    },
+    {
+      path: '/admin/politica/eleicoes/nova',
+      name: 'AdministradorPoliticaEleicaoCadastro',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaEleicaoForm.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Nova eleição'
+      }
+    },
+    {
+      path: '/admin/politica/eleicoes/:id/editar',
+      name: 'AdministradorPoliticaEleicaoEditar',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaEleicaoForm.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Editar eleição'
+      }
+    },
+    {
+      path: '/admin/politica/cargos',
+      name: 'AdministradorPoliticaCargos',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaCargos.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Cargos'
+      }
+    },
+    {
+      path: '/admin/politica/partidos',
+      name: 'AdministradorPoliticaPartidos',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaPartidos.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Partidos'
+      }
+    },
+    {
+      path: '/admin/politica/candidatos',
+      name: 'AdministradorPoliticaCandidatos',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaCandidatos.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Candidatos'
+      }
+    },
+    {
+      path: '/admin/politica/candidatos/novo',
+      name: 'AdministradorPoliticaCandidatoCadastro',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaCandidatoForm.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Novo candidato'
+      }
+    },
+    {
+      path: '/admin/politica/candidatos/:id/editar',
+      name: 'AdministradorPoliticaCandidatoEditar',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaCandidatoForm.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Editar candidato'
+      }
+    },
+    {
+      path: '/admin/politica/pesquisas',
+      name: 'AdministradorPoliticaPesquisas',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaPesquisas.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Pesquisas'
+      }
+    },
+    {
+      path: '/admin/politica/pesquisas/nova',
+      name: 'AdministradorPoliticaPesquisaCadastro',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaPesquisaForm.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Nova pesquisa'
+      }
+    },
+    {
+      path: '/admin/politica/pesquisas/:id/resultados',
+      name: 'AdministradorPoliticaResultados',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaResultados.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Resultados da pesquisa'
+      }
+    },
+    {
+      path: '/admin/politica/pesquisas/:id',
+      name: 'AdministradorPoliticaPesquisaEditar',
+      component: () => import('@/presentation/pages/Politica/PagePoliticaPesquisaForm.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Editar pesquisa'
       }
     },
     {

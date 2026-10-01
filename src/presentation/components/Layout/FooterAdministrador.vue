@@ -11,6 +11,7 @@ import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 import { useMenuStore } from "@/presentation/store/useMenuStore";
+import { destinoOpcaoMenu } from "@/shared/utils/menuDestino";
 
 const layoutMinimo = useLayoutMinimo();
 const matrizStore = useMatrizStore();
@@ -63,7 +64,7 @@ const ehMaster = computed(() => menuStore.ehMaster || auth.ehContabilidade);
             <RouterLink
               v-for="item in atalhos"
               :key="item.rota"
-              :to="{ name: item.rota }"
+              :to="destinoOpcaoMenu({ rota_nome: item.rota })"
               class="adm-foot__link"
             >
               {{ item.label }}

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
-import { RiArrowLeftLine, RiFileCopyLine } from "@remixicon/vue";
+import { RiArrowLeftLine, RiFileCopyLine, RiSurveyLine } from "@remixicon/vue";
+import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import type { PesquisaSalvarDTO } from "@/application/dto/Politica/PoliticaRequestDTO";
 import type { EstrategiaDuplicidade, PesquisaTipo } from "@/domain/politica/tipos";
 import PesquisaEditorPerguntas from "@/presentation/components/Politica/PesquisaEditorPerguntas.vue";
@@ -191,6 +192,10 @@ async function salvarIdentidade() {
         erroLocal.value = "Informe o nome e a eleição.";
         return;
     }
+    if (form.tamanhoAmostra.trim() && Number(form.tamanhoAmostra) < 1) {
+        erroLocal.value = "O tamanho da amostra precisa ser um número maior que zero.";
+        return;
+    }
     try {
         const salva = await salvar(dto(), editando.value ? pesquisaId.value : undefined);
         if (!editando.value && salva.id) {
@@ -273,46 +278,45 @@ onMounted(async () => {
 </script>
 
 <template>
-    <article class="pol-page min-vh-100 py-4">
+    <article class="admin-list-page pol-page min-vh-100 py-4">
         <div class="container">
             <RouterLink :to="{ name: 'AdministradorPoliticaPesquisas' }" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none fw-bold">
                 <RiArrowLeftLine /> Voltar para pesquisas
             </RouterLink>
-            <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
-                <div>
-                    <h1 class="h3 mb-1">{{ editando ? form.nome || "Editar pesquisa" : "Nova pesquisa" }}</h1>
-                    <p class="text-muted mb-0">Status: {{ rotuloStatusPesquisa(statusAtual) }}</p>
-                </div>
-                <div v-if="editando && link" class="d-flex gap-2 align-items-center">
-                    <code class="small">{{ link }}</code>
-                    <button class="btn btn-sm pol-btn--ghost" type="button" @click="copiarLink">
-                        <RiFileCopyLine /> {{ copiado ? "Copiado" : "Copiar link" }}
-                    </button>
-                    <RouterLink
-                        v-if="podeResultado"
-                        class="btn btn-sm pol-btn"
-                        :to="{ name: 'AdministradorPoliticaResultados', params: { id: pesquisaId } }"
-                    >
+            <AdminPageHero
+                :title="editando ? form.nome || 'Editar pesquisa' : 'Nova pesquisa'"
+                :subtitle="`Status: ${rotuloStatusPesquisa(statusAtual)}. O link só abre com a pesquisa publicada, pública e dentro do período.`"
+            >
+                <template #icon><RiSurveyLine /></template>
+                <template v-if="editando && podeResultado" #actions>
+                    <RouterLink class="btn" :to="{ name: 'AdministradorPoliticaResultados', params: { id: pesquisaId } }">
                         Resultados
                     </RouterLink>
-                </div>
+                </template>
+            </AdminPageHero>
+            <div v-if="editando && link" class="pol-link mb-3">
+                <code :title="link">{{ link }}</code>
+                <button class="btn btn-sm pol-btn--ghost" type="button" @click="copiarLink">
+                    <RiFileCopyLine /> {{ copiado ? "Copiado" : "Copiar" }}
+                </button>
             </div>
 
             <div v-if="erro || erroLocal" class="pol-alert pol-alert--erro mb-3">{{ erro || erroLocal }}</div>
             <div v-if="sucesso" class="pol-alert pol-alert--ok mb-3">{{ sucesso }}</div>
 
-            <div class="pol-steps">
+            <nav class="pol-steps" aria-label="Passos da pesquisa">
                 <button
                     v-for="(nome, indice) in passos"
                     :key="nome"
                     type="button"
-                    :class="{ 'is-on': passo === indice }"
+                    :class="{ 'is-on': passo === indice, 'is-done': indice < passo }"
                     :disabled="!editando && indice > 0"
                     @click="passo = indice"
                 >
-                    {{ indice + 1 }}. {{ nome }}
+                    <span>{{ indice + 1 }}</span>
+                    {{ nome }}
                 </button>
-            </div>
+            </nav>
 
             <section v-if="passo === 0" class="card border-0 shadow-sm pol-panel">
                 <form class="card-body row g-3" @submit.prevent="salvarIdentidade">
@@ -406,7 +410,10 @@ onMounted(async () => {
             </section>
 
             <section v-else-if="passo === 2" class="card border-0 shadow-sm pol-panel">
-                <form class="card-body row g-3" @submit.prevent="salvarIdentidade">
+                <form class="card-body row g-3" novalidate @submit.prevent="salvarIdentidade">
+                    <div v-if="erro || erroLocal" class="col-12">
+                        <div class="pol-alert pol-alert--erro">{{ erro || erroLocal }}</div>
+                    </div>
                     <div v-if="form.tipo === 'divulgacao_publica'" class="col-12">
                         <div class="pol-alert pol-alert--aviso">
                             Para publicar uma divulgação pública, a API exige responsável, plano amostral e tamanho da amostra. Margem de erro e intervalo de confiança são texto informado pelo responsável — esta tela não calcula margem.
@@ -415,7 +422,7 @@ onMounted(async () => {
                     <div class="col-md-6"><label class="form-label">Contratante</label><input v-model="form.contratante" class="form-control" maxlength="180" /></div>
                     <div class="col-md-6"><label class="form-label">Responsável</label><input v-model="form.responsavel" class="form-control" maxlength="180" /></div>
                     <div class="col-md-8"><label class="form-label">População-alvo</label><input v-model="form.populacaoAlvo" class="form-control" /></div>
-                    <div class="col-md-4"><label class="form-label">Tamanho da amostra</label><input v-model="form.tamanhoAmostra" class="form-control" type="number" min="1" /></div>
+                    <div class="col-md-4"><label class="form-label">Tamanho da amostra</label><input v-model="form.tamanhoAmostra" class="form-control" inputmode="numeric" /></div>
                     <div class="col-md-3"><label class="form-label">Início da coleta</label><input v-model="form.inicioColeta" class="form-control" type="date" /></div>
                     <div class="col-md-3"><label class="form-label">Fim da coleta</label><input v-model="form.fimColeta" class="form-control" type="date" /></div>
                     <div class="col-md-3"><label class="form-label">Margem de erro</label><input v-model="form.margemErro" class="form-control" maxlength="40" /></div>
@@ -423,7 +430,9 @@ onMounted(async () => {
                     <div class="col-12"><label class="form-label">Plano amostral</label><textarea v-model="form.planoAmostral" class="form-control" rows="3" /></div>
                     <div class="col-md-6"><label class="form-label">Registro eleitoral</label><input v-model="form.registroEleitoral" class="form-control" maxlength="80" /></div>
                     <div class="col-12"><label class="form-label">Observações</label><textarea v-model="form.observacoes" class="form-control" rows="2" /></div>
-                    <div class="col-12 text-end"><button class="btn pol-btn" type="submit" :disabled="salvando">Salvar metodologia</button></div>
+                    <div class="col-12 text-end">
+                        <button class="btn pol-btn" type="button" :disabled="salvando" @click="salvarIdentidade">Salvar metodologia</button>
+                    </div>
                 </form>
             </section>
 

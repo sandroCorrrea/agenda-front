@@ -26,6 +26,22 @@ export interface IPoliticaRepository {
     excluirEleicao(id: number): Promise<PoliticaMensagem>;
     enviarArquivoEleicao(id: number, arquivo: File): Promise<PoliticaMensagem>;
     sincronizarEleicao(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoComplementar(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarComplementar(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoBens(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarBens(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoColigacao(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarColigacao(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoVagas(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarVagas(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoMotivos(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarMotivos(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoRedes(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarRedes(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoHistorico(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarHistorico(id: number): Promise<PoliticaMensagem>;
+    enviarArquivoFotos(id: number, arquivo: File): Promise<PoliticaMensagem>;
+    sincronizarFotos(id: number): Promise<PoliticaMensagem>;
 
     listarCargos(query?: PoliticaListaQuery): Promise<PoliticaPagina<Cargo>>;
     criarCargo(dto: CargoSalvarDTO): Promise<Cargo>;

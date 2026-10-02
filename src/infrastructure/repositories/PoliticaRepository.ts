@@ -89,6 +89,118 @@ export class PoliticaRepository implements IPoliticaRepository {
             .then((resp) => mapMensagem(resp.data ?? {}));
     }
 
+    enviarArquivoComplementar(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-complementar`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarComplementar(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-complementar`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoBens(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-bens`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarBens(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-bens`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoColigacao(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-coligacao`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarColigacao(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-coligacao`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoVagas(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-vagas`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarVagas(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-vagas`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoMotivos(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-motivos`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarMotivos(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-motivos`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoRedes(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-redes`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarRedes(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-redes`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoHistorico(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-historico`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarHistorico(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-historico`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    enviarArquivoFotos(id: number, arquivo: File): Promise<PoliticaMensagem> {
+        const corpo = new FormData();
+        corpo.append("arquivo", arquivo);
+        return this.api
+            .post(`/politica/eleicao/${id}/arquivo-fotos`, corpo)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
+    sincronizarFotos(id: number): Promise<PoliticaMensagem> {
+        return this.api
+            .post(`/politica/eleicao/${id}/sincronizar-fotos`)
+            .then((resp) => mapMensagem(resp.data ?? {}));
+    }
+
     listarCargos(query?: PoliticaListaQuery): Promise<PoliticaPagina<Cargo>> {
         return this.listar("/politica/cargo", "cargos", mapCargo, query);
     }

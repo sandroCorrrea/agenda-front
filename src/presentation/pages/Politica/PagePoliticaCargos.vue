@@ -62,9 +62,13 @@ onMounted(() => void carregar(1));
             </AdminPageHero>
             <div v-if="erro" class="pol-alert pol-alert--erro mb-3">{{ erro }}</div>
             <div v-if="sucesso" class="pol-alert pol-alert--ok mb-3">{{ sucesso }}</div>
-            <form class="pol-search mb-3" @submit.prevent="carregar(1)">
-                <RiSearchLine />
-                <input v-model="q" class="form-control" type="search" placeholder="Buscar cargo" />
+            <form class="card border-0 shadow-sm pol-panel mb-3" @submit.prevent="carregar(1)">
+                <div class="card-body">
+                    <div class="pol-search">
+                        <RiSearchLine />
+                        <input v-model="q" class="form-control" type="search" placeholder="Buscar cargo" />
+                    </div>
+                </div>
             </form>
             <section class="card border-0 shadow-sm pol-panel">
                 <div class="card-body">

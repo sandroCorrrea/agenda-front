@@ -3,10 +3,26 @@ import type { EleicaoSalvarDTO } from "@/application/dto/Politica/PoliticaReques
 import {
     AtualizarEleicaoUseCase,
     CriarEleicaoUseCase,
+    EnviarArquivoBensUseCase,
+    EnviarArquivoColigacaoUseCase,
+    EnviarArquivoFotosUseCase,
+    EnviarArquivoHistoricoUseCase,
+    EnviarArquivoMotivosUseCase,
+    EnviarArquivoRedesUseCase,
+    EnviarArquivoVagasUseCase,
+    EnviarArquivoComplementarUseCase,
     EnviarArquivoEleicaoUseCase,
     ExcluirEleicaoUseCase,
     ListarEleicoesUseCase,
     ObterEleicaoUseCase,
+    SincronizarBensUseCase,
+    SincronizarColigacaoUseCase,
+    SincronizarFotosUseCase,
+    SincronizarHistoricoUseCase,
+    SincronizarMotivosUseCase,
+    SincronizarRedesUseCase,
+    SincronizarVagasUseCase,
+    SincronizarComplementarUseCase,
     SincronizarEleicaoUseCase
 } from "@/application/use-cases/Politica/PoliticaUseCases";
 import type { Eleicao } from "@/domain/politica/tipos";
@@ -24,6 +40,22 @@ export function useEleicoesAdmin() {
     const excluir = new ExcluirEleicaoUseCase(repo);
     const enviarArquivo = new EnviarArquivoEleicaoUseCase(repo);
     const sincronizar = new SincronizarEleicaoUseCase(repo);
+    const enviarComplementar = new EnviarArquivoComplementarUseCase(repo);
+    const sincronizarComplementar = new SincronizarComplementarUseCase(repo);
+    const enviarBens = new EnviarArquivoBensUseCase(repo);
+    const sincronizarBens = new SincronizarBensUseCase(repo);
+    const enviarColigacao = new EnviarArquivoColigacaoUseCase(repo);
+    const sincronizarColigacao = new SincronizarColigacaoUseCase(repo);
+    const enviarVagas = new EnviarArquivoVagasUseCase(repo);
+    const sincronizarVagas = new SincronizarVagasUseCase(repo);
+    const enviarMotivos = new EnviarArquivoMotivosUseCase(repo);
+    const sincronizarMotivos = new SincronizarMotivosUseCase(repo);
+    const enviarRedes = new EnviarArquivoRedesUseCase(repo);
+    const sincronizarRedes = new SincronizarRedesUseCase(repo);
+    const enviarHistorico = new EnviarArquivoHistoricoUseCase(repo);
+    const sincronizarHistorico = new SincronizarHistoricoUseCase(repo);
+    const enviarFotos = new EnviarArquivoFotosUseCase(repo);
+    const sincronizarFotos = new SincronizarFotosUseCase(repo);
 
     const itens = ref<Eleicao[]>([]);
     const carregando = ref(false);
@@ -133,6 +165,246 @@ export function useEleicoesAdmin() {
         }
     }
 
+    async function subirComplementar(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarComplementar.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV complementar.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirBens(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarBens.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV de bens.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirColigacao(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarColigacao.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV de coligações.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirVagas(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarVagas.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV de vagas.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirMotivos(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarMotivos.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV de motivos.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirFotos(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarFotos.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o ZIP de fotos.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarFotos(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarFotos.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar as fotos.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirHistorico(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarHistorico.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV de histórico.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarHistorico(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarHistorico.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar o histórico.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function subirRedes(id: number, arquivo: File) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await enviarRedes.execute(id, arquivo);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível enviar o CSV de redes sociais.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarRedes(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarRedes.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar as redes sociais.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarMotivos(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarMotivos.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar os motivos.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarVagas(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarVagas.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar as vagas.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarColigacao(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarColigacao.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar as coligações.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarBens(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarBens.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar os bens.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
+    async function enfileirarComplementar(id: number) {
+        salvando.value = true;
+        erro.value = null;
+        try {
+            const resp = await sincronizarComplementar.execute(id);
+            sucesso.value = resp.message;
+            return resp;
+        } catch (e: unknown) {
+            erro.value = lerErroApi(e, "Não foi possível aplicar as informações complementares.").mensagem;
+            throw e;
+        } finally {
+            salvando.value = false;
+        }
+    }
+
     return {
         itens,
         carregando,
@@ -153,6 +425,22 @@ export function useEleicoesAdmin() {
         salvar,
         remover,
         subirArquivo,
-        enfileirar
+        enfileirar,
+        subirComplementar,
+        enfileirarComplementar,
+        subirBens,
+        enfileirarBens,
+        subirColigacao,
+        enfileirarColigacao,
+        subirVagas,
+        enfileirarVagas,
+        subirMotivos,
+        enfileirarMotivos,
+        subirRedes,
+        enfileirarRedes,
+        subirHistorico,
+        enfileirarHistorico,
+        subirFotos,
+        enfileirarFotos
     };
 }

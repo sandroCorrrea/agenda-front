@@ -101,6 +101,14 @@ onMounted(() => {
                                         <div class="small text-muted">
                                             {{ item.possuiArquivo ? "CSV enviado" : "Sem CSV" }}
                                             <template v-if="item.sincronizadoEm"> · sincronizado {{ formatarDataCurta(item.sincronizadoEm) }}</template>
+                                            <template v-if="item.possuiArquivoComplementar"> · complementar {{ item.complementarEm ? formatarDataCurta(item.complementarEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoBens"> · bens {{ item.bensEm ? formatarDataCurta(item.bensEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoColigacao"> · coligação {{ item.coligacaoEm ? formatarDataCurta(item.coligacaoEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoVagas"> · vagas {{ item.vagasEm ? formatarDataCurta(item.vagasEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoMotivos"> · motivos {{ item.motivosEm ? formatarDataCurta(item.motivosEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoRedes"> · redes {{ item.redesEm ? formatarDataCurta(item.redesEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoHistorico"> · histórico {{ item.historicoEm ? formatarDataCurta(item.historicoEm) : "enviado" }}</template>
+                                            <template v-if="item.possuiArquivoFotos"> · fotos {{ item.fotosEm ? formatarDataCurta(item.fotosEm) : "enviado" }}</template>
                                         </div>
                                     </td>
                                     <td>{{ item.ano }}</td>

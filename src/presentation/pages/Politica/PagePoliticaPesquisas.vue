@@ -46,7 +46,8 @@ onMounted(() => void carregar(1));
             </div>
             <div v-if="erro" class="pol-alert pol-alert--erro mb-3">{{ erro }}</div>
             <div v-if="sucesso" class="pol-alert pol-alert--ok mb-3">{{ sucesso }}</div>
-            <form class="row g-2 mb-3" @submit.prevent="carregar(1)">
+            <form class="card border-0 shadow-sm pol-panel mb-3" @submit.prevent="carregar(1)">
+                <div class="card-body row g-2">
                 <div class="col-md-6 pol-search">
                     <RiSearchLine />
                     <input v-model="q" class="form-control" type="search" placeholder="Buscar pesquisa" />
@@ -68,6 +69,7 @@ onMounted(() => void carregar(1));
                     </select>
                 </div>
                 <div class="col-md-2"><button class="btn pol-btn w-100" type="submit">Filtrar</button></div>
+                </div>
             </form>
             <section class="card border-0 shadow-sm pol-panel">
                 <div class="card-body table-responsive">

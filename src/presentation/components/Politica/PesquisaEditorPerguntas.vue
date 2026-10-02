@@ -313,7 +313,7 @@ function definirNumeroConfig(nome: "min" | "max", valor: string) {
 
         <aside class="editor__phone" aria-label="Prévia no celular">
             <div class="editor__moldura">
-                <p class="editor__phone-kicker">Prévia</p>
+                <p class="editor__phone-kicker">Como a pessoa vê</p>
                 <h3>{{ previa?.titulo }}</h3>
                 <PesquisaPerguntaCampo
                     v-if="previa"
@@ -373,23 +373,26 @@ function definirNumeroConfig(nome: "min" | "max", valor: string) {
 }
 
 .editor__moldura {
-    background: #14233f;
-    color: #fff;
+    background: #f6f8fc;
+    color: #0f2744;
+    border: 1px solid rgba(22, 37, 78, 0.08);
     border-radius: 28px;
-    padding: 1rem;
+    padding: 1rem 0.85rem 1.1rem;
     min-height: 420px;
 }
 
 .editor__moldura h3 {
     font-size: 1.15rem;
     margin-bottom: 0.8rem;
+    letter-spacing: -0.02em;
 }
 
 .editor__phone-kicker {
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     font-size: 0.72rem;
-    opacity: 0.7;
+    font-weight: 700;
+    color: #0d6e6e;
 }
 
 @media (max-width: 1099px) {

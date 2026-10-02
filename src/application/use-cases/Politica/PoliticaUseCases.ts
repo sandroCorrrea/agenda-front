@@ -73,6 +73,118 @@ export class SincronizarEleicaoUseCase {
     }
 }
 
+export class EnviarArquivoComplementarUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoComplementar(id, arquivo);
+    }
+}
+
+export class SincronizarComplementarUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarComplementar(id);
+    }
+}
+
+export class EnviarArquivoBensUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoBens(id, arquivo);
+    }
+}
+
+export class SincronizarBensUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarBens(id);
+    }
+}
+
+export class EnviarArquivoColigacaoUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoColigacao(id, arquivo);
+    }
+}
+
+export class SincronizarColigacaoUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarColigacao(id);
+    }
+}
+
+export class EnviarArquivoVagasUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoVagas(id, arquivo);
+    }
+}
+
+export class SincronizarVagasUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarVagas(id);
+    }
+}
+
+export class EnviarArquivoMotivosUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoMotivos(id, arquivo);
+    }
+}
+
+export class SincronizarMotivosUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarMotivos(id);
+    }
+}
+
+export class EnviarArquivoRedesUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoRedes(id, arquivo);
+    }
+}
+
+export class SincronizarRedesUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarRedes(id);
+    }
+}
+
+export class EnviarArquivoHistoricoUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoHistorico(id, arquivo);
+    }
+}
+
+export class SincronizarHistoricoUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarHistorico(id);
+    }
+}
+
+export class EnviarArquivoFotosUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number, arquivo: File) {
+        return this.repository.enviarArquivoFotos(id, arquivo);
+    }
+}
+
+export class SincronizarFotosUseCase {
+    constructor(private repository: IPoliticaRepository) {}
+    execute(id: number) {
+        return this.repository.sincronizarFotos(id);
+    }
+}
+
 export class ListarCargosUseCase {
     constructor(private repository: IPoliticaRepository) {}
     execute(query?: PoliticaListaQuery) {

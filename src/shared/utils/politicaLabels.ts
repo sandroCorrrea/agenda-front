@@ -108,6 +108,26 @@ export function rotuloAcaoStatus(status: string): string {
     return mapa[status] ?? status;
 }
 
+export function rotuloMarcacao(valor: string | null | undefined): string | null {
+    if (valor === "S" || valor === "sim") return "Sim";
+    if (valor === "N" || valor === "nao") return "Não";
+    return valor ?? null;
+}
+
+export function formatarTetoGasto(valor: string | null | undefined): string | null {
+    if (!valor) return null;
+    const numero = Number(valor);
+    if (!Number.isFinite(numero)) return valor;
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(numero);
+}
+
+export function formatarDataHoraCurta(valor: string | null | undefined): string | null {
+    if (!valor) return null;
+    const data = new Date(valor.includes("T") ? valor : valor.replace(" ", "T"));
+    if (Number.isNaN(data.getTime())) return valor;
+    return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(data);
+}
+
 export function formatarDataCurta(valor: string | null | undefined): string {
     if (!valor) return "—";
     const data = new Date(valor.includes("T") ? valor : valor.replace(" ", "T"));

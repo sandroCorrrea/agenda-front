@@ -40,6 +40,16 @@ export type PoliticaPagina<T> = {
     porPagina: number;
 };
 
+export type VagaEleicao = {
+    cargoCodigo: string;
+    cargoNome: string | null;
+    uf: string | null;
+    siglaUe: string | null;
+    unidadeEleitoral: string | null;
+    quantidade: number;
+    posse: string | null;
+};
+
 export type Eleicao = {
     id: number;
     nome: string;
@@ -50,6 +60,23 @@ export type Eleicao = {
     status: EleicaoStatus | string;
     possuiArquivo: boolean;
     sincronizadoEm: string | null;
+    possuiArquivoComplementar: boolean;
+    complementarEm: string | null;
+    possuiArquivoBens: boolean;
+    bensEm: string | null;
+    possuiArquivoColigacao: boolean;
+    coligacaoEm: string | null;
+    possuiArquivoVagas: boolean;
+    vagasEm: string | null;
+    vagas: VagaEleicao[];
+    possuiArquivoMotivos: boolean;
+    motivosEm: string | null;
+    possuiArquivoRedes: boolean;
+    redesEm: string | null;
+    possuiArquivoHistorico: boolean;
+    historicoEm: string | null;
+    possuiArquivoFotos: boolean;
+    fotosEm: string | null;
 };
 
 export type Cargo = {
@@ -68,6 +95,107 @@ export type Partido = {
     status: PartidoStatus | string;
 };
 
+export type CandidatoFicha = {
+    nomeSocial: string | null;
+    genero: string | null;
+    grauInstrucao: string | null;
+    ocupacao: string | null;
+    corRaca: string | null;
+    agremiacao: string | null;
+    federacao: string | null;
+    coligacao: string | null;
+    situacao: string | null;
+    unidadeEleitoral: string | null;
+};
+
+export type CandidatoComplementar = {
+    nacionalidade: string | null;
+    municipioNascimento: string | null;
+    idadePosse: string | null;
+    quilombola: "S" | "N" | null;
+    etniaIndigena: string | null;
+    despesaMaxCampanha: string | null;
+    reeleicao: "S" | "N" | null;
+    declararBens: "S" | "N" | null;
+    numeroProcesso: string | null;
+    inseridoUrna: "sim" | "nao" | null;
+    destinacaoVotos: string | null;
+    situacaoTot: string | null;
+    situacaoJulgamento: string | null;
+    situacaoJulgamentoPleito: string | null;
+    situacaoJulgamentoUrna: string | null;
+    prestouContas: "S" | "N" | null;
+    substituido: "S" | "N" | null;
+    sqSubstituido: string | null;
+    aceiteCandidatura: string | null;
+    generoFefc: string | null;
+    corRacaFefc: string | null;
+};
+
+export type BemCandidato = {
+    ordem: string;
+    codigoTipo: string | null;
+    tipo: string | null;
+    descricao: string | null;
+    valor: string | null;
+    atualizadoEm: string | null;
+};
+
+export type BensCandidato = {
+    quantidade: number;
+    valorTotal: string;
+    itens: BemCandidato[];
+};
+
+export type CandidatoColigacao = {
+    tipoAgremiacao: string | null;
+    nome: string | null;
+    composicao: string | null;
+    sqColigacao: string | null;
+    codigoSituacao: string | null;
+    situacao: string | null;
+    destinacaoVotos: string | null;
+    numeroFederacao: string | null;
+    nomeFederacao: string | null;
+    siglaFederacao: string | null;
+    composicaoFederacao: string | null;
+    turno: string | null;
+    unidadeEleitoral: string | null;
+    partidoNumero: string | null;
+    partidoSigla: string | null;
+};
+
+export type HistoricoCandidatura = {
+    ano: string | null;
+    turno: string | null;
+    abrangencia: "municipal" | "estadual" | "federal" | string | null;
+    uf: string | null;
+    unidade: string | null;
+    cargo: string | null;
+    numero: string | null;
+    nome: string | null;
+    nomeUrna: string | null;
+    partidoNumero: string | null;
+    partidoSigla: string | null;
+    partidoNome: string | null;
+    situacaoCandidatura: string | null;
+    situacaoJulgamento: string | null;
+    resultado: string | null;
+    data: string | null;
+};
+
+export type RedeCandidato = {
+    ordem: string;
+    url: string;
+    rede: string | null;
+};
+
+export type MotivoCandidato = {
+    tipo: string | null;
+    descricao: string | null;
+    processo: string | null;
+};
+
 export type Candidato = {
     id: number;
     eleicaoId: number;
@@ -84,6 +212,14 @@ export type Candidato = {
     nomeUrna: string;
     fotoUrl: string | null;
     status: CandidatoStatus | string;
+    ficha: CandidatoFicha | null;
+    complementar: CandidatoComplementar | null;
+    bens: BensCandidato | null;
+    coligacao: CandidatoColigacao | null;
+    quantidadeVagas: number | null;
+    motivos: MotivoCandidato[] | null;
+    redes: RedeCandidato[] | null;
+    historico: HistoricoCandidatura[] | null;
 };
 
 export type MunicipioPolitica = {
@@ -259,8 +395,17 @@ export type PoliticaMensagem = {
     sessaoId?: string;
     concluida?: boolean;
     possuiArquivo?: boolean;
+    possuiArquivoComplementar?: boolean;
+    possuiArquivoBens?: boolean;
+    possuiArquivoColigacao?: boolean;
+    possuiArquivoVagas?: boolean;
+    possuiArquivoMotivos?: boolean;
+    possuiArquivoRedes?: boolean;
+    possuiArquivoHistorico?: boolean;
+    possuiArquivoFotos?: boolean;
     sincronizacaoId?: number;
     status?: string;
+    tipo?: string;
 };
 
 export type ArquivoExportado = {

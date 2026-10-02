@@ -45,6 +45,12 @@ export type CandidatoSalvarDTO = {
     nome_urna: string;
     foto_url?: string | null;
     status?: CandidatoStatus;
+    nome_social?: string | null;
+    genero?: string | null;
+    grau_instrucao?: string | null;
+    ocupacao?: string | null;
+    cor_raca?: string | null;
+    agremiacao?: string | null;
 };
 
 export type MetodologiaSalvarDTO = {

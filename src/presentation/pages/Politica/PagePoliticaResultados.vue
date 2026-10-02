@@ -4,7 +4,7 @@ import { RouterLink, useRoute } from "vue-router";
 import { RiArrowLeftLine, RiBarChartBoxLine, RiDownloadLine, RiFilePdf2Line } from "@remixicon/vue";
 import AdminPageHero from "@/presentation/components/Admin/AdminPageHero.vue";
 import { useResultadosPolitica } from "@/presentation/composables/Politica/useResultadosPolitica";
-import { rotuloStatusPesquisa } from "@/shared/utils/politicaLabels";
+import { rotuloDe, rotuloStatusPesquisa, TIPOS_PERGUNTA } from "@/shared/utils/politicaLabels";
 import "@/presentation/assets/styles/politica-admin.css";
 
 const route = useRoute();
@@ -94,41 +94,48 @@ watch(id, (valor) => {
                     </div>
                 </div>
 
-                <section class="card border-0 shadow-sm pol-panel mb-3">
-                    <div class="card-body">
-                        <h2 class="h5">Linha do tempo</h2>
-                        <div v-for="ponto in resultado.evolucao" :key="ponto.data" class="d-flex align-items-center gap-2 mb-2">
-                            <span class="small text-nowrap" style="width: 7rem">{{ ponto.data }}</span>
-                            <div class="flex-grow-1 bg-light rounded-pill" style="height: 10px">
-                                <div class="rounded-pill h-100" :style="{ width: `${(ponto.total / maiorEvolucao) * 100}%`, background: '#2da0a8' }" />
+                <div class="row g-3 mb-3">
+                    <section class="col-lg-7">
+                        <div class="card border-0 shadow-sm pol-panel h-100">
+                            <div class="card-body">
+                                <h2 class="h5">Linha do tempo</h2>
+                                <p class="small text-muted">Volume de respostas por dia. A barra compara os dias entre si e não é percentual de voto.</p>
+                                <div v-for="ponto in resultado.evolucao" :key="ponto.data" class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="small text-nowrap pol-metro">{{ ponto.data }}</span>
+                                    <div class="pol-bar flex-grow-1">
+                                        <span :style="{ width: `${(ponto.total / maiorEvolucao) * 100}%` }" />
+                                    </div>
+                                    <strong class="small">{{ ponto.total }}</strong>
+                                </div>
+                                <p v-if="resultado.evolucao.length === 0" class="text-muted mb-0">Ainda não há respostas concluídas no período.</p>
                             </div>
-                            <strong class="small">{{ ponto.total }}</strong>
                         </div>
-                        <p v-if="resultado.evolucao.length === 0" class="text-muted mb-0">Ainda não há respostas concluídas no período.</p>
-                    </div>
-                </section>
-
-                <section class="card border-0 shadow-sm pol-panel mb-3">
-                    <div class="card-body">
-                        <h2 class="h5">Por município</h2>
-                        <div v-for="cidade in resultado.municipios" :key="cidade.ibge || cidade.nome" class="d-flex justify-content-between border-bottom py-2">
-                            <span>{{ cidade.nome }}</span>
-                            <strong>{{ cidade.total }}</strong>
+                    </section>
+                    <section class="col-lg-5">
+                        <div class="card border-0 shadow-sm pol-panel h-100">
+                            <div class="card-body">
+                                <h2 class="h5">Por município</h2>
+                                <div v-for="cidade in resultado.municipios" :key="cidade.ibge || cidade.nome" class="d-flex justify-content-between border-bottom py-2">
+                                    <span>{{ cidade.nome }}</span>
+                                    <strong>{{ cidade.total }}</strong>
+                                </div>
+                                <p v-if="resultado.municipios.length === 0" class="text-muted mb-0">Nenhum município nesta coleta.</p>
+                            </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
+                </div>
 
                 <section v-for="pergunta in resultado.perguntas" :key="pergunta.id" class="card border-0 shadow-sm pol-panel mb-3">
                     <div class="card-body">
                         <h2 class="h5">{{ pergunta.titulo }}</h2>
-                        <p class="small text-muted">{{ pergunta.tipo }}</p>
+                        <p class="small text-muted">{{ rotuloDe(TIPOS_PERGUNTA, pergunta.tipo) }}</p>
                         <div v-for="opcao in pergunta.opcoes" :key="opcao.opcaoId" class="mb-3">
-                            <div class="d-flex justify-content-between">
+                            <div class="d-flex justify-content-between gap-3">
                                 <span>{{ opcao.rotulo }}</span>
-                                <strong>{{ opcao.total }} · {{ opcao.percentual }}%</strong>
+                                <strong class="text-nowrap">{{ opcao.total }} · {{ opcao.percentual }}%</strong>
                             </div>
-                            <div class="bg-light rounded-pill" style="height: 12px">
-                                <div class="rounded-pill h-100" :style="{ width: `${Math.min(100, opcao.percentual)}%`, background: 'linear-gradient(90deg,#5c6bc0,#2da0a8)' }" />
+                            <div class="pol-bar pol-bar--voto mt-1">
+                                <span :style="{ width: `${Math.min(100, opcao.percentual)}%` }" />
                             </div>
                         </div>
                         <ul v-if="pergunta.textos.length" class="list-group">

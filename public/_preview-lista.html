@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Montserrat, sans-serif; background: #f6f8fc; }
+.moldura { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+.pol-badge { display: inline-flex; border-radius: 999px; padding: .2rem .55rem; font-size: .72rem; font-weight: 800; text-transform: uppercase; background: rgba(45,160,168,.15); color: #1a6b72; }
+.pol-urna-card__num {
+    min-width: 3.4rem;
+    height: 3.4rem;
+    padding: 0 0.45rem;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: #1f2e54;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+.pol-cand-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 34rem), 1fr));
+    gap: 0.85rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    align-items: start;
+}
+
+.pol-cand {
+    min-width: 0;
+    background: #fff;
+    border: 1px solid rgba(15, 39, 68, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(22, 37, 78, 0.05);
+    padding: 0.9rem 1rem 1rem;
+}
+
+.pol-cand__topo {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem 0.85rem;
+    align-items: start;
+}
+
+.pol-cand__foto {
+    width: 3.6rem;
+    height: 4.6rem;
+    object-fit: cover;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: #eef3f8;
+    border: 1px solid rgba(22, 37, 78, 0.08);
+}
+
+.pol-cand__ident {
+    min-width: 0;
+}
+
+.pol-cand__ident strong,
+.pol-cand__ident span,
+.pol-cand__ident small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.pol-cand__ident strong {
+    color: #0f2744;
+    font-size: 1.02rem;
+    line-height: 1.25;
+}
+
+.pol-cand__ident span,
+.pol-cand__ident small {
+    color: #5a6b7d;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.pol-cand__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    grid-column: 1 / -1;
+}
+
+.pol-cand__fatos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+    gap: 0.45rem;
+    margin: 0.8rem 0 0;
+}
+
+.pol-cand__fatos div {
+    min-width: 0;
+    background: #f4f7fb;
+    border-radius: 12px;
+    padding: 0.4rem 0.55rem 0.45rem;
+}
+
+.pol-cand__fatos dt {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #5d6e8f;
+}
+
+.pol-cand__fatos dd {
+    margin: 0.1rem 0 0;
+    color: #1a2d4e;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+@media (min-width: 720px) {
+    .pol-cand__topo {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    .pol-cand__acoes {
+        grid-column: auto;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+    }
+}
+</style></head><body><div class="moldura"><ul class="pol-cand-grade">
+<li class="pol-cand"><div class="pol-cand__topo">
+<img class="pol-cand__foto" src="http://127.0.0.1:8000/storage/politica/eleicoes/2/fotos/130002533216.jpg" alt="">
+<div class="pol-cand__ident"><strong>MAURICINHO DE SÁ</strong><span>José Maurício de Sá Júnior</span><small>PSD · Deputado federal · 53 vagas · MG</small></div>
+<div class="pol-cand__acoes"><span class="pol-badge">Ativo</span></div>
+</div><dl class="pol-cand__fatos"><div><dt>Bens</dt><dd>Não informado</dd></div><div><dt>Redes</dt><dd>3 redes</dd></div></dl></li>
+<li class="pol-cand"><div class="pol-cand__topo">
+<span class="pol-urna-card__num">1313</span>
+<div class="pol-cand__ident"><strong>SEM FOTO</strong><span>Candidato sem imagem divulgável</span><small>PT · Vereador · 3106200/MG</small></div>
+<div class="pol-cand__acoes"><span class="pol-badge">Ativo</span></div>
+</div><dl class="pol-cand__fatos"><div><dt>Bens</dt><dd>Não informado</dd></div></dl></li>
+</ul></div></body></html>

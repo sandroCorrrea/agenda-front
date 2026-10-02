@@ -1,5 +1,10 @@
 import type {
+    BemCandidato,
+    BensCandidato,
     Candidato,
+    CandidatoColigacao,
+    CandidatoComplementar,
+    CandidatoFicha,
     Cargo,
     Eleicao,
     MunicipioPolitica,
@@ -11,7 +16,12 @@ import type {
     PesquisaPergunta,
     PesquisaResultado,
     PesquisaResumo,
+    HistoricoCandidatura,
+    HistoricoCandidatura,
+    MotivoCandidato,
+    RedeCandidato,
     PoliticaMensagem,
+    VagaEleicao,
     PoliticaPagina
 } from "@/domain/politica/tipos";
 
@@ -29,6 +39,12 @@ function numero(valor: unknown): number | null {
     if (valor == null || valor === "") return null;
     const n = Number(valor);
     return Number.isFinite(n) ? n : null;
+}
+
+function inteiro(valor: unknown): number | null {
+    if (typeof valor === "number" && Number.isInteger(valor)) return valor;
+    if (typeof valor === "string" && /^-?\d+$/.test(valor.trim())) return Number(valor.trim());
+    return null;
 }
 
 function bool(valor: unknown): boolean {
@@ -51,8 +67,48 @@ export function mapEleicao(item: Record<string, unknown>): Eleicao {
         dataFim: texto(item.dataFim),
         status: obrigatorio(item.status, "rascunho"),
         possuiArquivo: bool(item.possuiArquivo),
-        sincronizadoEm: texto(item.sincronizadoEm)
+        sincronizadoEm: texto(item.sincronizadoEm),
+        possuiArquivoComplementar: bool(item.possuiArquivoComplementar),
+        complementarEm: texto(item.complementarEm),
+        possuiArquivoBens: bool(item.possuiArquivoBens),
+        bensEm: texto(item.bensEm),
+        possuiArquivoColigacao: bool(item.possuiArquivoColigacao),
+        coligacaoEm: texto(item.coligacaoEm),
+        possuiArquivoVagas: bool(item.possuiArquivoVagas),
+        vagasEm: texto(item.vagasEm),
+        vagas: mapVagas(item.vagas),
+        possuiArquivoMotivos: bool(item.possuiArquivoMotivos),
+        motivosEm: texto(item.motivosEm),
+        possuiArquivoRedes: bool(item.possuiArquivoRedes),
+        redesEm: texto(item.redesEm),
+        possuiArquivoHistorico: bool(item.possuiArquivoHistorico),
+        historicoEm: texto(item.historicoEm),
+        possuiArquivoFotos: bool(item.possuiArquivoFotos),
+        fotosEm: texto(item.fotosEm)
     };
+}
+
+function mapVaga(valor: unknown): VagaEleicao | null {
+    const item = registro(valor);
+    const quantidade = inteiro(item.quantidade);
+    if (quantidade == null) return null;
+    return {
+        cargoCodigo: obrigatorio(item.cargoCodigo),
+        cargoNome: texto(item.cargoNome),
+        uf: texto(item.uf),
+        siglaUe: texto(item.siglaUe),
+        unidadeEleitoral: texto(item.unidadeEleitoral),
+        quantidade,
+        posse: texto(item.posse)
+    };
+}
+
+function mapVagas(valor: unknown): VagaEleicao[] {
+    if (!Array.isArray(valor)) return [];
+    return valor.flatMap((item) => {
+        const vaga = mapVaga(item);
+        return vaga ? [vaga] : [];
+    });
 }
 
 export function mapCargo(item: Record<string, unknown>): Cargo {
@@ -75,6 +131,112 @@ export function mapPartido(item: Record<string, unknown>): Partido {
     };
 }
 
+function marca(valor: unknown): "S" | "N" | null {
+    const item = texto(valor);
+    if (item === "S" || item === "N") return item;
+    return null;
+}
+
+function inseridoUrna(valor: unknown): "sim" | "nao" | null {
+    const item = texto(valor)?.toLowerCase();
+    if (item === "sim" || item === "nao") return item;
+    return null;
+}
+
+function mapComplementar(valor: unknown): CandidatoComplementar | null {
+    if (valor == null) return null;
+    const item = registro(valor);
+    const complementar: CandidatoComplementar = {
+        nacionalidade: texto(item.nacionalidade),
+        municipioNascimento: texto(item.municipioNascimento),
+        idadePosse: texto(item.idadePosse),
+        quilombola: marca(item.quilombola),
+        etniaIndigena: texto(item.etniaIndigena),
+        despesaMaxCampanha: texto(item.despesaMaxCampanha),
+        reeleicao: marca(item.reeleicao),
+        declararBens: marca(item.declararBens),
+        numeroProcesso: texto(item.numeroProcesso),
+        inseridoUrna: inseridoUrna(item.inseridoUrna),
+        destinacaoVotos: texto(item.destinacaoVotos),
+        situacaoTot: texto(item.situacaoTot),
+        situacaoJulgamento: texto(item.situacaoJulgamento),
+        situacaoJulgamentoPleito: texto(item.situacaoJulgamentoPleito),
+        situacaoJulgamentoUrna: texto(item.situacaoJulgamentoUrna),
+        prestouContas: marca(item.prestouContas),
+        substituido: marca(item.substituido),
+        sqSubstituido: texto(item.sqSubstituido),
+        aceiteCandidatura: texto(item.aceiteCandidatura),
+        generoFefc: texto(item.generoFefc),
+        corRacaFefc: texto(item.corRacaFefc)
+    };
+    return Object.values(complementar).some(Boolean) ? complementar : null;
+}
+
+function mapBem(valor: unknown): BemCandidato {
+    const item = registro(valor);
+    return {
+        ordem: obrigatorio(item.ordem),
+        codigoTipo: texto(item.codigoTipo),
+        tipo: texto(item.tipo),
+        descricao: texto(item.descricao),
+        valor: texto(item.valor),
+        atualizadoEm: texto(item.atualizadoEm)
+    };
+}
+
+function mapBens(valor: unknown): BensCandidato | null {
+    if (valor == null) return null;
+    const item = registro(valor);
+    const itens = Array.isArray(item.itens) ? item.itens.map((bem) => mapBem(bem)) : [];
+    const valorTotal = texto(item.valorTotal);
+    if (item.quantidade == null && valorTotal == null && itens.length === 0) return null;
+    return {
+        quantidade: Number(item.quantidade ?? itens.length),
+        valorTotal: valorTotal ?? "0.00",
+        itens
+    };
+}
+
+function mapColigacao(valor: unknown): CandidatoColigacao | null {
+    if (valor == null || typeof valor !== "object" || Array.isArray(valor)) return null;
+    const item = registro(valor);
+    const coligacao: CandidatoColigacao = {
+        tipoAgremiacao: texto(item.tipoAgremiacao),
+        nome: texto(item.nome),
+        composicao: texto(item.composicao),
+        sqColigacao: texto(item.sqColigacao),
+        codigoSituacao: texto(item.codigoSituacao),
+        situacao: texto(item.situacao),
+        destinacaoVotos: texto(item.destinacaoVotos),
+        numeroFederacao: texto(item.numeroFederacao),
+        nomeFederacao: texto(item.nomeFederacao),
+        siglaFederacao: texto(item.siglaFederacao),
+        composicaoFederacao: texto(item.composicaoFederacao),
+        turno: texto(item.turno),
+        unidadeEleitoral: texto(item.unidadeEleitoral),
+        partidoNumero: texto(item.partidoNumero),
+        partidoSigla: texto(item.partidoSigla)
+    };
+    return Object.values(coligacao).some(Boolean) ? coligacao : null;
+}
+
+function mapFicha(valor: unknown): CandidatoFicha | null {
+    const item = registro(valor);
+    const ficha: CandidatoFicha = {
+        nomeSocial: texto(item.nomeSocial),
+        genero: texto(item.genero),
+        grauInstrucao: texto(item.grauInstrucao),
+        ocupacao: texto(item.ocupacao),
+        corRaca: texto(item.corRaca),
+        agremiacao: texto(item.agremiacao),
+        federacao: texto(item.federacao),
+        coligacao: texto(item.coligacao),
+        situacao: texto(item.situacao),
+        unidadeEleitoral: texto(item.unidadeEleitoral)
+    };
+    return Object.values(ficha).some(Boolean) ? ficha : null;
+}
+
 export function mapCandidato(item: Record<string, unknown>): Candidato {
     return {
         id: Number(item.id ?? 0),
@@ -91,8 +253,98 @@ export function mapCandidato(item: Record<string, unknown>): Candidato {
         nome: obrigatorio(item.nome),
         nomeUrna: obrigatorio(item.nomeUrna),
         fotoUrl: texto(item.fotoUrl),
-        status: obrigatorio(item.status, "ativo")
+        status: obrigatorio(item.status, "ativo"),
+        ficha: mapFicha(item.ficha),
+        complementar: mapComplementar(item.complementar),
+        bens: mapBens(item.bens),
+        coligacao: mapColigacao(item.coligacao),
+        quantidadeVagas: inteiro(item.quantidadeVagas),
+        motivos: mapMotivos(item.motivos),
+        redes: mapRedes(item.redes),
+        historico: mapHistorico(item.historico)
     };
+}
+
+const MARCADORES_VAZIOS = new Set(["#NULO", "#NE", "NÃO DIVULGÁVEL", "NAO DIVULGAVEL", "-1", "-3", "-4"]);
+
+function textoSemMarcador(valor: unknown): string | null {
+    const s = texto(valor);
+    if (!s || MARCADORES_VAZIOS.has(s.toUpperCase())) return null;
+    return s;
+}
+
+function mapMotivo(valor: unknown): MotivoCandidato | null {
+    const item = registro(valor);
+    const tipo = texto(item.tipo);
+    const descricao = texto(item.descricao);
+    if (!tipo && !descricao) return null;
+    return {
+        tipo,
+        descricao,
+        processo: textoSemMarcador(item.processo)
+    };
+}
+
+function mapMotivos(valor: unknown): MotivoCandidato[] | null {
+    if (!Array.isArray(valor)) return null;
+    const lista = valor.flatMap((item) => {
+        const motivo = mapMotivo(item);
+        return motivo ? [motivo] : [];
+    });
+    return lista.length ? lista : null;
+}
+
+function mapRede(valor: unknown): RedeCandidato | null {
+    const item = registro(valor);
+    const url = textoSemMarcador(item.url);
+    if (!url) return null;
+    return {
+        ordem: texto(item.ordem) ?? "",
+        url,
+        rede: textoSemMarcador(item.rede)
+    };
+}
+
+function mapRedes(valor: unknown): RedeCandidato[] | null {
+    if (!Array.isArray(valor)) return null;
+    const lista = valor.flatMap((item) => {
+        const rede = mapRede(item);
+        return rede ? [rede] : [];
+    });
+    if (!lista.length) return null;
+    return lista.sort((a, b) => Number(a.ordem) - Number(b.ordem));
+}
+
+function mapHistoricoItem(valor: unknown): HistoricoCandidatura | null {
+    const item = registro(valor);
+    const linha: HistoricoCandidatura = {
+        ano: textoSemMarcador(item.ano),
+        turno: textoSemMarcador(item.turno),
+        abrangencia: textoSemMarcador(item.abrangencia),
+        uf: textoSemMarcador(item.uf),
+        unidade: textoSemMarcador(item.unidade),
+        cargo: textoSemMarcador(item.cargo),
+        numero: textoSemMarcador(item.numero),
+        nome: textoSemMarcador(item.nome),
+        nomeUrna: textoSemMarcador(item.nomeUrna),
+        partidoNumero: textoSemMarcador(item.partidoNumero),
+        partidoSigla: textoSemMarcador(item.partidoSigla),
+        partidoNome: textoSemMarcador(item.partidoNome),
+        situacaoCandidatura: textoSemMarcador(item.situacaoCandidatura),
+        situacaoJulgamento: textoSemMarcador(item.situacaoJulgamento),
+        resultado: textoSemMarcador(item.resultado),
+        data: textoSemMarcador(item.data)
+    };
+    return Object.values(linha).some(Boolean) ? linha : null;
+}
+
+function mapHistorico(valor: unknown): HistoricoCandidatura[] | null {
+    if (!Array.isArray(valor)) return null;
+    const lista = valor.flatMap((item) => {
+        const linha = mapHistoricoItem(item);
+        return linha ? [linha] : [];
+    });
+    return lista.length ? lista : null;
 }
 
 export function mapMunicipio(item: Record<string, unknown>): MunicipioPolitica {
@@ -325,8 +577,17 @@ export function mapMensagem(item: Record<string, unknown>): PoliticaMensagem {
         sessaoId: texto(item.sessaoId) ?? undefined,
         concluida: item.concluida == null ? undefined : bool(item.concluida),
         possuiArquivo: item.possuiArquivo == null ? undefined : bool(item.possuiArquivo),
+        possuiArquivoComplementar: item.possuiArquivoComplementar == null ? undefined : bool(item.possuiArquivoComplementar),
+        possuiArquivoBens: item.possuiArquivoBens == null ? undefined : bool(item.possuiArquivoBens),
+        possuiArquivoColigacao: item.possuiArquivoColigacao == null ? undefined : bool(item.possuiArquivoColigacao),
+        possuiArquivoVagas: item.possuiArquivoVagas == null ? undefined : bool(item.possuiArquivoVagas),
+        possuiArquivoMotivos: item.possuiArquivoMotivos == null ? undefined : bool(item.possuiArquivoMotivos),
+        possuiArquivoRedes: item.possuiArquivoRedes == null ? undefined : bool(item.possuiArquivoRedes),
+        possuiArquivoHistorico: item.possuiArquivoHistorico == null ? undefined : bool(item.possuiArquivoHistorico),
+        possuiArquivoFotos: item.possuiArquivoFotos == null ? undefined : bool(item.possuiArquivoFotos),
         sincronizacaoId: numero(item.sincronizacaoId) ?? undefined,
-        status: texto(item.status) ?? undefined
+        status: texto(item.status) ?? undefined,
+        tipo: texto(item.tipo) ?? undefined
     };
 }
 

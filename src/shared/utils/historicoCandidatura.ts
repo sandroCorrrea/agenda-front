@@ -20,7 +20,9 @@ export function dataHistorico(valor: string | null): string {
     if (!valor) return "";
     const partes = valor.split("-");
     if (partes.length !== 3) return valor;
-    const [ano, mes, dia] = partes;
+    const ano = partes[0] ?? "";
+    const mes = partes[1] ?? "";
+    const dia = partes[2] ?? "";
     if (!/^\d{4}$/.test(ano) || !/^\d{2}$/.test(mes) || !/^\d{2}$/.test(dia)) return valor;
     return `${dia}/${mes}/${ano}`;
 }

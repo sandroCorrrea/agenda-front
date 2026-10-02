@@ -17,7 +17,6 @@ import type {
     PesquisaResultado,
     PesquisaResumo,
     HistoricoCandidatura,
-    HistoricoCandidatura,
     MotivoCandidato,
     RedeCandidato,
     PoliticaMensagem,

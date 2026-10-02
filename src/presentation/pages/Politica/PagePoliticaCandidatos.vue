@@ -59,7 +59,8 @@ function fatosCandidato(item: Candidato): { rotulo: string; valor: string }[] {
         if (valor) lista.push({ rotulo: "Legenda", valor });
     }
     if (item.motivos?.length) {
-        const primeiro = item.motivos[0].descricao || item.motivos[0].tipo || "—";
+        const primeiroMotivo = item.motivos[0];
+        const primeiro = primeiroMotivo?.descricao || primeiroMotivo?.tipo || "—";
         const extra = item.motivos.length > 1 ? ` e mais ${item.motivos.length - 1}` : "";
         lista.push({ rotulo: "Motivos", valor: `${primeiro}${extra}` });
     }

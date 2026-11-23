@@ -6,6 +6,16 @@ type OpcaoMenu = {
     rota_nome_editar?: string | null;
 };
 
+/** Telas filhas sem código próprio usam a opção pai no guard e no item ativo. */
+const ROTAS_SOB_OPCAO: Record<string, string> = {
+    AdministradorCaspHistorico: "AdministradorCaspRemessa"
+};
+
+export function rotaMenuDaTela(rotaAtual: string | null | undefined): string {
+    if (!rotaAtual) return "";
+    return ROTAS_SOB_OPCAO[rotaAtual] ?? rotaAtual;
+}
+
 /**
  * O item Resultados do menu usa uma rota com :id.
  * Sem uma pesquisa escolhida, a entrada é a lista de pesquisas.
@@ -31,6 +41,9 @@ export function opcaoMenuAtiva(opcao: OpcaoMenu, rotaAtual: string | null, verRe
     if (opcao.rota_nome === "AdministradorPoliticaPesquisas" && verResultados && rotaAtual === "AdministradorPoliticaPesquisas") {
         return false;
     }
+
+    const pai = rotaMenuDaTela(rotaAtual);
+    if (pai !== rotaAtual && pai === opcao.rota_nome) return true;
 
     return (
         rotaAtual === opcao.rota_nome ||

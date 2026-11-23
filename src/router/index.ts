@@ -8,6 +8,7 @@ import {
   isPrefeitura,
   sessaoAdminLegadaSemPerfil
 } from '@/shared/utils/adminPermissions'
+import { rotaMenuDaTela } from '@/shared/utils/menuDestino'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -659,6 +660,46 @@ const router = createRouter({
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
         tituloCliente: 'Detalhe da participação'
       }
+    },
+    {
+      path: '/admin/casp/remessa',
+      name: 'AdministradorCaspRemessa',
+      component: () => import('@/presentation/pages/Sicom/PageSicomValidacao.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Remessa'
+      }
+    },
+    {
+      path: '/admin/casp/relatorios',
+      name: 'AdministradorCaspRelatorios',
+      component: () => import('@/presentation/pages/Casp/PageCaspRelatorios.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Relatórios'
+      }
+    },
+    {
+      path: '/admin/casp/receita-orcamentaria',
+      name: 'AdministradorCaspReceitaOrcamentaria',
+      component: () => import('@/presentation/pages/Casp/PageCaspReceitaOrcamentaria.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Receita Orçamentária'
+      }
+    },
+    {
+      path: '/admin/casp/historico',
+      name: 'AdministradorCaspHistorico',
+      component: () => import('@/presentation/pages/Sicom/PageSicomHistorico.vue'),
+      meta: {
+        requerAutenticacao: true,
+        perfilPermitido: TipoUsuario.ADMINISTRADOR,
+        tituloCliente: 'Histórico'
+      }
     }
   ],
 })
@@ -716,6 +757,7 @@ router.beforeEach((to, _from, next) => {
   }
 
   const nomeRota = typeof to.name === 'string' ? to.name : ''
+  const nomeMenu = rotaMenuDaTela(nomeRota)
   const precisaMenu =
     Boolean(to.meta.requerAutenticacao) &&
     Boolean(permitido) &&
@@ -726,8 +768,8 @@ router.beforeEach((to, _from, next) => {
     auth.estaAutenticado &&
     menu.carregado &&
     !menu.ehMaster &&
-    nomeRota &&
-    !menu.podeAcessarRota(nomeRota)
+    nomeMenu &&
+    !menu.podeAcessarRota(nomeMenu)
   ) {
     if (
       auth.usuario?.tipo_usuario === TipoUsuario.ADMINISTRADOR &&

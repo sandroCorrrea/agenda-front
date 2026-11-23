@@ -33,7 +33,6 @@ const { sair: chamarLogoutApi } = useLogoutUsuario();
 const menuAberto = ref(false);
 const saindo = ref(false);
 const submenuAberto = ref("");
-const apisMenuAberto = ref(false);
 const acessoVisitanteAberto = ref(false);
 const conteudoMenuAberto = ref(false);
 const modalConfirmarSaidaAberto = ref(false);
@@ -65,12 +64,7 @@ function nomeRotaAtual(): string | null {
 function moduloTemRotaAtiva(modulo: MenuModuloSessaoDTO): boolean {
     const n = nomeRotaAtual();
     if (!n) return false;
-    return modulo.opcoes.some(
-        (op) =>
-            op.rota_nome === n ||
-            op.rota_nome_cadastro === n ||
-            op.rota_nome_editar === n
-    );
+    return modulo.opcoes.some((op) => opcaoMenuAtiva(op, n, route.query.ver === "resultados"));
 }
 
 function opcaoMostraBadgeVinculos(codigo: string): boolean {
@@ -81,9 +75,6 @@ function moduloMostraBadgeVinculos(modulo: MenuModuloSessaoDTO): boolean {
     return modulo.opcoes.some((o) => o.codigo === "admin.vinculacoes");
 }
 
-const apisDocumentacaoAtiva = computed(
-    () => route.name === "BpeDocumentacao" || route.name === "ProtocoloDocumentacao"
-);
 const acessoVisitanteAtivo = computed(
     () => route.name === "Login" || route.name === "Cadastro"
 );
@@ -99,13 +90,8 @@ function toggleMenu() {
 function closeMenu() {
     menuAberto.value = false;
     submenuAberto.value = "";
-    apisMenuAberto.value = false;
     acessoVisitanteAberto.value = false;
     conteudoMenuAberto.value = false;
-}
-
-function toggleApisMenu() {
-    apisMenuAberto.value = !apisMenuAberto.value;
 }
 
 function toggleAcessoVisitante() {
@@ -202,21 +188,6 @@ async function sair() {
                                 <RouterLink to="/blog" class="navsafe__submenu-link" @click="closeMenu">
                                     Blog
                                 </RouterLink>
-                            </div>
-                        </li>
-                        <li class="navsafe__item-submenu" :class="{ 'navsafe__item-submenu--open': apisMenuAberto }">
-                            <button
-                                type="button"
-                                class="navsafe__link navsafe__submenu-toggle"
-                                :class="{ 'navsafe__submenu-toggle--active': apisDocumentacaoAtiva }"
-                                @click="toggleApisMenu"
-                            >
-                                APIs
-                                <RiArrowDownSLine class="navsafe__submenu-icon" />
-                            </button>
-                            <div class="navsafe__submenu">
-                                <RouterLink :to="{ name: 'BpeDocumentacao' }" class="navsafe__submenu-link" @click="closeMenu">BPe</RouterLink>
-                                <RouterLink :to="{ name: 'ProtocoloDocumentacao' }" class="navsafe__submenu-link" @click="closeMenu">Protocolo</RouterLink>
                             </div>
                         </li>
                         <li

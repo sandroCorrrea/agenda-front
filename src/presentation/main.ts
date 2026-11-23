@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import axios from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
 import { ServicoRepository } from "@/infrastructure/repositories/ServicoRepository";
 import { PessoaRepository } from "@/infrastructure/repositories/PessoaRepository";
 import { UsuarioRepository } from "@/infrastructure/repositories/UsuarioRepository";
@@ -22,6 +23,8 @@ import { ProtocoloRepository } from "@/infrastructure/repositories/ProtocoloRepo
 import { HomeCarrosselImagemRepository } from "@/infrastructure/repositories/HomeCarrosselImagemRepository";
 import { ParticipacaoRepository } from "@/infrastructure/repositories/ParticipacaoRepository";
 import { PoliticaRepository } from "@/infrastructure/repositories/PoliticaRepository";
+import { SicomRepository } from "@/infrastructure/repositories/SicomRepository";
+import { ReceitaOrcamentariaRepository } from "@/infrastructure/repositories/ReceitaOrcamentariaRepository";
 import { AuthMenuRepository } from "@/infrastructure/repositories/AuthMenuRepository";
 import { MenuRepository } from "@/infrastructure/repositories/MenuRepository";
 import { GrupoRepository } from "@/infrastructure/repositories/GrupoRepository";
@@ -56,6 +59,8 @@ const protocoloRepository = new ProtocoloRepository(api);
 const homeCarrosselImagemRepository = new HomeCarrosselImagemRepository(api);
 const participacaoRepository = new ParticipacaoRepository(api);
 const politicaRepository = new PoliticaRepository(api);
+const sicomRepository = new SicomRepository();
+const receitaOrcamentariaRepository = new ReceitaOrcamentariaRepository(api);
 
 app.provide('IPessoaRepository', pessoaRespository);
 app.provide('IUsuarioRepository', usuarioRepository);
@@ -76,6 +81,8 @@ app.provide('IProtocoloRepository', protocoloRepository);
 app.provide('IHomeCarrosselImagemRepository', homeCarrosselImagemRepository);
 app.provide('IParticipacaoRepository', participacaoRepository);
 app.provide('IPoliticaRepository', politicaRepository);
+app.provide('ISicomRepository', sicomRepository);
+app.provide('IReceitaOrcamentariaRepository', receitaOrcamentariaRepository);
 
 const pinia = createPinia();
 app.use(pinia);
@@ -92,7 +99,7 @@ if (sessao.estaAutenticado) {
             /* menu será tentado de novo no guard / login */
         });
 }
-api.interceptors.request.use((config) => {
+function prepararRequisicao(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
     const auth = useAuthStore();
     config.headers = config.headers ?? {};
     const acceptBruto =
@@ -108,7 +115,6 @@ api.interceptors.request.use((config) => {
     if (!config.skipAuth && auth.token) {
         config.headers.Authorization = `Bearer ${auth.token}`;
     }
-    // FormData: não forçar Content-Type (axios/navegador definem boundary)
     if (config.data instanceof FormData) {
         const headers = config.headers;
         if (headers && typeof (headers as { delete?: (k: string) => void }).delete === "function") {
@@ -118,7 +124,9 @@ api.interceptors.request.use((config) => {
         }
     }
     return config;
-});
+}
+
+api.interceptors.request.use((config) => prepararRequisicao(config));
 function requisicaoEnviouAuthorization(
     config: import("axios").InternalAxiosRequestConfig | undefined
 ): boolean {

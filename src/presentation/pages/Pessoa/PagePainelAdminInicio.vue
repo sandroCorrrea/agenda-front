@@ -24,7 +24,10 @@ import {
   RiBookmark3Line,
   RiGovernmentLine,
   RiSurveyLine,
-  RiUserStarLine
+  RiUserStarLine,
+  RiFolderZipLine,
+  RiFileExcel2Line,
+  RiHistoryLine
 } from "@remixicon/vue";
 import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
@@ -85,7 +88,11 @@ const DESC_POR_ROTA: Record<string, string> = {
   AdministradorPoliticaPartidos: "Siglas e números dos partidos.",
   AdministradorPoliticaCandidatos: "Candidatos vinculados à eleição e ao município.",
   AdministradorPoliticaPesquisas: "Questionários de intenção de voto.",
-  AdministradorPoliticaResultados: "Coleta das pesquisas, sem previsão eleitoral."
+  AdministradorPoliticaResultados: "Coleta das pesquisas, sem previsão eleitoral.",
+  AdministradorCaspRemessa: "Envio do manual em PDF e da remessa em ZIP.",
+  AdministradorCaspRelatorios: "Consulta dos relatórios da remessa.",
+  AdministradorCaspReceitaOrcamentaria: "Envio da planilha .xlsx e consulta dos arquivos tratados.",
+  AdministradorCaspHistorico: "Instrumentos de exercícios anteriores e previsão do município."
 };
 
 const ACCENT_CYCLE = ["violet", "teal", "cyan", "amber", "indigo", "slate", "rose"];
@@ -111,7 +118,11 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorPoliticaPartidos: RiBookmark3Line,
   AdministradorPoliticaCandidatos: RiUserStarLine,
   AdministradorPoliticaPesquisas: RiSurveyLine,
-  AdministradorPoliticaResultados: RiBarChartBoxLine
+  AdministradorPoliticaResultados: RiBarChartBoxLine,
+  AdministradorCaspRemessa: RiFolderZipLine,
+  AdministradorCaspRelatorios: RiFileList3Line,
+  AdministradorCaspReceitaOrcamentaria: RiFileExcel2Line,
+  AdministradorCaspHistorico: RiHistoryLine
 };
 
 const atalhosVisiveis = computed(() => {

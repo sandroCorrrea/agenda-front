@@ -40,7 +40,7 @@ export class HttpManualApiGateway implements ManualApiGateway {
     private readonly base: string;
 
     constructor(
-        private readonly buscar: typeof fetch = fetch,
+        private readonly buscar: typeof fetch = (entrada, opcoes) => fetch(entrada, opcoes),
         base = resolverBaseManual(import.meta.env.VITE_MANUAL_API_URL)
     ) {
         this.base = base;

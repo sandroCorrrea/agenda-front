@@ -231,7 +231,8 @@ function desenharTabela(cursor: Cursor, colunas: Coluna[], linhas: Array<{ celul
         });
         let x = MARGEM;
         colunas.forEach((coluna, colunaIndice) => {
-            quebradas[colunaIndice].forEach((texto, linhaIndice) => {
+            const textos = quebradas[colunaIndice] ?? [];
+            textos.forEach((texto, linhaIndice) => {
                 const larguraTexto = cursor.font.widthOfTextAtSize(texto, 8);
                 const deslocamento = coluna.direita ? Math.max(4, coluna.largura - larguraTexto - 4) : 4;
                 cursor.page.drawText(texto, {
@@ -377,7 +378,7 @@ async function desenharCapa(cursor: Cursor, resposta: SicomRelatorioResposta, lo
     }
 
     const resumo = resposta.resumo;
-    const pares = [
+    const pares: Array<[string, string]> = [
         ["Exercício", textoPreenchido(resposta.exercicio) ? (resposta.exercicio as string) : "—"],
         ["Remessa", resposta.remessa?.arquivo ?? "—"],
         ["Ementário", resposta.ementario?.arquivo ?? "—"],
@@ -673,5 +674,7 @@ export async function montarPdfRelatorio(resposta: SicomRelatorioResposta, logo?
 
 export async function exportarRelatorioPdf(resposta: SicomRelatorioResposta, logo?: Uint8Array): Promise<void> {
     const bytes = await montarPdfRelatorio(resposta, logo);
-    dispararDownloadBlob(new Blob([bytes], { type: "application/pdf" }), nomeArquivoRelatorio(resposta.exercicio));
+    const arquivo = new Uint8Array(bytes.byteLength);
+    arquivo.set(bytes);
+    dispararDownloadBlob(new Blob([arquivo], { type: "application/pdf" }), nomeArquivoRelatorio(resposta.exercicio));
 }

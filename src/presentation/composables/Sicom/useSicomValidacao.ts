@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { ValidarRemessaSicomUseCase } from "@/application/use-cases/Sicom/SicomUseCases";
 import type { SicomValidacaoResposta } from "@/domain/sicom/validacao";
+import { registrarManualApi } from "@/infrastructure/http/manualApiLog";
 import { useSicomRepository } from "@/presentation/composables/Sicom/useSicomRepository";
 import { extensaoAceita } from "@/shared/utils/sicomValidacao";
 
@@ -30,6 +31,7 @@ export function useSicomValidacao() {
         try {
             const resposta = await validarRemessa.execute(manual, remessa);
             if (resposta.status == null) {
+                registrarManualApi("tela", { motivo: "status-ausente", mensagem: resposta.mensagem ?? "" });
                 falhaTecnica.value = MENSAGEM_TECNICA;
                 return;
             }
@@ -37,10 +39,12 @@ export function useSicomValidacao() {
         } catch (erro: unknown) {
             resultado.value = null;
             const mensagem = erro instanceof Error ? erro.message : "";
-            falhaTecnica.value =
-                mensagem.startsWith("Defina VITE_MANUAL_API_URL") || mensagem.startsWith("VITE_MANUAL_API_URL inválida")
-                    ? mensagem
-                    : MENSAGEM_TECNICA;
+            if (mensagem.startsWith("Defina VITE_MANUAL_API_URL") || mensagem.startsWith("VITE_MANUAL_API_URL inválida")) {
+                falhaTecnica.value = mensagem;
+            } else {
+                registrarManualApi("tela", { motivo: "excecao", mensagem });
+                falhaTecnica.value = MENSAGEM_TECNICA;
+            }
         } finally {
             validando.value = false;
         }

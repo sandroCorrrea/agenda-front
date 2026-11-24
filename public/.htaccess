@@ -2,6 +2,10 @@
   RewriteEngine On
   RewriteBase /
 
+  # A API só libera a origem HTTPS. Em HTTP o navegador bloqueia a remessa.
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
   # index.html do build Vue
   RewriteRule ^index\.html$ - [L]
 

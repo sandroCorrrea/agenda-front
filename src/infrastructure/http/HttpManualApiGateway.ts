@@ -1,4 +1,5 @@
 import { AxiosError } from "axios";
+import { registrarManualApi } from "@/infrastructure/http/manualApiLog";
 import { resolverBaseManual } from "@/infrastructure/http/manualApiBase";
 
 const TEMPO_MS = 90_000;
@@ -14,6 +15,15 @@ export type ManualApiGateway = {
     ): Promise<unknown>;
     delete(caminho: string, aceitos: readonly number[]): Promise<unknown>;
 };
+
+function descreverArquivos(corpo?: FormData): string {
+    if (!corpo) return "";
+    const partes: string[] = [];
+    for (const [campo, valor] of corpo.entries()) {
+        if (valor instanceof File) partes.push(`${campo}=${valor.name}:${valor.size}`);
+    }
+    return partes.join(";");
+}
 
 function caminhoPermitido(caminho: string): boolean {
     return (
@@ -72,6 +82,16 @@ export class HttpManualApiGateway implements ManualApiGateway {
             }
         }
 
+        const inicio = performance.now();
+        registrarManualApi("pedido", {
+            method,
+            url: url.href,
+            caminho,
+            origin: typeof window === "undefined" ? "" : window.location.origin,
+            arquivos: descreverArquivos(corpo),
+            modo: import.meta.env.MODE
+        });
+
         let resposta: Response;
         try {
             resposta = await this.buscar(url, {
@@ -82,18 +102,48 @@ export class HttpManualApiGateway implements ManualApiGateway {
                 headers: { Accept: "application/json" },
                 signal: AbortSignal.timeout(TEMPO_MS)
             });
-        } catch {
+        } catch (erro: unknown) {
+            registrarManualApi("falha-rede", {
+                method,
+                url: url.href,
+                caminho,
+                nome: erro instanceof Error ? erro.name : "Error",
+                mensagem: erro instanceof Error ? erro.message : "",
+                duracao: Math.round(performance.now() - inicio),
+                online: typeof navigator === "undefined" ? null : navigator.onLine
+            });
             throw new AxiosError("falha");
         }
 
-        if (!aceitos.includes(resposta.status)) {
-            throw new AxiosError("falha");
-        }
-
+        const aceito = aceitos.includes(resposta.status);
+        let json: unknown = null;
+        let jsonLegivel = false;
         try {
-            return await resposta.json();
+            json = await resposta.json();
+            jsonLegivel = true;
         } catch {
+            jsonLegivel = false;
+        }
+
+        const dados: Record<string, string | number | boolean | null> = {
+            method,
+            url: url.href,
+            http: resposta.status,
+            contentType: resposta.headers.get("content-type") ?? "",
+            duracao: Math.round(performance.now() - inicio),
+            aceito
+        };
+        if (jsonLegivel && json != null && typeof json === "object" && !Array.isArray(json)) {
+            const registro = json as Record<string, unknown>;
+            if (typeof registro.status === "string") dados.status = registro.status;
+            if (typeof registro.totalErros === "number") dados.totalErros = registro.totalErros;
+            if (typeof registro.mensagem === "string") dados.mensagem = registro.mensagem;
+        }
+        registrarManualApi("resposta", dados);
+
+        if (!aceito || !jsonLegivel) {
             throw new AxiosError("falha");
         }
+        return json;
     }
 }

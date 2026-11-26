@@ -13,12 +13,15 @@ export function lerArquivoRemessa(nome: string | null | undefined): ArquivoRemes
     if (!nome) return null;
     const base = nome.trim().split(/[/\\]/).pop() ?? "";
     const encontrado = /^([A-Za-z]+)_(\d+)_(\d{4})\.zip$/i.exec(base);
-    if (!encontrado) return null;
-    const tipo = TIPO_POR_PREFIXO[encontrado[1].toUpperCase()];
+    const prefixo = encontrado?.[1];
+    const codigoMunicipio = encontrado?.[2];
+    const anoTexto = encontrado?.[3];
+    if (!prefixo || !codigoMunicipio || !anoTexto) return null;
+    const tipo = TIPO_POR_PREFIXO[prefixo.toUpperCase()];
     if (!tipo) return null;
     return {
         tipo,
-        codigoMunicipio: encontrado[2],
-        ano: Number(encontrado[3])
+        codigoMunicipio,
+        ano: Number(anoTexto)
     };
 }

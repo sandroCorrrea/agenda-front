@@ -19,7 +19,7 @@ import { useLayoutMinimo } from "@/presentation/composables/useLayoutMinimo";
 import { useVinculosPendentesStore } from "@/presentation/store/useVinculosPendentesStore";
 import type { MenuModuloSessaoDTO } from "@/application/dto/Menu/MenuSessaoDTO";
 import { destinoAposMenu } from "@/shared/utils/adminPermissions";
-import { destinoOpcaoMenu, opcaoMenuAtiva } from "@/shared/utils/menuDestino";
+import { destinoOpcaoMenu, opcaoMenuAtiva, rotuloOpcaoMenu } from "@/shared/utils/menuDestino";
 
 const layoutMinimo = useLayoutMinimo();
 const matriz = useMatrizStore();
@@ -234,7 +234,7 @@ async function sair() {
                                         :class="{ 'router-link-active': opcaoMenuAtiva(opcao, nomeRotaAtual(), route.query.ver === 'resultados') }"
                                         @click="closeMenu"
                                     >
-                                        {{ opcao.label }}
+                                        {{ rotuloOpcaoMenu(opcao) }}
                                         <span
                                             v-if="opcaoMostraBadgeVinculos(opcao.codigo) && vinculosPendentes.temPendentes"
                                             class="navsafe__badge-count"
@@ -275,7 +275,7 @@ async function sair() {
                                         :class="{ 'router-link-active': opcaoMenuAtiva(opcao, nomeRotaAtual(), route.query.ver === 'resultados') }"
                                         @click="closeMenu"
                                     >
-                                        {{ opcao.label }}
+                                        {{ rotuloOpcaoMenu(opcao) }}
                                         <span
                                             v-if="opcaoMostraBadgeVinculos(opcao.codigo) && vinculosPendentes.temPendentes"
                                             class="navsafe__badge-count navsafe__badge-count--inline"

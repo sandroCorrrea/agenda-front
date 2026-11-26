@@ -47,13 +47,14 @@ export function rotuloSituacaoHistorico(situacao: SicomRelatorioSituacao | null)
 
 export function frasesGravacao(
     mensagem: string | null,
-    remessas: SicomHistoricoGravacaoItem[]
+    remessas: Array<SicomHistoricoGravacaoItem & { nomeMunicipio?: string | null }>
 ): { verdes: string[]; amarelas: string[] } {
     const novos = remessas.filter((item) => !item.substituido);
     const atualizados = remessas.filter((item) => item.substituido);
-    const amarelas = atualizados.map(
-        (item) => `O exercício ${item.exercicio ?? "—"} do município ${item.municipio ?? "—"} foi atualizado.`
-    );
+    const amarelas = atualizados.map((item) => {
+        const nome = item.nomeMunicipio?.trim();
+        return `O exercício ${item.exercicio ?? "—"} do município ${nome || item.municipio || "—"} foi atualizado.`;
+    });
     if (atualizados.length === 0) return { verdes: mensagem ? [mensagem] : [], amarelas };
     return {
         verdes: novos.map((item) => `Exercício ${item.exercicio ?? "—"} gravado.`),

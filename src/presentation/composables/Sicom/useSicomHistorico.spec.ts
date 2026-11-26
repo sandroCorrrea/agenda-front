@@ -28,10 +28,12 @@ function lista(vazia: boolean): SicomHistoricoLista {
         municipios: [
             {
                 municipio: "02002",
+                nomeMunicipio: null,
                 remessas: [
                     {
                         id: 5,
                         municipio: "02002",
+                        nomeMunicipio: null,
                         exercicio: 2025,
                         arquivo: "IP_02002_2025.zip",
                         receitaBruta: 10,

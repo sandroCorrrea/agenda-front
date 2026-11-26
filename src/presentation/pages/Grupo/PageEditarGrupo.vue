@@ -73,6 +73,7 @@ const catalogoFiltrado = computed(() => {
         .map((mod) => ({
             ...mod,
             opcoes: mod.opcoes.filter((op) => {
+                if (op.rota_nome === "AdministradorCaspRelatorios") return false;
                 if (!op.atribuivel) return false;
                 if (!escopo) return op.escopo === "cliente" || op.escopo === "admin";
                 return op.escopo === escopo;

@@ -61,4 +61,20 @@ describe("historicoMappers", () => {
 
         expect(resposta.municipios[0]?.remessas[0]?.receitaLiquida).toBeNull();
     });
+
+    it("guarda o nome do município quando a API envia", () => {
+        const resposta = mapListaHistorico({
+            status: "listado",
+            municipios: [
+                {
+                    municipio: "02002",
+                    nomeMunicipio: "Município exemplo",
+                    remessas: [{ id: 1, arquivo: "IP_02002_2023.zip", nomeMunicipio: "Município exemplo" }]
+                }
+            ]
+        });
+
+        expect(resposta.municipios[0]?.nomeMunicipio).toBe("Município exemplo");
+        expect(resposta.municipios[0]?.remessas[0]?.nomeMunicipio).toBe("Município exemplo");
+    });
 });

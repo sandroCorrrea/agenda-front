@@ -11,6 +11,19 @@ const ROTAS_SOB_OPCAO: Record<string, string> = {
     AdministradorCaspHistorico: "AdministradorCaspRemessa"
 };
 
+/** A API ainda pode devolver esta rota até o menu ser atualizado no servidor. */
+const ROTAS_FORA_DO_MENU = new Set(["AdministradorCaspRelatorios"]);
+
+export function opcaoForaDoMenu(rotaNome: string | null | undefined): boolean {
+    return Boolean(rotaNome && ROTAS_FORA_DO_MENU.has(rotaNome));
+}
+
+/** O menu da API ainda pode dizer Histórico. Na tela essa entrada envia a remessa. */
+export function rotuloOpcaoMenu(opcao: { rota_nome: string; label: string }): string {
+    if (opcao.rota_nome === "AdministradorCaspHistorico") return "Enviar Remessa";
+    return opcao.label;
+}
+
 export function rotaMenuDaTela(rotaAtual: string | null | undefined): string {
     if (!rotaAtual) return "";
     return ROTAS_SOB_OPCAO[rotaAtual] ?? rotaAtual;

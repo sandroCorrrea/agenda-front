@@ -104,6 +104,14 @@ export function useSicomHistorico(deps?: { repositorio: ISicomRepository; baixar
         return lista.value.municipios.find((item) => item.municipio === codigo)?.remessas.length ?? 0;
     }
 
+    function nomeMunicipioConhecido(codigo: string | null): string | null {
+        if (!codigo || lista.value?.status !== "listado") return null;
+        const grupo = lista.value.municipios.find((item) => item.municipio === codigo);
+        if (!grupo) return null;
+        const nome = grupo.nomeMunicipio?.trim() || grupo.remessas.find((item) => item.nomeMunicipio?.trim())?.nomeMunicipio?.trim() || "";
+        return nome || null;
+    }
+
     async function prever() {
         const municipio = municipioAtivo.value;
         if (!municipio || anosDoMunicipio(municipio) === 0) {
@@ -188,14 +196,25 @@ export function useSicomHistorico(deps?: { repositorio: ISicomRepository; baixar
                 falhaGravacao.value = resposta.mensagem;
                 return;
             }
-            const frases = frasesGravacao(resposta.mensagem, resposta.remessas);
-            sucessoGravacao.value = frases.verdes;
-            avisoSubstituido.value = frases.amarelas;
+            const montarFrases = () =>
+                frasesGravacao(
+                    resposta.mensagem,
+                    resposta.remessas.map((item) => ({
+                        ...item,
+                        nomeMunicipio: nomeMunicipioConhecido(item.municipio)
+                    }))
+                );
+            const frasesIniciais = montarFrases();
+            sucessoGravacao.value = frasesIniciais.verdes;
+            avisoSubstituido.value = frasesIniciais.amarelas;
             const gravados = new Set(resposta.remessas.map((item) => item.municipio));
             const ativo = municipioAtivo.value;
             const jaViu = previsaoConsultada.value;
             selecionados.value = [];
             await listar({ atualizarPrevisao: false });
+            const frases = montarFrases();
+            sucessoGravacao.value = frases.verdes;
+            avisoSubstituido.value = frases.amarelas;
             const unico = lista.value?.municipios.length === 1;
             if (municipioAtivo.value && gravados.has(municipioAtivo.value) && (jaViu || unico || ativo === municipioAtivo.value)) {
                 await prever();

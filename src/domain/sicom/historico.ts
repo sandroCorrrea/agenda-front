@@ -23,6 +23,7 @@ export type SicomHistoricoGravacao = {
 export type SicomHistoricoListaItem = {
     id: number | null;
     municipio: string | null;
+    nomeMunicipio: string | null;
     exercicio: number | null;
     arquivo: string | null;
     receitaBruta: number | null;
@@ -36,6 +37,7 @@ export type SicomHistoricoListaItem = {
 
 export type SicomHistoricoMunicipio = {
     municipio: string | null;
+    nomeMunicipio: string | null;
     remessas: SicomHistoricoListaItem[];
 };
 

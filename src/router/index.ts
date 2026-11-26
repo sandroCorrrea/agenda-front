@@ -664,21 +664,11 @@ const router = createRouter({
     {
       path: '/admin/casp/remessa',
       name: 'AdministradorCaspRemessa',
-      component: () => import('@/presentation/pages/Sicom/PageSicomValidacao.vue'),
+      component: () => import('@/presentation/pages/Casp/PageCaspRemessaLista.vue'),
       meta: {
         requerAutenticacao: true,
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
         tituloCliente: 'Remessa'
-      }
-    },
-    {
-      path: '/admin/casp/relatorios',
-      name: 'AdministradorCaspRelatorios',
-      component: () => import('@/presentation/pages/Casp/PageCaspRelatorios.vue'),
-      meta: {
-        requerAutenticacao: true,
-        perfilPermitido: TipoUsuario.ADMINISTRADOR,
-        tituloCliente: 'Relatórios'
       }
     },
     {
@@ -698,7 +688,7 @@ const router = createRouter({
       meta: {
         requerAutenticacao: true,
         perfilPermitido: TipoUsuario.ADMINISTRADOR,
-        tituloCliente: 'Histórico'
+        tituloCliente: 'Enviar Remessa'
       }
     }
   ],

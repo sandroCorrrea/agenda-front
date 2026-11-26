@@ -12,7 +12,7 @@ import {
 import { TAMANHO_PAGINA_HISTORICO, filtrarContasHistorico, formatarGravadoEm, rotuloSituacaoHistorico } from "@/shared/utils/sicomHistorico";
 import { textoIntervalo } from "@/shared/utils/sicomValidacao";
 
-const props = defineProps<{ detalhe: SicomHistoricoDetalhe }>();
+const props = defineProps<{ detalhe: SicomHistoricoDetalhe; nomeMunicipio?: string | null }>();
 
 const aba = ref<"receitas" | "despesas" | "deducoes">("receitas");
 const busca = ref("");
@@ -59,7 +59,7 @@ function valorDa(item: SicomHistoricoConta): string {
     <section class="card border-0 shadow-sm pol-panel">
         <div class="card-body">
             <p class="text-muted small mb-3">
-                Exercício {{ detalhe.exercicio ?? "—" }} · município {{ detalhe.municipio || "—" }} · {{ detalhe.arquivo || "—" }} ·
+                Exercício {{ detalhe.exercicio ?? "—" }} · {{ props.nomeMunicipio?.trim() || detalhe.municipio || "—" }} · {{ detalhe.arquivo || "—" }} ·
                 gravado em {{ formatarGravadoEm(detalhe.gravadoEm) }}
             </p>
             <div class="hist-cartoes mb-4">

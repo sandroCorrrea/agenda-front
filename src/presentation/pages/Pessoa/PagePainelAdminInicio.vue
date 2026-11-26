@@ -33,7 +33,7 @@ import { useMatrizStore } from "@/presentation/store/useMatrizStore";
 import { useAuthStore } from "@/presentation/store/useAuthStore";
 import { useMenuStore } from "@/presentation/store/useMenuStore";
 import { destinoAposMenu } from "@/shared/utils/adminPermissions";
-import { destinoOpcaoMenu } from "@/shared/utils/menuDestino";
+import { destinoOpcaoMenu, rotuloOpcaoMenu } from "@/shared/utils/menuDestino";
 
 const matriz = useMatrizStore();
 const auth = useAuthStore();
@@ -89,10 +89,9 @@ const DESC_POR_ROTA: Record<string, string> = {
   AdministradorPoliticaCandidatos: "Candidatos vinculados à eleição e ao município.",
   AdministradorPoliticaPesquisas: "Questionários de intenção de voto.",
   AdministradorPoliticaResultados: "Coleta das pesquisas, sem previsão eleitoral.",
-  AdministradorCaspRemessa: "Envio do manual em PDF e da remessa em ZIP.",
-  AdministradorCaspRelatorios: "Consulta dos relatórios da remessa.",
+  AdministradorCaspRemessa: "Remessas gravadas por município, com contas, exclusão e previsão.",
   AdministradorCaspReceitaOrcamentaria: "Envio da planilha .xlsx e consulta dos arquivos tratados.",
-  AdministradorCaspHistorico: "Instrumentos de exercícios anteriores e previsão do município."
+  AdministradorCaspHistorico: "Envio dos ZIP e do ementário. A remessa fica gravada."
 };
 
 const ACCENT_CYCLE = ["violet", "teal", "cyan", "amber", "indigo", "slate", "rose"];
@@ -120,7 +119,6 @@ const iconePorRota: Record<string, typeof RiBriefcase4Line> = {
   AdministradorPoliticaPesquisas: RiSurveyLine,
   AdministradorPoliticaResultados: RiBarChartBoxLine,
   AdministradorCaspRemessa: RiFolderZipLine,
-  AdministradorCaspRelatorios: RiFileList3Line,
   AdministradorCaspReceitaOrcamentaria: RiFileExcel2Line,
   AdministradorCaspHistorico: RiHistoryLine
 };
@@ -134,7 +132,7 @@ const atalhosVisiveis = computed(() => {
         o.rota_nome !== "AdministradorPerfil"
     )
     .map((o, idx) => ({
-      nome: o.label,
+      nome: rotuloOpcaoMenu(o),
       descricao: DESC_POR_ROTA[o.rota_nome] ?? "Acesse esta funcionalidade do painel.",
       rota: o.rota_nome,
       accent: ACCENT_CYCLE[idx % ACCENT_CYCLE.length] as string

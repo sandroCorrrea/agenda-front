@@ -55,6 +55,7 @@ function mapItemLista(valor: unknown): SicomHistoricoListaItem {
     return {
         id: reais(bruto.id),
         municipio: textoCru(bruto.municipio),
+        nomeMunicipio: textoCru(bruto.nomeMunicipio),
         exercicio: reais(bruto.exercicio),
         arquivo: textoCru(bruto.arquivo),
         receitaBruta: reais(bruto.receitaBruta),
@@ -71,6 +72,7 @@ function mapMunicipio(valor: unknown): SicomHistoricoMunicipio {
     const bruto = registro(valor) ?? {};
     return {
         municipio: textoCru(bruto.municipio),
+        nomeMunicipio: textoCru(bruto.nomeMunicipio),
         remessas: Array.isArray(bruto.remessas) ? bruto.remessas.map(mapItemLista) : []
     };
 }

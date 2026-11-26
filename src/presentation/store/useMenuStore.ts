@@ -5,6 +5,7 @@ import type {
     MenuOpcaoSessaoDTO,
     MenuSessaoDTO
 } from "@/application/dto/Menu/MenuSessaoDTO";
+import { opcaoForaDoMenu } from "@/shared/utils/menuDestino";
 
 const chaveMenu = "agenda_auth_menu";
 
@@ -43,13 +44,32 @@ export const useMenuStore = defineStore("menu", () => {
     const temAlgumaOpcao = computed(() => opcoes.value.length > 0);
 
     function definirMenu(menu: MenuSessaoDTO) {
+        const modulosVisiveis = (Array.isArray(menu.modulos) ? menu.modulos : [])
+            .map((modulo) => ({
+                ...modulo,
+                opcoes: (modulo.opcoes ?? []).filter((opcao) => !opcaoForaDoMenu(opcao.rota_nome))
+            }))
+            .filter((modulo) => modulo.opcoes.length > 0);
+        const destino = menu.destino_sugerido;
+        const destinoVisivel =
+            destino && opcaoForaDoMenu(destino.rota_nome)
+                ? { rota_nome: "AdministradorCaspRemessa", path: "/admin/casp/remessa" }
+                : (destino ?? null);
+
         ehMaster.value = Boolean(menu.eh_master);
         grupo.value = menu.grupo ?? null;
-        destinoSugerido.value = menu.destino_sugerido ?? null;
-        modulos.value = Array.isArray(menu.modulos) ? menu.modulos : [];
+        destinoSugerido.value = destinoVisivel;
+        modulos.value = modulosVisiveis;
         carregado.value = true;
         try {
-            localStorage.setItem(chaveMenu, JSON.stringify(menu));
+            localStorage.setItem(
+                chaveMenu,
+                JSON.stringify({
+                    ...menu,
+                    modulos: modulosVisiveis,
+                    destino_sugerido: destinoVisivel
+                })
+            );
         } catch {
             /* ignore quota */
         }

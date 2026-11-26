@@ -21,6 +21,25 @@ describe("sicomHistorico", () => {
         expect(frases.verdes).toEqual(["Exercício 2024 gravado."]);
     });
 
+    it("prefere o nome do município na frase de atualização", () => {
+        const frases = frasesGravacao(null, [
+            {
+                id: 2,
+                municipio: "02002",
+                nomeMunicipio: "Santa Bárbara do Leste",
+                exercicio: 2025,
+                arquivo: "b.zip",
+                substituido: true,
+                receitaLiquida: 1,
+                despesaFixada: 1,
+                resultado: 0,
+                contas: 1
+            }
+        ]);
+
+        expect(frases.amarelas).toEqual(["O exercício 2025 do município Santa Bárbara do Leste foi atualizado."]);
+    });
+
     it("recusa arquivo que não é ZIP e arquivo acima de 40 MB", () => {
         const pdf = new File(["a"], "notas.pdf");
         expect(validarSelecaoHistorico([pdf], "ementario.xlsx")).toBe("notas.pdf não é um ZIP.");
